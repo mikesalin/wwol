@@ -13,6 +13,10 @@ class ZoomDlg(wxfb_output.ZoomDlg):
     перетаскивать мышью.
     Parent должен быть MainVideoFrame
     """
+    def __init__(self, parent):        
+        wxfb_output.ZoomDlg.__init__(self, parent)
+        self.set_zoom_choice("a", parent.a_panel.zoom)
+        
     def close_func(self, event):
         """
         При закрытии окна нужно 'отжать' кнопку в родительском окне и удалить

@@ -22,6 +22,15 @@ class ViewerWorkingThread(threading.Thread):
     возвращает не None, то этот объект сохраняется в .exit_obj и работа
     заканчивается. Т.е. вернуть не None -- это механизм (а) закончить работу и
     (б) сообщить об ошибке.
+    
+    Рекомендуется в качестве остановочного объекта использовать определенные
+    здесь int-ы:
+    .NORMAL_STOP
+    .FAIL_STOP
+    
+    Переменные:
+    .task_queue
+    .exit_obj
     """
     def __init__(self):
         threading.Thread.__init__(self)
@@ -36,6 +45,9 @@ class ViewerWorkingThread(threading.Thread):
             if rv is not None:
                 self.exit_obj = rv
                 return
+    
+    NORMAL_STOP = 1
+    FAIL_STOP = 2
 
 class PanelParam:
     """
@@ -83,6 +95,7 @@ class Preview:
     Обработка ошибок в рабочем потоке:
     - вызывается self._report_error
     - тот вызывет main_video_frame.viewer_crushed() (через RunAfter)
+    - рабочий поток останавливается
     - если рабочий поток встал, то дальнейшие вызовы .goto_frame() и
      .update_view() возрващают False.
      
@@ -146,12 +159,14 @@ class Preview:
         return True
         
     def _stop_working_thread(self):
-        close_flag = lambda: 1
+        if not self.working_thread.is_alive(): return
+        close_flag = lambda: ViewerWorkingThread.NORMAL_STOP
         self._enqueue_task(close_flag)
         self.working_thread.join()
     
-    def _report_error(self, message, warn_only=False):
-        wx.CallAfter(self.main_video_frame.viewer_crushed, message, warn_only)
+    def _report_error(self, message):
+        wx.CallAfter(self.main_video_frame.viewer_crushed, message)
+        # NB: _report_warn ?
 
     def goto_frame(self, num):
         "num -- int - номер кадра, или None - первый/следующий кадр"
@@ -176,10 +191,15 @@ class Preview:
     def _goto_frame_act(self, num):
         """
         Вызывается из рабочего потока
-        num -- int - номер кадра, или None - первый/следующий кадр
+        Аргументы:
+          num -- int - номер кадра, или None - первый/следующий кадр
+        Возвращает:
+          None -- все хорошо
+          FAIL_STOP -- при ошибке
         """
         if self.first_call_goto_frame and (num is not None):
-            self._goto_frame_act(None)
+            stop_flag = self._goto_frame_act(None)
+            if stop_flag is not None: return stop_flag
         self.first_call_goto_frame = False
         
         try:                
@@ -187,9 +207,18 @@ class Preview:
                 self.raw_img = self.loader.next()
             else:
                 self.raw_img = self.loader.send(num + self.frame_num_ofs)
-        except loading.LoadingError:
+        except loading.LoadingError as err:
+            # обработка ошибок:
+            err_subtype = "LoadingError (not a subtype)"
+            if isinstance(err, loading.FrameLoaddingFailed):
+                err_subtype = "FrameLoaddingFailed"
+            if isinstance(err, loading.BadFormatString):
+                err_subtype = "BadFormatString"
+            if isinstance(err, loading.NoData): err_subtype = "NoData"
+            logging.debug("_goto_frame_act caught " + err_subtype)
+            
             self._report_error("Ошибка при загрузке кадра.")
-            return
+            return ViewerWorkingThread.FAIL_STOP
         self.zoom_cache = []
         
         self._update_view_act()        

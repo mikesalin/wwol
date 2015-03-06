@@ -14,6 +14,8 @@ import zoom_gui
 import loading
 import view
 import configuration
+import tester
+import source_gui
 
 class MainVideoFrame(wxfb_output.MainVideoFrame):
     """
@@ -43,10 +45,11 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         self.prev_mouse_y = 0
         self.a_panel = view.PanelParam()
         
+        tester.def_all_tests(self)
+        
         #Допиливаем интерфейс:
         self.my_gauge.Show(False)
-        self.note_static_text.Show(False)
-        self.close_note_button.Show(False)
+        self.my_toolbar.Enabled = False
         
     def close_func(self, event):
         "Нажали на кнопку закрыть (крестик)."
@@ -73,25 +76,18 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
     
     def test_menu_func(self, event):
         "Меню 'Тест'"
-        if self.viewer is not None: return
-        self.config.frames_count = 200
-        ofs = 0
-        #loader = loading.image_loader("stuff/data2/IMGP%d.JPG",
-        loader = loading.image_loader("stuff/Out/pic%04d.bmp",        
-            (ofs, self.config.frames_count+ofs))
-        self.viewer = view.Preview(self, loader, ofs)
-        
-    def viewer_crushed(self, message, warn_only=False):
+        self.default_test()
+                
+    def viewer_crushed(self, message):
         """
         Обработка ошибки, возникшей при текущей работе viever.Preview и т.п.
         message - string
-        warn_only - bool. Если False, то кнопки переключения кадров и т.п.
-                    переводятся в нерабочее состояние.
-        """        
-        logging.error("This error message should be reported by GUI:"\
-                       + message)
-        if not warn_only:
-            self.close_viewer()
+        """
+        msg_dlg = wx.MessageDialog(self, message, "", wx.ICON_ERROR)        
+        msg_dlg.ShowModal()
+        msg_dlg.Destroy()        
+        self.close_viewer()
+        #NB: сделать функцию для замечаний, пусть запускает всплывающую плашку
     
     def display_frame_num(self, num):
         """
@@ -113,10 +109,11 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
                                    
     def can_go_fwd(self):
         "Возвращает True, если можно перелистнуть на кадр вперед"
-        return self.cur_frame_num + self.config.step < self.config.frames_count
+        return self.cur_frame_num + self.config.view_step \
+            < self.config.frames_count
     def can_go_back(self):
         "Возвращает True, если можно перелистнуть на кадр назад"
-        return self.cur_frame_num - self.config.step >= 0
+        return self.cur_frame_num - self.config.view_step >= 0
         
     def frame_to_time_str(self, n):
         """
@@ -155,13 +152,13 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         if self.viewer is None or not self.can_go_back():
             logging.debug("suddenly not available")
             return
-        self.viewer.goto_frame(self.cur_frame_num - self.config.step)
+        self.viewer.goto_frame(self.cur_frame_num - self.config.view_step)
     def next_tool_func(self, event):
         "Нажали на кнопку со стрелкой вперед"
         if self.viewer is None or not self.can_go_fwd():
             logging.debug("suddenly not available")
             return
-        self.viewer.goto_frame(self.cur_frame_num + self.config.step)
+        self.viewer.goto_frame(self.cur_frame_num + self.config.view_step)
 
     def jump_frame_tool_func(self, event):
         """
@@ -291,7 +288,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         self.a_panel.pos = (new_pos[0], new_pos[1])
         
         self.viewer.update_view()
-        # TODO (2): потом как-то разобраться с левой-правой картинкой
+        # NB: потом надо как-то разобраться с левой-правой картинкой
     
     def select_ab_side(self, side, choices):
         """
@@ -353,6 +350,33 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         if self.viewer is not None:
             self.viewer.update_view()
         event.Skip()
+    
+    def enter_preview(self, auto_life_view):
+        """
+        Переход в режим Preview.
+        Инициализация loader, viewer на основе self.config
+        Аргуметы:
+          auto_life_view (bool): если до этого был включен режим Life view, то
+                                 попытаться перейти сразу в него.
+        Возвращает: ничего
+        """
+        self.close_viewer()
+        if (self.config.source_type != configuration.IMG_SOURCE):
+            logging.error("Non supported yet!")
+            return
+        frt = (self.config.frames_range[0], 
+               self.config.frames_range[0] + self.config.frames_count)
+        loader = loading.image_loader(self.config.pic_path, frt)                                       
+        self.viewer = view.Preview(self, loader, self.config.frames_range[0])
+        self.my_toolbar.Enabled = True
+        if self.cur_frame_num < self.config.frames_count \
+           and self.cur_frame_num > 0:
+            self.viewer.goto_frame(self.cur_frame_num)
+            
+    def config_source_menu_func(self, event):
+        "Нажали меню Параметры -> Источник"
+        dlg = source_gui.SourceDlg(self)
+        dlg.ShowModal()
 
 
 def main():

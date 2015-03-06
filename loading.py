@@ -9,6 +9,7 @@
 import logging
 import threading
 import Queue
+import os
 import wx
 
 class LoadingError(Exception):
@@ -23,6 +24,9 @@ class BadFormatString(LoadingError):
     (TypeError: not enough arguments for format string,
     TypeError: not all arguments converted during string formatting, ...)
     """
+    pass
+class NoData(LoadingError):
+    "Исключение, когда выходим из генератора, не найдя ни одного кадра"
     pass
 
 class StopFlag:
@@ -94,6 +98,7 @@ def image_loader(filename_pattern, numbers_range, step=1):
     frame_num = numbers_range[0]
     preload_num = frame_num - 1
     preload_data = None
+    fresh = True # еще ни разу не делали yeild
     try:
         while frame_num < numbers_range[1]:
             if preload_num == frame_num:
@@ -111,6 +116,7 @@ def image_loader(filename_pattern, numbers_range, step=1):
                 async_loader.task_queue.put(preload_num)
 #                 async_loader.result_queue.put( (-1, None) ) 
 #                 - выкл пердзагр для тестов
+            fresh = False
             frame_num = yield(data)
             if frame_num is None: frame_num = preload_num
             if preload_num < numbers_range[1]:
@@ -120,8 +126,27 @@ def image_loader(filename_pattern, numbers_range, step=1):
     finally:
         async_loader.task_queue.put(StopFlag())
         async_loader.join()
+    if fresh: raise NoData()
+    
+def find_last_image(fname, start):
+    """
+    Определяет номера последней картинки в папке.
+    Аргументы:
+      fname (string):  имя файла с %d вместо номера
+      start (int): номер начального кадра
+    Возвращает: int: (номер_последней_картинки + 1) или
+                     start, если нет ни одного файла
+    """
+    for step in (100, 10, 1):
+        while os.access(fname % (start + step), os.F_OK):
+            start += step
+    
+    if os.access(fname % start, os.F_OK):
+        logging.info("Last found file: " + (fname % start))
+        return start + 1
+    else:
+        logging.info("No files match '%s' with starting number %d! (Pre-fail?!)"
+                      % (fname, start))
+        return start
     
     
-
-
-
