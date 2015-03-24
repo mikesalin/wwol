@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-В этом модуле определен класс главного окна
+В этом модуле определен класс главного окна (NB: пока главного)
 """
 
 import logging
@@ -16,10 +16,11 @@ import view
 import configuration
 import tester
 import source_gui
+import assembling
 
 class MainVideoFrame(wxfb_output.MainVideoFrame):
     """
-    Главное окно.
+    Главное окно. (NB: Пока еще главное.)
     Данные, определенные здесь:
     .zoom_dlg (ZoomDlg или None)
     .active_dlg - диалог из меню управление, включенный в данный момент,
@@ -30,9 +31,10 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
     .cur_frame_num -- номер кадра, здесь нумерация всегда с 0
     .prev_mouse_x
     .prev_mouse_y
-    .a_panel (view.PanelParam, параметр size игнорируется)
+    .a_panel (view.PanelParam, параметр size игнорируется)    
+    .HOURGLASS (wx.Bitmap)
     """
-    def __init__(self, parent):        
+    def __init__(self, parent):
         wxfb_output.MainVideoFrame.__init__(self,parent) #initialize parent class        
         
         #Данные:
@@ -44,6 +46,10 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         self.prev_mouse_x = 0
         self.prev_mouse_y = 0
         self.a_panel = view.PanelParam()
+        
+        self.HOURGLASS = wx.Bitmap("gui_images/hourglass.png")
+        if not self.HOURGLASS.IsOk():
+            logging.warning("Can't load icons")
         
         tester.def_all_tests(self)
         
@@ -83,11 +89,14 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         Обработка ошибки, возникшей при текущей работе viever.Preview и т.п.
         message - string
         """
+        if self.zoom_dlg is not None:
+            self.zoom_dlg.close_func(None)
         msg_dlg = wx.MessageDialog(self, message, "", wx.ICON_ERROR)        
         msg_dlg.ShowModal()
-        msg_dlg.Destroy()        
+        msg_dlg.Destroy()
         self.close_viewer()
         #NB: сделать функцию для замечаний, пусть запускает всплывающую плашку
+        #NB(2): в след. версии -- закрыть окно
     
     def display_frame_num(self, num):
         """
@@ -361,12 +370,10 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         Возвращает: ничего
         """
         self.close_viewer()
-        if (self.config.source_type != configuration.IMG_SOURCE):
-            logging.error("Non supported yet!")
+        loader = assembling.make_loader(self.config, self)
+        if loader is None:
+            viewer_crushed("Не удалось запустить просмотр")
             return
-        frt = (self.config.frames_range[0], 
-               self.config.frames_range[0] + self.config.frames_count)
-        loader = loading.image_loader(self.config.pic_path, frt)                                       
         self.viewer = view.Preview(self, loader, self.config.frames_range[0])
         self.my_toolbar.Enabled = True
         if self.cur_frame_num < self.config.frames_count \
@@ -377,11 +384,17 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         "Нажали меню Параметры -> Источник"
         dlg = source_gui.SourceDlg(self)
         dlg.ShowModal()
+    
+    def hourglass(self):
+        "Рисует песочные часы на левой картинке повер всего, что там есть"
+        dc = wx.ClientDC(self.a_bmp)
+        dc.DrawBitmap(self.HOURGLASS, 10, 10, True)
 
 
 def main():
     logging.basicConfig(format="%(levelname)s: %(module)s: %(message)s",
       level=logging.DEBUG)
+    logging.debug('Using wxPython version ' + wx.version())
     app = wx.App()
     wx.Log_EnableLogging(False)
     main_video_frame = MainVideoFrame(None)

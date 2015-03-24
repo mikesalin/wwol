@@ -146,7 +146,7 @@ class MainVideoFrame ( wx.Frame ):
 class ZoomDlg ( wx.Dialog ):
 	
 	def __init__( self, parent ):
-		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Масштаб", pos = wx.DefaultPosition, size = wx.Size( 220,140 ), style = wx.DEFAULT_DIALOG_STYLE|wx.STAY_ON_TOP )
+		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Масштаб", pos = wx.DefaultPosition, size = wx.Size( 220,200 ), style = wx.DEFAULT_DIALOG_STYLE|wx.STAY_ON_TOP )
 		
 		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
 		
@@ -164,16 +164,38 @@ class ZoomDlg ( wx.Dialog ):
 		self.zoom_b_choice.SetSelection( 0 )
 		gSizer12.Add( self.zoom_b_choice, 0, wx.ALL|wx.EXPAND, 5 )
 		
-		self.reset_a_button = wx.Button( self, wx.ID_ANY, u"Сброс", wx.DefaultPosition, wx.DefaultSize, 0 )
-		gSizer12.Add( self.reset_a_button, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
-		
-		self.m_button18 = wx.Button( self, wx.ID_ANY, u"Сброс", wx.DefaultPosition, wx.DefaultSize, 0 )
-		gSizer12.Add( self.m_button18, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
-		
 		
 		bSizer9.Add( gSizer12, 0, wx.EXPAND, 5 )
 		
-		self.m_staticText30 = wx.StaticText( self, wx.ID_ANY, u"Включен режим манипуляций изобразением мышью.", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer13 = wx.FlexGridSizer( 0, 3, 0, 0 )
+		fgSizer13.AddGrowableCol( 1 )
+		fgSizer13.SetFlexibleDirection( wx.BOTH )
+		fgSizer13.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+		
+		self.reset_a_button = wx.Button( self, wx.ID_ANY, u"1:1", wx.DefaultPosition, wx.DefaultSize, wx.BU_EXACTFIT )
+		fgSizer13.Add( self.reset_a_button, 0, wx.ALL, 5 )
+		
+		self.m_staticText25 = wx.StaticText( self, wx.ID_ANY, u"Сброс", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText25.Wrap( -1 )
+		fgSizer13.Add( self.m_staticText25, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		
+		self.m_button15 = wx.Button( self, wx.ID_ANY, u"1:1", wx.DefaultPosition, wx.DefaultSize, wx.BU_EXACTFIT )
+		fgSizer13.Add( self.m_button15, 0, wx.ALL, 5 )
+		
+		self.m_bpButton3 = wx.BitmapButton( self, wx.ID_ANY, wx.ArtProvider.GetBitmap( wx.ART_GO_UP, wx.ART_BUTTON ), wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW )
+		fgSizer13.Add( self.m_bpButton3, 0, wx.ALL, 5 )
+		
+		self.m_staticText26 = wx.StaticText( self, wx.ID_ANY, u"В угол", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText26.Wrap( -1 )
+		fgSizer13.Add( self.m_staticText26, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 5 )
+		
+		self.m_bpButton4 = wx.BitmapButton( self, wx.ID_ANY, wx.ArtProvider.GetBitmap( wx.ART_GO_UP, wx.ART_BUTTON ), wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW )
+		fgSizer13.Add( self.m_bpButton4, 0, wx.ALL, 5 )
+		
+		
+		bSizer9.Add( fgSizer13, 1, wx.EXPAND, 5 )
+		
+		self.m_staticText30 = wx.StaticText( self, wx.ID_ANY, u"Вы можете перемещать и масштабировать изображение мышью.", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText30.Wrap( 200 )
 		bSizer9.Add( self.m_staticText30, 0, wx.ALL|wx.EXPAND, 5 )
 		
@@ -229,8 +251,8 @@ class SourceDlg ( wx.Dialog ):
 		self.m_staticText4.Wrap( -1 )
 		fgSizer2.Add( self.m_staticText4, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 		
-		self.m_textCtrl1 = wx.TextCtrl( self.m_panel7, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer2.Add( self.m_textCtrl1, 1, wx.ALL|wx.EXPAND, 5 )
+		self.video_filename_text = wx.TextCtrl( self.m_panel7, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer2.Add( self.video_filename_text, 1, wx.ALL|wx.EXPAND, 5 )
 		
 		self.m_button3 = wx.Button( self.m_panel7, wx.ID_ANY, u"...", wx.DefaultPosition, wx.DefaultSize, wx.BU_EXACTFIT )
 		fgSizer2.Add( self.m_button3, 0, wx.ALL, 5 )
@@ -238,19 +260,9 @@ class SourceDlg ( wx.Dialog ):
 		
 		bSizer7.Add( fgSizer2, 1, wx.EXPAND, 5 )
 		
-		fgSizer9 = wx.FlexGridSizer( 0, 2, 0, 0 )
-		fgSizer9.AddGrowableCol( 0 )
-		fgSizer9.SetFlexibleDirection( wx.BOTH )
-		fgSizer9.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
-		
 		self.user_temp_path_check = wx.CheckBox( self.m_panel7, wx.ID_ANY, u"Специальное место для временных файлов", wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer9.Add( self.user_temp_path_check, 0, wx.ALL|wx.EXPAND, 5 )
-		
-		self.m_button14 = wx.Button( self.m_panel7, wx.ID_ANY, u"(i)", wx.DefaultPosition, wx.DefaultSize, wx.BU_EXACTFIT )
-		fgSizer9.Add( self.m_button14, 0, wx.ALL|wx.ALIGN_RIGHT, 5 )
-		
-		
-		bSizer7.Add( fgSizer9, 1, wx.EXPAND, 5 )
+		self.user_temp_path_check.SetValue(True) 
+		bSizer7.Add( self.user_temp_path_check, 0, wx.ALL|wx.EXPAND, 5 )
 		
 		
 		self.m_panel7.SetSizer( bSizer7 )
@@ -267,17 +279,17 @@ class SourceDlg ( wx.Dialog ):
 		self.m_staticText41.Wrap( -1 )
 		fgSizer21.Add( self.m_staticText41, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 		
-		self.m_hyperlink4 = wx.HyperlinkCtrl( self.m_panel8, wx.ID_ANY, u"(?)", wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.HL_DEFAULT_STYLE )
-		fgSizer21.Add( self.m_hyperlink4, 0, wx.ALL, 5 )
+		self.loader_cmd_help = wx.HyperlinkCtrl( self.m_panel8, wx.ID_ANY, u"(?)", wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.HL_DEFAULT_STYLE )
+		fgSizer21.Add( self.loader_cmd_help, 0, wx.ALL, 5 )
 		
-		self.m_checkBox11 = wx.CheckBox( self.m_panel8, wx.ID_ANY, u"shell", wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer21.Add( self.m_checkBox11, 0, wx.ALL, 5 )
+		self.use_shell_check = wx.CheckBox( self.m_panel8, wx.ID_ANY, u"shell", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer21.Add( self.use_shell_check, 0, wx.ALL, 5 )
 		
-		self.m_textCtrl11 = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer21.Add( self.m_textCtrl11, 1, wx.ALL|wx.EXPAND, 5 )
+		self.loader_cmd_text = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer21.Add( self.loader_cmd_text, 1, wx.ALL|wx.EXPAND, 5 )
 		
-		self.m_button15 = wx.Button( self.m_panel8, wx.ID_ANY, u"A", wx.DefaultPosition, wx.DefaultSize, wx.BU_EXACTFIT )
-		fgSizer21.Add( self.m_button15, 0, wx.ALL|wx.EXPAND, 5 )
+		self.auto_cmd_button = wx.Button( self.m_panel8, wx.ID_ANY, u"A", wx.DefaultPosition, wx.DefaultSize, wx.BU_EXACTFIT )
+		fgSizer21.Add( self.auto_cmd_button, 0, wx.ALL|wx.EXPAND, 5 )
 		
 		
 		self.m_panel8.SetSizer( fgSizer21 )
@@ -360,7 +372,7 @@ class SourceDlg ( wx.Dialog ):
 		
 		fgSizer8.AddSpacer( ( 0, 0), 1, wx.EXPAND, 5 )
 		
-		self.m_staticText25 = wx.StaticText( self, wx.ID_ANY, u"Число кадров для Длина БПФ:", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText25 = wx.StaticText( self, wx.ID_ANY, u"Число кадров для БПФ:", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText25.Wrap( -1 )
 		fgSizer8.Add( self.m_staticText25, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 		
@@ -400,10 +412,11 @@ class SourceDlg ( wx.Dialog ):
 		self.Centre( wx.BOTH )
 		
 		# Connect Events
-		self.Bind( wx.EVT_CLOSE, self.close_func )
 		self.source_type_choice.Bind( wx.EVT_CHOICEBOOK_PAGE_CHANGED, self.source_type_choice_func2 )
 		self.source_type_choice.Bind( wx.EVT_CHOICEBOOK_PAGE_CHANGING, self.source_type_choice_func1 )
 		self.user_temp_path_check.Bind( wx.EVT_CHECKBOX, self.hide_show_items )
+		self.loader_cmd_help.Bind( wx.EVT_HYPERLINK, self.loader_cmd_help_func )
+		self.auto_cmd_button.Bind( wx.EVT_BUTTON, self.auto_cmd_button_func )
 		self.max_finish_check.Bind( wx.EVT_CHECKBOX, self.hide_show_items )
 		self.m_sdbSizer1Apply.Bind( wx.EVT_BUTTON, self.apply_button_func )
 		self.m_sdbSizer1OK.Bind( wx.EVT_BUTTON, self.ok_button_func )
@@ -413,9 +426,6 @@ class SourceDlg ( wx.Dialog ):
 	
 	
 	# Virtual event handlers, overide them in your derived class
-	def close_func( self, event ):
-		event.Skip()
-	
 	def source_type_choice_func2( self, event ):
 		event.Skip()
 	
@@ -423,6 +433,12 @@ class SourceDlg ( wx.Dialog ):
 		event.Skip()
 	
 	def hide_show_items( self, event ):
+		event.Skip()
+	
+	def loader_cmd_help_func( self, event ):
+		event.Skip()
+	
+	def auto_cmd_button_func( self, event ):
 		event.Skip()
 	
 	
@@ -446,48 +462,27 @@ class GeomDlg ( wx.Dialog ):
 		
 		bSizer61 = wx.BoxSizer( wx.VERTICAL )
 		
-		self.m_staticText13 = wx.StaticText( self, wx.ID_ANY, u"Предварительное растяжение/сжатие:", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText13.Wrap( -1 )
-		bSizer61.Add( self.m_staticText13, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
-		
-		fgSizer6 = wx.FlexGridSizer( 0, 5, 0, 0 )
-		fgSizer6.AddGrowableCol( 1 )
-		fgSizer6.AddGrowableCol( 3 )
-		fgSizer6.SetFlexibleDirection( wx.BOTH )
-		fgSizer6.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
-		
-		self.m_staticText14 = wx.StaticText( self, wx.ID_ANY, u"x ", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText14.Wrap( -1 )
-		fgSizer6.Add( self.m_staticText14, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
-		
-		self.m_textCtrl10 = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer6.Add( self.m_textCtrl10, 0, wx.ALL|wx.EXPAND, 5 )
-		
-		self.m_staticText15 = wx.StaticText( self, wx.ID_ANY, u"y ", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText15.Wrap( -1 )
-		fgSizer6.Add( self.m_staticText15, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
-		
-		self.m_textCtrl111 = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer6.Add( self.m_textCtrl111, 0, wx.ALL|wx.EXPAND, 5 )
-		
-		self.m_staticText221 = wx.StaticText( self, wx.ID_ANY, u"     ", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText221.Wrap( -1 )
-		fgSizer6.Add( self.m_staticText221, 0, wx.ALL, 5 )
-		
-		
-		bSizer61.Add( fgSizer6, 0, wx.EXPAND, 5 )
-		
-		fgSizer10 = wx.FlexGridSizer( 0, 2, 0, 0 )
-		fgSizer10.AddGrowableCol( 0 )
-		fgSizer10.SetFlexibleDirection( wx.BOTH )
-		fgSizer10.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+		fgSizer91 = wx.FlexGridSizer( 0, 3, 0, 0 )
+		fgSizer91.AddGrowableCol( 1 )
+		fgSizer91.SetFlexibleDirection( wx.BOTH )
+		fgSizer91.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 		
 		self.m_staticText16 = wx.StaticText( self, wx.ID_ANY, u"Область обработки:", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText16.Wrap( -1 )
-		fgSizer10.Add( self.m_staticText16, 0, wx.ALL|wx.ALIGN_BOTTOM|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		fgSizer91.Add( self.m_staticText16, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+		
+		m_choice3Choices = [ u"Зона1" ]
+		self.m_choice3 = wx.Choice( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, m_choice3Choices, 0 )
+		self.m_choice3.SetSelection( 0 )
+		fgSizer91.Add( self.m_choice3, 0, wx.ALL|wx.EXPAND, 5 )
+		
+		self.m_button111 = wx.Button( self, wx.ID_ANY, u"...", wx.DefaultPosition, wx.DefaultSize, wx.BU_EXACTFIT )
+		self.m_button111.SetToolTipString( u"Горизонт в кадре..." )
+		
+		fgSizer91.Add( self.m_button111, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
 		
-		bSizer61.Add( fgSizer10, 0, wx.EXPAND, 5 )
+		bSizer61.Add( fgSizer91, 0, wx.EXPAND, 5 )
 		
 		fgSizer61 = wx.FlexGridSizer( 0, 5, 0, 0 )
 		fgSizer61.AddGrowableCol( 1 )
@@ -529,9 +524,9 @@ class GeomDlg ( wx.Dialog ):
 		
 		bSizer61.Add( fgSizer61, 0, wx.EXPAND, 5 )
 		
-		self.m_staticText231 = wx.StaticText( self, wx.ID_ANY, u"Коррекция преспективы:", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText231 = wx.StaticText( self, wx.ID_ANY, u"Коррекция перспективы:", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText231.Wrap( -1 )
-		bSizer61.Add( self.m_staticText231, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		bSizer61.Add( self.m_staticText231, 0, wx.ALL, 5 )
 		
 		fgSizer9 = wx.FlexGridSizer( 0, 3, 0, 0 )
 		fgSizer9.AddGrowableCol( 1 )
@@ -580,6 +575,9 @@ class GeomDlg ( wx.Dialog ):
 		
 		self.m_button13 = wx.Button( self, wx.ID_ANY, u"1:1", wx.DefaultPosition, wx.DefaultSize, 0 )
 		gSizer61.Add( self.m_button13, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		
+		self.m_button131 = wx.Button( self, wx.ID_ANY, u"Корректировка...", wx.DefaultPosition, wx.DefaultSize, 0 )
+		gSizer61.Add( self.m_button131, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
 		
 		bSizer61.Add( gSizer61, 0, wx.EXPAND, 5 )

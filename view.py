@@ -2,9 +2,6 @@
 """
 Классы, которые выполняют отрисовку. Разделяется основной поток (где GUI) и 
 рабочий поток, где подготавливается отрисовка.
-Основные классы:
-  PanelParam
-  Preview
 """
 
 import copy
@@ -14,6 +11,9 @@ import logging
 import wx
 
 import loading
+
+__all__ = ["Preview", "PanelParam"]
+
 
 class ViewerWorkingThread(threading.Thread):
     """
@@ -29,22 +29,31 @@ class ViewerWorkingThread(threading.Thread):
     .FAIL_STOP
     
     Переменные:
-    .task_queue
-    .exit_obj
+    .task_queue (Queue): создается в __init__
+    .exit_obj :          устанавливается в результате работы
+    .unkn_err_callback (callable or None) : можно установить после
+                                            инициализации и до запуска потока
     """
     def __init__(self):
         threading.Thread.__init__(self)
         self.task_queue = Queue.Queue()
         self.exit_obj = None
+        self.unkn_err_callback = None
     
     def run(self):
         "Код для испольнения в рабочем потоке"
-        while True:
-            task = self.task_queue.get()
-            rv = task()
-            if rv is not None:
-                self.exit_obj = rv
-                return
+        good_exit = False
+        try:
+            while True:
+                task = self.task_queue.get()
+                rv = task()
+                if rv is not None:
+                    good_exit = True
+                    self.exit_obj = rv
+                    return
+        finally:
+            if (not good_exit) and not (self.unkn_err_callback is None):
+                self.unkn_err_callback()
     
     NORMAL_STOP = 1
     FAIL_STOP = 2
@@ -72,6 +81,8 @@ def display_image(dest, img):
     bmp = img.ConvertToBitmap()
     dest.SetBitmap(bmp)
 
+_UNKN_ERR_MSG = "Неизвестная ошибка в рабочем потоке"
+
 class Preview:
     """
     Отрисовка в режиме PREVIEW -- просто рисуем исходные кадры на левый экран.
@@ -89,12 +100,12 @@ class Preview:
     Методы .goto_frame и .view_was_changed вызываются из ГУИ-потока,
     отправляют задание в рабочий поток и возвращают управление.
     По мере выполнения задания результат отрисовывается в основном окне через
-    wx.RunAfter . Если висит задание, которое еще не начали выполнять, то оно
+    wx.CallAfter . Если висит задание, которое еще не начали выполнять, то оно
     вытесняется самым новым.
     
     Обработка ошибок в рабочем потоке:
     - вызывается self._report_error
-    - тот вызывет main_video_frame.viewer_crushed() (через RunAfter)
+    - тот вызывет main_video_frame.viewer_crushed() (через CallAfter)
     - рабочий поток останавливается
     - если рабочий поток встал, то дальнейшие вызовы .goto_frame() и
      .update_view() возрващают False.
@@ -118,6 +129,7 @@ class Preview:
                   например, image_loader
         frame_num_ofs -- в loader будет передаваться
                          логический_номер_кадра + frame_num_ofs
+                         ( см. help(loading.frame_numbering) )
         """
         self.main_video_frame = main_video_frame
         self.loader = loader
@@ -125,6 +137,7 @@ class Preview:
         self.frame_num_ofs = frame_num_ofs
         
         self.working_thread = ViewerWorkingThread()
+        self.working_thread.unkn_err_callback = self._report_error
         self.working_thread.start()
         self.view_param_lock = threading.Lock()
         
@@ -164,7 +177,8 @@ class Preview:
         self._enqueue_task(close_flag)
         self.working_thread.join()
     
-    def _report_error(self, message):
+    def _report_error(self, message = _UNKN_ERR_MSG):
+        "Выдать сообщение об ошибке в ГУИ из рабочего потока"
         wx.CallAfter(self.main_video_frame.viewer_crushed, message)
         # NB: _report_warn ?
 
@@ -210,14 +224,17 @@ class Preview:
         except loading.LoadingError as err:
             # обработка ошибок:
             err_subtype = "LoadingError (not a subtype)"
+            more_err_info = ""
             if isinstance(err, loading.FrameLoaddingFailed):
                 err_subtype = "FrameLoaddingFailed"
             if isinstance(err, loading.BadFormatString):
                 err_subtype = "BadFormatString"
-            if isinstance(err, loading.NoData): err_subtype = "NoData"
+            if isinstance(err, loading.NoData):
+                err_subtype = "NoData"
+                more_err_info = " или слишком мало кадров для обработки"
             logging.debug("_goto_frame_act caught " + err_subtype)
             
-            self._report_error("Ошибка при загрузке кадра.")
+            self._report_error("Ошибка при загрузке кадра%s." % more_err_info)
             return ViewerWorkingThread.FAIL_STOP
         self.zoom_cache = []
         
