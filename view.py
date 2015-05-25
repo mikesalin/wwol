@@ -11,8 +11,10 @@ import logging
 import wx
 
 import loading
+import main_video_gui
 
-__all__ = ["Preview", "PanelParam"]
+__all__ = ["Preview", "PanelParam",
+           "MARKER_SIZE", "LINE_WIDTH", "ACTIVE_COLOR", "BACKGROUND_COLOR"]
 
 
 class ViewerWorkingThread(threading.Thread):
@@ -70,17 +72,6 @@ class PanelParam:
         self.zoom = 1
         self.pos = (0,0)
 
-def display_image(dest, img):
-    """
-    Аргументы:
-        dest - wx.StaitcBitmap
-        img - wx.Image
-    Вызывается в ГИУ-потоке. Есть мнение, что операции с wx.Bitmap не работают
-    в параллельных потоках.
-    """
-    bmp = img.ConvertToBitmap()
-    dest.SetBitmap(bmp)
-
 _UNKN_ERR_MSG = "Неизвестная ошибка в рабочем потоке"
 
 class Preview:
@@ -110,31 +101,39 @@ class Preview:
     - если рабочий поток встал, то дальнейшие вызовы .goto_frame() и
      .update_view() возрващают False.
      
-    данные:
-    .main_video_frame
+    Данные:
+    .main_video_frame -- тип MainVideoFrame
     .config
     .loader
     .working_thread
     .raw_img
     .zoom_cache -- см. одноименный параметр _resize_image
-    .view_param_lock
-    .a_panel
+    .view_param_lock -- следующие объекты с отступом защищены этим мьютексом
+      .a_panel      -- тип PanelParam
+      .sel_data     -- тип Selection, копия main_video_frame.sel_data
+      .raw_img_size -- (width, height)
     .first_call_goto_frame
     .frame_num_ofs
     """
+    #NB: надо будет отдельно выделить базовый класс для большей наглядности
+    
     def __init__(self, main_video_frame, loader, frame_num_ofs = 0):
         """
-        main_video_frame -- MainVideoFrame
-        loader -- настроенный генератор, выдающий wx.Image,
-                  например, image_loader
-        frame_num_ofs -- в loader будет передаваться
-                         логический_номер_кадра + frame_num_ofs
-                         ( см. help(loading.frame_numbering) )
+        Аргументы:
+            main_video_frame (MainVideoFrame)
+            loader: настроенный генератор, выдающий wx.Image,
+                    например, image_loader
+            frame_num_ofs (int): в loader будет передаваться
+                                 логический_номер_кадра + frame_num_ofs
+                                 ( см. help(loading.frame_numbering) )
         """
         self.main_video_frame = main_video_frame
         self.loader = loader
-        self.a_panel = PanelParam()
         self.frame_num_ofs = frame_num_ofs
+
+        self.a_panel = PanelParam()
+        self.sel_data = main_video_gui.Selection()
+        self.raw_img_size = (0, 0)
         
         self.working_thread = ViewerWorkingThread()
         self.working_thread.unkn_err_callback = self._report_error
@@ -184,6 +183,7 @@ class Preview:
 
     def goto_frame(self, num):
         "num -- int - номер кадра, или None - первый/следующий кадр"
+        self._take_view_param()
         task = lambda: self._goto_frame_act(num)
         return self._enqueue_task(task)
         
@@ -200,6 +200,7 @@ class Preview:
         self.view_param_lock.acquire()
         self.a_panel = copy.deepcopy(self.main_video_frame.a_panel)
         self.a_panel.size = self.main_video_frame.a_bmp.GetSizeTuple()
+        self.sel_data = copy.deepcopy(self.main_video_frame.sel_data)
         self.view_param_lock.release()
     
     def _goto_frame_act(self, num):
@@ -234,7 +235,7 @@ class Preview:
                 more_err_info = " или слишком мало кадров для обработки"
             logging.debug("_goto_frame_act caught " + err_subtype)
             
-            self._report_error("Ошибка при загрузке кадра%s." % more_err_info)
+            self._report_error("Ошибка при загрузке кадров%s." % more_err_info)
             return ViewerWorkingThread.FAIL_STOP
         self.zoom_cache = []
         
@@ -245,11 +246,27 @@ class Preview:
 
     def _update_view_act(self):
         "Вызывается из рабочего потока"
+        #забираем данные с конкурентным доступом
         self.view_param_lock.acquire()
-        a_panel = self.a_panel
-        self.view_param_lock.release()                        
-
-        img = self._resize_image(self.raw_img, a_panel, self.zoom_cache)
+        a_panel = copy.deepcopy(self.a_panel)
+        sel_data = copy.deepcopy(self.sel_data)
+        self.view_param_lock.release()
+        
+        #основной кусок работы
+        decor_temp = self._decoration_before_resize(sel_data)
+        points = decor_temp[-1]
+        visible_points = []
+        img = self._resize_image(self.raw_img,
+                                 a_panel,
+                                 self.zoom_cache,
+                                 points,
+                                 visible_points)
+        sel_points, sel_lines = self._decoration_after_resize(
+            sel_data,
+            *decor_temp[:-1],
+            points = points,
+            visible_points = visible_points)
+        
         #удаляем альфа-канал -- устранение бага с файлами старого эмулятора
         if img.HasAlpha():
             img2 = wx.ImageFromData(img.GetWidth(),
@@ -257,18 +274,35 @@ class Preview:
                                     img.GetData())
             img = img2
         
-        wx.CallAfter(display_image, self.main_video_frame.a_bmp, img)
+        #сохраняем размеры для backtrace
+        self.view_param_lock.acquire()
+        self.raw_img_size = (self.raw_img.GetWidth(), self.raw_img.GetHeight())
+        self.view_param_lock.release()
+        
+        #ставим функцию отрисовки в очередь в поток ГУИ
+        wx.CallAfter(display_image,
+                     self.main_video_frame,
+                     self.main_video_frame.a_bmp,
+                     img,
+                     sel_points,
+                     sel_lines)
     
 
-    def _resize_image(self, img, panel, zoom_cache = []):
+    def _resize_image(self, img, panel, zoom_cache = [], points = [],
+                      visible_points = []):
         """
         Масштабирование, сдвиг и обрезание картики img под параметры panel.
         Аргументы:
           img (wx.Image)
           panel (PanleParam)
-          zoom_cache (list [wx.Image, float]): входной и выходной параметр.
+          zoom_cache (list [wx.Image, float]): входной и выходной аргумент.
                      Масштабированная картинка (0ой элемент списка) для
                      предыдущего значения зума (1ый элемент списка).
+          points (list [(int,int), ...]) : входной и выходной аргумент,
+                     преобразование координат дискретных точек изображения,
+                     список изменяется на месте.
+          visible_points (list [bool, bool, ...]): выходной аргумент,
+                     видимость точек из списка points.
         Возвращает:
           wx.Image (out-of-place transform)
         """
@@ -283,7 +317,7 @@ class Preview:
                                wx.IMAGE_QUALITY_HIGH)
                 zoom_cache[:] = [img, panel.zoom]
 
-        # позиция ЛВ угла исходной картинке на чистом белом поле
+        # позиция ЛВ угла картинки на чистом белом поле (ниже будет изменяться)
         pos_x = -panel.pos[0]
         pos_y = -panel.pos[1]
         # размер растянутой картинки
@@ -314,8 +348,326 @@ class Preview:
         # режем
         img = img.GetSubImage(wx.Rect(crop_start_x, crop_start_y,
                                       crop_size_x, crop_size_y) )
-        
         #дополняем белым
         img.Resize((dst_size_x, dst_size_y), (pos_x, pos_y), 255, 255, 255)
+        
+        #преобразуем дискретные точки
+        visible_points[:] = []
+        for j in range(0, len(points)):
+            x, y = points[j]
+            X = x * panel.zoom - panel.pos[0]
+            Y = y * panel.zoom - panel.pos[1]
+            points[j] = (X, Y)
+            visible_points.append((X >=0) and (Y >= 0) and (X < dst_size_x) \
+                                   and (Y < dst_size_y))
+        
         return img
+        
+
+    def _decoration_before_resize(self, sel_data):
+        """
+        Работа с пометками поверх изображения.
+        Эта функция вызывается из _update_view_act до _resize_image.
+        Подготавливаем список пометок поверх изображения, которые нужно
+        масштабировать вместе с этим изображением.
+        Аргументы:
+            sel_data(SelData): копия структуры из MainVideoFrame,
+                               могут делаться некоторые изменения на месте
+        Возвращает:
+            (sel_points_count,
+             sel_rects_count,
+             edit_single_point,
+             edit_single_rect,
+             points)
+        В массив points, который имеет вид [(int, int), ...], пихаем все
+        по порядку:
+            points_a
+            sel_item, если это точка
+              <sel_points_count позиций до сюда>
+            (x1, y1) для rects_a[0]
+            (x2, y2) для rects_a[0]
+            (x1, y1) для rects_a[1]
+            ...
+            (x1, y1), (x2, y2) для sel_item, если это прямоугольник
+              <sel_points_count + 2 * sel_rects_count позиций до сюда>
+            4 точки для trpz[0]
+            ....
+        """
+        points = sel_data.points_a
+        edit_single_point = (sel_data.sel_item is not None) and\
+            (sel_data.mode == main_video_gui.Selection.SINGLE_POINT_A)
+        if edit_single_point:
+            points.append(sel_data.sel_item)
+        sel_points_count = len(points)
+        
+        edit_single_rect = (sel_data.sel_item is not None) and\
+            (sel_data.mode == main_video_gui.Selection.SINGLE_RECT_A)
+        if edit_single_rect:
+            sel_data.rects_a.append(sel_data.sel_item)
+        sel_rects_count = len(sel_data.rects_a)
+        for rect in sel_data.rects_a:
+            points.append((rect[0], rect[1]))
+            points.append((rect[2], rect[3]))
+        
+        for trpz in sel_data.trpz:
+            for j in range (0,4):
+                points.append((trpz[2 * j], trpz[2* j + 1]))
+        
+        return (sel_points_count, sel_rects_count,
+                edit_single_point, edit_single_rect,
+                points)
+
+
+    def _decoration_after_resize(self, sel_data,
+                                 sel_points_count, sel_rects_count,
+                                 edit_single_point, edit_single_rect,
+                                 points, visible_points):
+        """
+        Работа с пометками поверх изображения.
+        Эта функция вызывается из _update_view_act посел _resize_image.
+        Переделываем список пометок поверх изображения.
+        Аргументы:
+            sel_data (SelData): копия структуры из MainVideoFrame
+            sel_points_count (int) : выход _decoration_before_resize
+            sel_rects_count (int):   --"--"--
+            edit_single_point (bool):   --"--"--
+            edit_single_rect (bool):   --"--"--
+            points (list [(int,int), ... ] ) :
+                                 --"--"--, пропущенный через _resize_image.
+            visible_points (list [bool, bool, ...]) : выход _resize_image.
+        Возвращает:
+            (sel_points, sel_lines) -- по формату аргументов display_image
+        """
+        #-точки
+        sel_points = []
+        if edit_single_point or \
+           sel_data.mode == main_video_gui.Selection.MULTIPLE_POINTS_A:
+            yellow_point = sel_points_count - 1
+        else:
+            yellow_point = - 1
+        for j in range(0, sel_points_count):
+            if visible_points[j]:
+                clr = ["B", "A"] [yellow_point == j]
+                sel_points.append((points[j][0], points[j][1], clr))
+        #-прямоугольники
+        sel_lines = []
+        if edit_single_rect or \
+           sel_data.mode == main_video_gui.Selection.MULTIPLE_RECTS_A:
+            yellow_rect = sel_rects_count - 1
+        else:
+            yellow_rect = - 1
+        for j in range(0, sel_rects_count):
+            n1 = sel_points_count + 2 * j
+            n2 = n1 + 1
+            if not (visible_points[n1] or visible_points[n2]): continue
+            x1, y1 = points[n1]
+            x2, y2 = points[n2]
+            clr = ["B", "A"] [yellow_rect == j]
+            sel_lines.extend([x1, y1, x2, y1, x2, y2, x1, y2, x1, y1, clr])
+        #-трапеции
+        for j in range(0, len(sel_data.trpz)):
+            ofs = sel_points_count + 2 * sel_rects_count + 4 * j
+            anyth_visible = False
+            for k in range(0, 4):
+                anyth_visible = anyth_visible or visible_points[ofs + k]
+            if not anyth_visible: continue
+            for k in range(0, 4):
+                sel_lines.extend([points[ofs + k][0], points[ofs + k][1]])
+            sel_lines.extend([points[ofs][0], points[ofs][1]])
+            clr = ["B", "A"] [yellow_rect == j]
+            sel_lines.append(clr + ':')
+        #....
+        return (sel_points, sel_lines)
+    
+    
+    def backtrace_a(self, X, Y, force = False):
+        """
+        Преобразование "экранных" координат точки внутри панели "a"
+        в координаты исходного изображения.
+        Аргументы:
+          X (int): "экранная" координата относительно угла панели "а"
+          Y (iny)
+          force (bool): см. ниже
+        Возвращает:
+          Если force == False:
+            (x,y) -- (int, int)
+            или None, если точка не попадает в область изображения.
+          Если force == True:
+            (x,y) -- всегда, даже если это нереальные координаты
+        """
+        x = (X + self.a_panel.pos[0]) / self.a_panel.zoom
+        y = (Y + self.a_panel.pos[1]) / self.a_panel.zoom
+        self.view_param_lock.acquire()
+        raw_img_size = self.raw_img_size
+        self.view_param_lock.release()
+        visible = (x >= 0) and (y >= 0) and (x < raw_img_size[0]) and \
+                  (y < raw_img_size[1])
+        if visible or force:
+            return (x, y)
+        else:
+            return None
+            
+    def backtrace_rect_a(self, X1, Y1, X2, Y2):
+        """
+        Преобразование "экранного" прямоугольника внутри панели "a"
+        в координаты исходного изображения.
+        Аргументы:
+          X1, Y1 (ints): лево-верх
+          X2, Y2 (ints): право-низ (считаем, что углы принадлежат области)
+        Возвращает:
+          (x1, y1, x2, y2) или None
+          Если результат преобразования полностью попадает внутрь изображения,
+          то возвращает его.
+          Если какая-то из точек вылезает за пределы, то обрезает по границе.
+          Если вообще нет пересечения, то возвращает None
+        """
+        pt1 = self.backtrace_a(X1, Y1, True)
+        pt2 = self.backtrace_a(X2, Y2, True)
+        rect = wx.Rect(min(pt1[0], pt2[0]),
+                       min(pt1[1], pt2[1]),
+                       abs(pt1[0] - pt2[0]) + 1,
+                       abs(pt1[1] - pt2[1]) + 1)
+        self.view_param_lock.acquire()
+        img_rect = wx.Rect(0, 0, self.raw_img_size[0], self.raw_img_size[1])
+        self.view_param_lock.release()
+        if rect.Intersects(img_rect):
+            res_rect = rect.Intersect(img_rect)
+            return (res_rect.GetTopLeft().x,
+                    res_rect.GetTopLeft().y,
+                    res_rect.GetBottomRight().x,
+                    res_rect.GetBottomRight().y)
+        else:
+            return None
+    
+    def get_raw_img_size(self):
+        """
+        Возвращает размер исходного изображения (без масштабирования) в виде
+        (int, int), т.е (ширина, высота). Возвращает (0, 0), если еще ни одно
+        изображение не было загружено и размер не известен.
+        """
+        self.view_param_lock.acquire()
+        rv = self.raw_img_size
+        self.view_param_lock.release()
+        return rv
+    
+
+
+MARKER_SIZE = 10
+# MARKER_SIZE: размер маркера для обозначения выделенных точек:
+# полуширина креста, 5..15 рисуется с точка по центру, >15 рисуется жирной линией
+LINE_WIDTH = 2
+ACTIVE_COLOR = 'yellow'
+BACKGROUND_COLOR = 'red'
+
+_MY_COLORS = {'A': ACTIVE_COLOR,
+              'B': BACKGROUND_COLOR}
+_MY_LINE_STYLES = {"-": wx.SOLID, ":": wx.SHORT_DASH}
+
+def translate_color(color_str):
+    """
+    Аргументы: color_str(string): обозначение цвета, как оно заведено у нас:
+                                  "A" -- active,
+                                  "B" -- background,
+                                  (будет дополнено).
+    Возвращает: То, что понимает SetColour в wxPython.
+                Если color_str имеет неправильное значение, то возвр. 'black'
+    """
+    res = None
+    if _MY_COLORS.has_key(color_str): res = _MY_COLORS[color_str]
+    if res is None:
+        logging.debug("Unknown color: '%s'", color_str)
+        res = 'black'
+    return res
+
+def display_image(dest_top, dest, img, sel_points = [], sel_lines = []):
+    """
+    Последняя стадия отрисовки изображения, которая вызывается в ГУИ потоке.
+    Выполняются операции с wx.Bitmap и wx.DC, которое не работают
+    в параллельных потоках.
+    Аргументы:
+        dest_top (MainVideoFrame of None)
+        dest (wx.StaitcBitmap): кладет сюда результат через .SetBitmap(..)
+        img (wx.Image): изображение (уже под размер dest)
+        sel_points (list of tuples (int, int, str) ~ [(X, Y, "color"),..] ):
+            "выделенные" точки, которые нужно нанести поверх img.
+            X,Y -- после масштабирования и сдвига,
+            color -- см. tanslate_color .
+        sel_lines (list -- [x1,y1,x2,y2,"color", x3,y3,x4,y4,"color2"...]):
+            ломаные линии (без автозамыкания). Задаются как последовательность
+            координат. Строковый параметр color (цвет) используется как
+            разделитель -- он определяет цвет линии, введенной до него, и
+            означает начало новой линии. Значение color -- см. tanslate_color
+            + окончание определяет тип линии: "-" или ничего -- сплошная,
+            ":" -- пунктир (как в Матлабе, но не до конца запилено)
+    Возвращает: ничего
+    """
+    bmp = img.ConvertToBitmap()
+    decorate_bitmap(bmp, sel_points, sel_lines)
+    dest.SetBitmap(bmp)
+    
+    if dest_top is not None:
+        dest_top.image_updated()
+
+   
+def decorate_bitmap(bmp, sel_points, sel_lines):
+    """
+    Отрисовка пометок (точет, линий и пр...) на изображении.
+    Вызывается функцией display_image.
+    Аргументы:
+        bmp (wx.Bitmap): изображение, изменяемое на месте.
+        остальное: см. описание одноименных аргументов display_image
+    """
+    if len(sel_points) + len(sel_lines) == 0: return
+    dc = wx.MemoryDC(bmp)
+    
+    #точки
+    prev_color = ""
+    center_circle = (MARKER_SIZE > 5 and MARKER_SIZE <= 15)
+    for pt in sel_points:
+        x0, y0, my_color = pt
+        if prev_color != my_color:
+            clr = translate_color(my_color)
+            width = [1,3] [MARKER_SIZE > 15]
+            dc.SetPen(wx.Pen(clr, width, wx.SOLID))
+            if center_circle:
+                dc.SetBrush(wx.Brush(clr))
+        dc.DrawLine(x0 - MARKER_SIZE, y0, x0 + MARKER_SIZE, y0)
+        dc.DrawLine(x0, y0 - MARKER_SIZE, x0, y0 + MARKER_SIZE)
+        if center_circle: dc.DrawCircle(x0, y0, 3)
+    
+    #линии
+    dc.SetBrush(wx.Brush('white', wx.TRANSPARENT))
+    even_pos = True
+    line = []
+    for j in range(0, len(sel_lines)):
+        cur_val = sel_lines[j]
+        if isinstance(cur_val, str):
+            #линия кончилась, рисуем
+            if len(line) > 1 and len(cur_val) > 0:
+                color_str = cur_val
+                style_str = color_str[-1]
+                if _MY_LINE_STYLES.has_key(style_str):
+                    style = _MY_LINE_STYLES[style_str]
+                    color_str = color_str[:-1]
+                else:
+                    style = wx.SOLID
+                color = translate_color(color_str)
+                dc.DrawLineList(line, wx.Pen(color, LINE_WIDTH, style))
+            even_pos = True
+            line = []
+        else:
+            #добавляем точку в линию
+            even_pos = not even_pos
+            if even_pos:
+                pt = (sel_lines[j - 1], cur_val)
+                if len(line) == 0:
+                    line = [pt]
+                elif len(line[0]) == 2:
+                    line = [(line[0][0], line[0][1], pt[0], pt[1])]
+                else:
+                    line.append((line[-1][2], line[-1][3], pt[0], pt[1]))
+    
+    dc.SelectObject(wx.NullBitmap)
+    
+
 

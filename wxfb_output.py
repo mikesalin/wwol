@@ -86,51 +86,52 @@ class MainVideoFrame ( wx.Frame ):
 		
 		self.SetSizer( bSizer1 )
 		self.Layout()
+		self.m_statusBar1 = self.CreateStatusBar( 1, wx.ST_SIZEGRIP, wx.ID_ANY )
 		
 		self.Centre( wx.BOTH )
 		
 		# Connect Events
-		self.Bind( wx.EVT_CLOSE, self.close_func )
-		self.Bind( wx.EVT_SIZE, self.size_func )
-		self.Bind( wx.EVT_MENU, self.test_menu_func, id = self.test_menu.GetId() )
-		self.Bind( wx.EVT_MENU, self.config_source_menu_func, id = self.config_source_menu.GetId() )
-		self.Bind( wx.EVT_TOOL, self.prev_tool_func, id = self.prev_tool.GetId() )
-		self.Bind( wx.EVT_TOOL, self.next_tool_func, id = self.next_tool.GetId() )
-		self.Bind( wx.EVT_TOOL, self.jump_frame_tool_func, id = self.jump_frame_tool.GetId() )
-		self.Bind( wx.EVT_TOOL, self.jump_time_tool_func, id = self.jump_time_tool.GetId() )
-		self.Bind( wx.EVT_TOOL, self.zoom_tool_func, id = self.zoom_tool.GetId() )
-		self.m_splitter1.Bind( wx.EVT_SPLITTER_SASH_POS_CHANGED, self.size_func )
+		self.Bind( wx.EVT_CLOSE, self._close_func )
+		self.Bind( wx.EVT_SIZE, self._size_func )
+		self.Bind( wx.EVT_MENU, self._test_menu_func, id = self.test_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self._config_source_menu_func, id = self.config_source_menu.GetId() )
+		self.Bind( wx.EVT_TOOL, self._prev_tool_func, id = self.prev_tool.GetId() )
+		self.Bind( wx.EVT_TOOL, self._next_tool_func, id = self.next_tool.GetId() )
+		self.Bind( wx.EVT_TOOL, self._jump_frame_tool_func, id = self.jump_frame_tool.GetId() )
+		self.Bind( wx.EVT_TOOL, self._jump_time_tool_func, id = self.jump_time_tool.GetId() )
+		self.Bind( wx.EVT_TOOL, self._zoom_tool_func, id = self.zoom_tool.GetId() )
+		self.m_splitter1.Bind( wx.EVT_SPLITTER_SASH_POS_CHANGED, self._size_func )
 	
 	def __del__( self ):
 		pass
 	
 	
 	# Virtual event handlers, overide them in your derived class
-	def close_func( self, event ):
+	def _close_func( self, event ):
 		event.Skip()
 	
-	def size_func( self, event ):
+	def _size_func( self, event ):
 		event.Skip()
 	
-	def test_menu_func( self, event ):
+	def _test_menu_func( self, event ):
 		event.Skip()
 	
-	def config_source_menu_func( self, event ):
+	def _config_source_menu_func( self, event ):
 		event.Skip()
 	
-	def prev_tool_func( self, event ):
+	def _prev_tool_func( self, event ):
 		event.Skip()
 	
-	def next_tool_func( self, event ):
+	def _next_tool_func( self, event ):
 		event.Skip()
 	
-	def jump_frame_tool_func( self, event ):
+	def _jump_frame_tool_func( self, event ):
 		event.Skip()
 	
-	def jump_time_tool_func( self, event ):
+	def _jump_time_tool_func( self, event ):
 		event.Skip()
 	
-	def zoom_tool_func( self, event ):
+	def _zoom_tool_func( self, event ):
 		event.Skip()
 	
 	
@@ -146,7 +147,7 @@ class MainVideoFrame ( wx.Frame ):
 class ZoomDlg ( wx.Dialog ):
 	
 	def __init__( self, parent ):
-		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Масштаб", pos = wx.DefaultPosition, size = wx.Size( 220,200 ), style = wx.DEFAULT_DIALOG_STYLE|wx.STAY_ON_TOP )
+		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Масштаб", pos = wx.DefaultPosition, size = wx.Size( 180,200 ), style = wx.DEFAULT_DIALOG_STYLE )
 		
 		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
 		
@@ -182,22 +183,22 @@ class ZoomDlg ( wx.Dialog ):
 		self.m_button15 = wx.Button( self, wx.ID_ANY, u"1:1", wx.DefaultPosition, wx.DefaultSize, wx.BU_EXACTFIT )
 		fgSizer13.Add( self.m_button15, 0, wx.ALL, 5 )
 		
-		self.m_bpButton3 = wx.BitmapButton( self, wx.ID_ANY, wx.ArtProvider.GetBitmap( wx.ART_GO_UP, wx.ART_BUTTON ), wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW )
-		fgSizer13.Add( self.m_bpButton3, 0, wx.ALL, 5 )
+		self.a_to_corner_button = wx.BitmapButton( self, wx.ID_ANY, wx.ArtProvider.GetBitmap( wx.ART_GO_UP, wx.ART_BUTTON ), wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW )
+		fgSizer13.Add( self.a_to_corner_button, 0, wx.ALL, 5 )
 		
 		self.m_staticText26 = wx.StaticText( self, wx.ID_ANY, u"В угол", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText26.Wrap( -1 )
 		fgSizer13.Add( self.m_staticText26, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 5 )
 		
-		self.m_bpButton4 = wx.BitmapButton( self, wx.ID_ANY, wx.ArtProvider.GetBitmap( wx.ART_GO_UP, wx.ART_BUTTON ), wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW )
-		fgSizer13.Add( self.m_bpButton4, 0, wx.ALL, 5 )
+		self.b_to_corner_button = wx.BitmapButton( self, wx.ID_ANY, wx.ArtProvider.GetBitmap( wx.ART_GO_UP, wx.ART_BUTTON ), wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW )
+		fgSizer13.Add( self.b_to_corner_button, 0, wx.ALL, 5 )
 		
 		
 		bSizer9.Add( fgSizer13, 1, wx.EXPAND, 5 )
 		
-		self.m_staticText30 = wx.StaticText( self, wx.ID_ANY, u"Вы можете перемещать и масштабировать изображение мышью.", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText30.Wrap( 200 )
-		bSizer9.Add( self.m_staticText30, 0, wx.ALL|wx.EXPAND, 5 )
+		self.m_staticText30 = wx.StaticText( self, wx.ID_ANY, u"Перемещайте и масштабируйте изображение мышью.", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText30.Wrap( 180 )
+		bSizer9.Add( self.m_staticText30, 0, wx.EXPAND|wx.ALL, 5 )
 		
 		
 		self.SetSizer( bSizer9 )
@@ -209,6 +210,7 @@ class ZoomDlg ( wx.Dialog ):
 		self.Bind( wx.EVT_CLOSE, self.close_func )
 		self.zoom_a_choice.Bind( wx.EVT_CHOICE, self.zoom_a_choice_func )
 		self.reset_a_button.Bind( wx.EVT_BUTTON, self.reset_a_button_func )
+		self.a_to_corner_button.Bind( wx.EVT_BUTTON, self.a_to_corner_button_func )
 	
 	def __del__( self ):
 		pass
@@ -223,6 +225,65 @@ class ZoomDlg ( wx.Dialog ):
 	
 	def reset_a_button_func( self, event ):
 		event.Skip()
+	
+	def a_to_corner_button_func( self, event ):
+		event.Skip()
+	
+
+###########################################################################
+## Class SelDlg
+###########################################################################
+
+class SelDlg ( wx.Dialog ):
+	
+	def __init__( self, parent ):
+		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 180,180 ), style = wx.CAPTION )
+		
+		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
+		
+		bSizer8 = wx.BoxSizer( wx.VERTICAL )
+		
+		self.info_static_text = wx.StaticText( self, wx.ID_ANY, u"Выберите...", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTRE )
+		self.info_static_text.Wrap( 180 )
+		bSizer8.Add( self.info_static_text, 1, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+		
+		self.done_button = wx.Button( self, wx.ID_ANY, u"ГОТОВО", wx.DefaultPosition, wx.DefaultSize, wx.NO_BORDER )
+		self.done_button.SetFont( wx.Font( wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString ) )
+		
+		bSizer8.Add( self.done_button, 0, wx.EXPAND|wx.RIGHT|wx.LEFT, 5 )
+		
+		self.del_button = wx.Button( self, wx.ID_ANY, u"Удалить", wx.DefaultPosition, wx.DefaultSize, wx.NO_BORDER )
+		bSizer8.Add( self.del_button, 0, wx.EXPAND|wx.RIGHT|wx.LEFT, 5 )
+		
+		self.cancel_button = wx.Button( self, wx.ID_ANY, u"Отмена", wx.DefaultPosition, wx.DefaultSize, wx.NO_BORDER )
+		bSizer8.Add( self.cancel_button, 0, wx.EXPAND|wx.BOTTOM|wx.RIGHT|wx.LEFT, 5 )
+		
+		
+		self.SetSizer( bSizer8 )
+		self.Layout()
+		
+		self.Centre( wx.BOTH )
+		
+		# Connect Events
+		self.Bind( wx.EVT_CLOSE, self._cancel_button_func )
+		self.done_button.Bind( wx.EVT_BUTTON, self._done_button_func )
+		self.del_button.Bind( wx.EVT_BUTTON, self._del_button_func )
+		self.cancel_button.Bind( wx.EVT_BUTTON, self._cancel_button_func )
+	
+	def __del__( self ):
+		pass
+	
+	
+	# Virtual event handlers, overide them in your derived class
+	def _cancel_button_func( self, event ):
+		event.Skip()
+	
+	def _done_button_func( self, event ):
+		event.Skip()
+	
+	def _del_button_func( self, event ):
+		event.Skip()
+	
 	
 
 ###########################################################################
@@ -412,6 +473,7 @@ class SourceDlg ( wx.Dialog ):
 		self.Centre( wx.BOTH )
 		
 		# Connect Events
+		self.Bind( wx.EVT_CLOSE, self.close_func )
 		self.source_type_choice.Bind( wx.EVT_CHOICEBOOK_PAGE_CHANGED, self.source_type_choice_func2 )
 		self.source_type_choice.Bind( wx.EVT_CHOICEBOOK_PAGE_CHANGING, self.source_type_choice_func1 )
 		self.user_temp_path_check.Bind( wx.EVT_CHECKBOX, self.hide_show_items )
@@ -419,6 +481,7 @@ class SourceDlg ( wx.Dialog ):
 		self.auto_cmd_button.Bind( wx.EVT_BUTTON, self.auto_cmd_button_func )
 		self.max_finish_check.Bind( wx.EVT_CHECKBOX, self.hide_show_items )
 		self.m_sdbSizer1Apply.Bind( wx.EVT_BUTTON, self.apply_button_func )
+		self.m_sdbSizer1Cancel.Bind( wx.EVT_BUTTON, self.close_func )
 		self.m_sdbSizer1OK.Bind( wx.EVT_BUTTON, self.ok_button_func )
 	
 	def __del__( self ):
@@ -426,6 +489,9 @@ class SourceDlg ( wx.Dialog ):
 	
 	
 	# Virtual event handlers, overide them in your derived class
+	def close_func( self, event ):
+		event.Skip()
+	
 	def source_type_choice_func2( self, event ):
 		event.Skip()
 	
@@ -444,6 +510,7 @@ class SourceDlg ( wx.Dialog ):
 	
 	def apply_button_func( self, event ):
 		event.Skip()
+	
 	
 	def ok_button_func( self, event ):
 		event.Skip()

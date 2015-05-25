@@ -32,7 +32,7 @@ def test02(self):
     "Открыть окно источник с забитыми параметрами для папки картинок"
     self.config.source_type = configuration.IMG_SOURCE
     self.config.user_pic_path = IMG_PATHNAME
-    self.config_source_menu_func(None)
+    self._config_source_menu_func(None)
 
 def test03(self):
     "Запустить fmpeg_loader, перейти в режин Preview (все \"ручками\")"
@@ -50,16 +50,41 @@ def test04(self):
     "video_probe"
     loading.video_probe(VIDEO_FILENAME)
 
-def default_test(self):
-    "Выбор одного теста из списка (хардкод)"
-    self.test04()
+def test05(self):
+    "выбор и отрисовка выделенных точек -- вручную"
+    self.sel_data.points_a = [(100, 50), (20, 75)]
+    self.sel_data.mode = self.sel_data.SINGLE_POINT_A
+    self.test02()
+    self._rebind_mouse_events("a")
+
+def test06(self):
+    "выбор и отрисовка выделенных точек"
+    #self.test02()
     
+    self.config.video_filename = VIDEO_FILENAME
+    self._config_source_menu_func(None)
+    
+    self.sel_data.rects_a = [(500, 500, 600, 600)]
+    self.start_selecting(self.sel_data.MULTIPLE_RECTS_A, None)
+    self.config.proj_coef = (-0.259815, 101.8474, 0.1589)
+    self.maintain_sel_trpz()
+
+def test07(self):
+    "загрузка конфига"
+    (config, warn_text) = \
+        configuration.load_config("test_configs/video1.json")
+    self.config = config
+    self.enter_preview()
+
 def def_all_tests(self):
     "Добавляет функции, определенные в этом модуле, в self"
     self.test_num = 0
-    self.default_test = types.MethodType(default_test, self)
     self.test01 = types.MethodType(test01, self)
     self.test02 = types.MethodType(test02, self)
     self.test03 = types.MethodType(test03, self)
     self.test04 = types.MethodType(test04, self)
+    self.test05 = types.MethodType(test05, self)
+    self.test06 = types.MethodType(test06, self)
+    self.test07 = types.MethodType(test07, self)
+    self.default_test = self.test07
 

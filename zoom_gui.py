@@ -2,9 +2,11 @@
 """
 В этом модуле определен класс диалога масштабирования
 """
+import wx
 
 import wxfb_output
 import logging
+import embed_gui_images
 
 class ZoomDlg(wxfb_output.ZoomDlg):
     """
@@ -16,6 +18,16 @@ class ZoomDlg(wxfb_output.ZoomDlg):
     def __init__(self, parent):        
         wxfb_output.ZoomDlg.__init__(self, parent)
         self.set_zoom_choice("a", parent.a_panel.zoom)
+        self.reset_parents_cursor(wx.StockCursor(wx.CURSOR_SIZING))
+        self.a_to_corner_button.SetBitmapLabel(
+            embed_gui_images.get_to_cornerBitmap())
+        self.b_to_corner_button.SetBitmapLabel(
+            embed_gui_images.get_to_cornerBitmap())
+    
+    def reset_parents_cursor(self, cursor = wx.NullCursor):
+        "Выставляет курсор в родительский a_bmp и b_bmp"
+        self.GetParent().a_bmp.SetCursor(cursor)
+        self.GetParent().b_bmp.SetCursor(cursor)
         
     def close_func(self, event):
         """
@@ -25,7 +37,7 @@ class ZoomDlg(wxfb_output.ZoomDlg):
         main_video_frame = self.GetParent()
         tid = main_video_frame.zoom_tool.GetId()
         main_video_frame.my_toolbar.ToggleTool(tid, False)
-        main_video_frame.zoom_tool_func(None) #эта фукция уничтожит данное окно
+        main_video_frame._zoom_tool_func(None) #эта фукция уничтожит данное окно
     
     def set_zoom_choice(self, side, value):
         """
@@ -77,6 +89,13 @@ class ZoomDlg(wxfb_output.ZoomDlg):
         s = self.zoom_a_choice.GetString(self.zoom_a_choice.GetSelection())
         mvf.a_panel.zoom = float(s[:-1]) * 0.01
         mvf.viewer.update_view()
+   
+    def a_to_corner_button_func(self, ev):
+        "Левая кнопка 'в угол'"
+        mvf = self.GetParent()  #MainVideoFrame
+        mvf.a_panel.pos = (0, 0)
+        if mvf.viewer is not None:
+             mvf.viewer.update_view()
 
 
 

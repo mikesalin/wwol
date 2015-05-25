@@ -16,16 +16,13 @@ class SourceDlg(wxfb_output.SourceDlg):
     Окно 'Источник изображения'
     Parent должен быть MainVideoFrame
     При создании поля диалога инициализируются из parent.config.
-    Результатом нажатия ОК/Применить является изменение GetParent().config и
-    вызов GetParent().enter_preview
-    
-    NB, в след версии будет: инициализируется из данного config-а; при нажатии
-    ОК/Применить и если нет ошибок ввода то данный config будет изменен
-    "по указателю"
+    Результатом нажатия ОК (или Отмены после Применить) является изменение
+    GetParent().config и вызов GetParent().enter_preview
     """ 
     def __init__(self, parent):
         wxfb_output.SourceDlg.__init__(self, parent) #initialize parent class
         self.config_to_form(parent.config)
+        self.parent_config_changed = False
     
     def config_to_form(self, config):
         "Заполняет поля ввода в соответствии с config (тип Config)"
@@ -84,33 +81,60 @@ class SourceDlg(wxfb_output.SourceDlg):
                        True/Falsе в зависимости от того, удалось ли считать и
                        обработать все поля
         """
+        called_from_ok_button = (event is None)
+        if called_from_ok_button:
+            GOOD_RESULT = True
+            BAD_RESULT = False
+        else:
+            GOOD_RESULT = None
+            BAD_RESULT = None
+        
         try:
             config = self.form_to_config()
-            config.post_config()
+            warn_txt = config.post_config_src()
         except ConfigError as err:
             msg_dlg = wx.MessageDialog(self,
                                        "Неправильный ввод настроек! %s" % err,
                                        "",
                                        wx.ICON_ERROR)
             msg_dlg.ShowModal()
-            msg_dlg.Destroy()            
-            if event is None:
-                return False
+            msg_dlg.Destroy()
+            return BAD_RESULT
+        if warn_txt != "":
+            if called_from_ok_button:
+                buttons = wx.YES_NO
             else:
-                return
+                buttons = wx.OK
+            msg_dlg = wx.MessageDialog(
+                self,
+                "Обнаружены проблемы в настройках:\n\n%s"
+                "\nПрименить новые настройки?"
+                    % warn_txt,
+                "",
+                wx.ICON_EXCLAMATION | wx.YES_NO)
+            rv = msg_dlg.ShowModal()
+            msg_dlg.Destroy()
+            if rv == wx.ID_NO:
+                self.config_to_form(config)
+                return BAD_RESULT
         
         mvf = self.GetParent() # MainVideoFrame
         mvf.config = config
-        mvf.enter_preview(True)
-        if event is None:
+        if not called_from_ok_button:
             self.config_to_form(config)
-            return True
-        else:
-            return
+            self.parent_config_changed = True
+        return GOOD_RESULT
 
     def ok_button_func(self, event):
         if self.apply_button_func(None):
-            self.Destroy()    
+            self.GetParent().enter_preview()
+            self.Destroy()
+    
+    def close_func(self, event):
+        event.Skip()
+        if self.parent_config_changed:
+            self.GetParent().enter_preview()
+            self.parent_config_changed = False
     
     def form_to_config(self):
         """
