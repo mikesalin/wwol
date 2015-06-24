@@ -1,0 +1,11 @@
+Картинки из этой папки преобразуются в embed_gui_images.py и 
+grapher/grapher_embed_img.py
+По умолчанию для имения переменной используется имя файла (без расширения)
+с подчеркиванием '_' впереди.
+
+Заимствования:
+Файл            Ссылка(и)                                    Аффтар       Лицензия 
+hourglass.png   http://www.iconsearch.ru/detailed/44827/6/   Icons Land   Свободно для ком. исп.
+                http://www.icons-land.com/
+eye.bmp         http://www.rw-designer.com/icon-detail/8673
+

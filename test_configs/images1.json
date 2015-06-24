@@ -1,9 +1,0 @@
-{
-"source":{
-  "source_type":2,
-  "user_pic_path":"stuff/Out/pic%04d.bmp",
-  "frames_range":[0, -1],
-  "fps":25,
-  "pack_len":128
-}
-}

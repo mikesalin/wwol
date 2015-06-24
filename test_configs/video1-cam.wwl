@@ -1,0 +1,32 @@
+{
+  "source": {
+    "frames_range": [
+      0, 
+      -1
+    ], 
+    "user_pic_path_in_auto_mode": false, 
+    "user_pic_path": "", 
+    "overlap": true, 
+    "source_type": 0, 
+    "pack_len": 128, 
+    "fps": 25.0, 
+    "user_loader_cmd": "", 
+    "user_use_shell": false, 
+    "video_filename": "stuff/GOPR0330.MP4"
+  }, 
+  "view": {
+    "button_step": 1
+  }, 
+  "geom": {
+    "angle_to_vert": 71, 
+    "angle_per_pixel": 0.03, 
+    "camera_height": 6.6, 
+    "distortion_k1": 0, 
+    "distortion_k2": 0
+  }, 
+  "areas": {
+    "areas_list": [], 
+    "auto_set_fft_sizes": true, 
+    "active_area": "last"
+  }
+}
