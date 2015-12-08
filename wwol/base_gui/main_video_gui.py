@@ -59,6 +59,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
                                   до start_selecting
     .is_closing (bool):  чтобы отменить отбработку некоторых событий (например, 
                          _config_notebook_changing_func) когда уже закрываемся
+    .prev_power_spec_path (str)
     
     .HOURGLASS (wx.Bitmap)
     .SOLID_WHITE_PEN (wx.Pen)
@@ -90,6 +91,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         self.project_changed = False
         self.project_filename = ""
         self.is_closing = False
+        self.prev_power_spec_path = ""
         
         self.HOURGLASS = embed_gui_images.get_hourglassBitmap()
         self.SOLID_WHITE_PEN = wx.Pen('white', view.LINE_WIDTH, wx.SOLID)
@@ -104,10 +106,12 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
             self.live_proc_tool.GetId(),
             embed_gui_images.get_double_playBitmap())
 
+        # картинки на табах:
         tab_bmps = [embed_gui_images.get_videoBitmap(),
                       embed_gui_images.get_eyeBitmap(),
                       embed_gui_images.get_projectionBitmap(),
-                      embed_gui_images.get_areasBitmap()]
+                      embed_gui_images.get_areasBitmap(),
+                      embed_gui_images.get_power_spec_buttonBitmap()]
         self.config_notebook_image_list = wx.ImageList(20, 20)
         for bmp in tab_bmps:
            self.config_notebook_image_list.Add(bmp)
@@ -369,7 +373,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         if success:
             try:
                 mm = int(mm_txt)
-                ss = float(ss_txt)                
+                ss = float(ss_txt)
             except ValueError:
                 success = False
         if success:
@@ -828,12 +832,22 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         if self.json_editing_sect == "areas":
             if state:
                 self._display_areas()
+                
+                self.active_area_static_text.Hide()
+                self.active_area_choice.Hide()
+                self.active_area_rename_button.Hide()
             else:
                 self._hide_areas(call_update = True)
+        
+        if self.config_notebook.GetSelection() == 4: # рисование спетров
+            ready_flag, issues_text = self.config.power_spec_check_list()
+            self.calc_spec_button.Enabled = ready_flag
+            self.prev_spec_button.Enabled = (len(self.prev_power_spec_path) > 0)
+            self.json_text.SetValue(issues_text)
     
     def _config_notebook_changed_func(self, event):
         "Переключили вкладку настроек -- заполняем текстовое поле"
-        SECT_NAMES = ["", "view", "geom", "areas"]
+        SECT_NAMES = ["", "view", "geom", "areas", ""]
         num = self.config_notebook.GetSelection()
         self._enable_json_editing(SECT_NAMES[num])
         self._decorate_image_for_tab(True)
@@ -1212,17 +1226,16 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
             rv = dlg.ShowModal()
             dlg.Destroy()
             if rv == wx.ID_NO: return
-        
-        if self.viewer is not None:
-            n_rects = 4
-            self.sel_data.rects_a = []
-            w, h = self.viewer.get_raw_img_size()
-            for nx in range(0, n_rects):
-                for ny in range(0, n_rects):
-                    self.sel_data.rects_a.append(
-                       (w * nx / n_rects, h * ny / n_rects,
-                        w * (nx + 1) / n_rects, h * (ny + 1) / n_rects))
-        
+        #if self.viewer is not None:
+        #    n_rects = 4
+        #    self.sel_data.rects_a = []
+        #    w, h = self.viewer.get_raw_img_size()
+        #    for nx in range(0, n_rects):
+        #        for ny in range(0, n_rects):
+        #            self.sel_data.rects_a.append(
+        #               (w * nx / n_rects, h * ny / n_rects,
+        #                w * (nx + 1) / n_rects, h * (ny + 1) / n_rects))
+        # --> на вкадку 'Вид'
         self.start_selecting(Selection.SINGLE_POINT_A,
                              self._pick_horizont_finish_func)
     
@@ -1233,7 +1246,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         """
         coord = self.sel_data.sel_item
         self.sel_data.sel_item = None
-        self.sel_data.rects_a = []
+        #self.sel_data.rects_a = []
         self._viewer_update_view()
         if not self.sel_ok: return
         

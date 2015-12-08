@@ -447,3 +447,15 @@ _phi_hint = PyEmbeddedImage(
     "7MSlkQTeC7AxWijhDYVCATbO4dz0Rub5D3oGt5T73woLAAAAAElFTkSuQmCC")
 get_phi_hintBitmap = _make_my_getter(_phi_hint)
 
+#----------------------------------------------------------------------
+_power_spec_button = PyEmbeddedImage(
+    "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAIAAAAC64paAAAAA3NCSVQICAjb4U/gAAABUUlE"
+    "QVQ4jX2U223sMAxEz1zk363aFVCuwG41Fcz94GO9ySKCIAgShxwOKQkWf43N3qUbgAMu+J67"
+    "rz+RwCHRSANwD/7fu+nqdevVcMDeSMEBW86vB+yCCw4i7XYg1joTVsmZk/biOb7gIowNhAPP"
+    "wCYcOdMA/APscAAvg97b4ypP/Rs8dmSsmkDFL3w4EjyC7UQ50/JLuFNJQ8uSJHXyGqkWMAlD"
+    "ByyGfRXNvGhfE/niHHcUIFwn7V8SJC/xXue70ap6rEzNA7a9WCy6/nVzNdWraMeox2yactGm"
+    "26PU6mowOr/UHnBJW2p/gwiwNdnOsJFImYNFcKrsm/Yqtrbtaqbkm80Gjqww0wLPVyXOLCmw"
+    "MkXpzDJjJDirszlFWO/veQPySSSrNKp1YP3C9Okz2B77vUjxUAHlr/DxMzgeHu/H+f3D5mPk"
+    "51i2pRv2CTh3/wGPng/sA2UyewAAAABJRU5ErkJggg==")
+get_power_spec_buttonBitmap = _power_spec_button.GetBitmap
+

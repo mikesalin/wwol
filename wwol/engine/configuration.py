@@ -85,7 +85,8 @@ class Config:
       .areas_list (list of ProcessingArea-s):  может содержать [RT] элементы
       .auto_set_fft_sizes (bool)
     
-    TODO: секция after_first_frame
+    не ясно куда отнести:
+      .max_freq [RT]: макс частота для сохранения спектра
     
     """
     def __init__(self):
@@ -120,6 +121,8 @@ class Config:
         self.active_area_num = -1
         self.areas_list = []
         self.auto_set_fft_sizes = True
+        # ..?
+        self.max_freq = 0
     
     def need_user_pic_path(self):
         return (not self.source_type == FFMPEG_AUTO_SOURCE) or \
@@ -361,7 +364,33 @@ class Config:
             self.active_area = 'last'
         else:
             self.active_area = self.areas_list[self.active_area_num].name
+    
+    def power_spec_check_list(self):
+        """
+        Проверяет все ли готово для вычисления спектра.
+        Возвращает: (ready_flag, issues_text) : (bool, str)
+        """
+        ready_flag = True
+        issues_text = ""
+
+        if not self.source_set:
+            ready_flag = False
+            issues_text += "- Выберите источник кадров\n"
+
+        geom_is_dummy = True
+        for comp in ["a", "b", "c"]:
+            if abs(self.proj_coef.__dict__[comp] 
+              - geom.IDENTICATL_PROJECTION.__dict__[comp]) > 1e-6:
+                geom_is_dummy = False
+        if geom_is_dummy:
+            issues_text += "- Задайте параметры геометрии\n"
         
+        if self.active_area_num < 0:
+            ready_flag = False
+            issues_text += "- Выберите область обработки\n"
+        
+        return (ready_flag, issues_text)
+
 
 def _schema_for_int_tuple(size):
     "Возвращает json-схему (dict) для массива int-ов строго заданного размера"

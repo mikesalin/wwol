@@ -22,7 +22,7 @@ import wx
 
 
 from .base_gui import main_video_gui
-from .base_gui import wwol_globals
+from . import wwol_globals
 
 
 def init_essentials():

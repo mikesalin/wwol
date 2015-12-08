@@ -69,7 +69,7 @@ class MainVideoFrame ( wx.Frame ):
 		
 		bSizer121.Add( self.m_staticText241, 0, wx.ALL, 5 )
 		
-		self.source_button = wx.Button( self.m_panel10, wx.ID_ANY, u"Выбрать исходный файл...", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.source_button = wx.Button( self.m_panel10, wx.ID_ANY, u"Настроить...", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.source_button.SetFont( wx.Font( wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString ) )
 		
 		bSizer121.Add( self.source_button, 0, wx.ALL|wx.EXPAND, 5 )
@@ -145,11 +145,71 @@ class MainVideoFrame ( wx.Frame ):
 		
 		bSizer131.Add( gSizer7, 0, wx.EXPAND, 5 )
 		
+		fgSizer11 = wx.FlexGridSizer( 0, 3, 0, 0 )
+		fgSizer11.AddGrowableCol( 1 )
+		fgSizer11.SetFlexibleDirection( wx.BOTH )
+		fgSizer11.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+		
+		self.active_area_static_text = wx.StaticText( self.m_panel111, wx.ID_ANY, u"Активная:", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.active_area_static_text.Wrap( -1 )
+		fgSizer11.Add( self.active_area_static_text, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+		
+		active_area_choiceChoices = []
+		self.active_area_choice = wx.Choice( self.m_panel111, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, active_area_choiceChoices, 0 )
+		self.active_area_choice.SetSelection( 0 )
+		fgSizer11.Add( self.active_area_choice, 0, wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, 5 )
+		
+		self.active_area_rename_button = wx.BitmapButton( self.m_panel111, wx.ID_ANY, wx.ArtProvider.GetBitmap( wx.ART_MISSING_IMAGE, wx.ART_MENU ), wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW )
+		fgSizer11.Add( self.active_area_rename_button, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+		
+		
+		bSizer131.Add( fgSizer11, 1, wx.EXPAND, 5 )
+		
 		
 		self.m_panel111.SetSizer( bSizer131 )
 		self.m_panel111.Layout()
 		bSizer131.Fit( self.m_panel111 )
 		self.config_notebook.AddPage( self.m_panel111, u"З", False )
+		self.m_panel12 = wx.Panel( self.config_notebook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		bSizer15 = wx.BoxSizer( wx.VERTICAL )
+		
+		self.m_staticText31 = wx.StaticText( self.m_panel12, wx.ID_ANY, u"Энергетический спектр", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText31.Wrap( -1 )
+		self.m_staticText31.SetFont( wx.Font( wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString ) )
+		
+		bSizer15.Add( self.m_staticText31, 0, wx.ALL, 5 )
+		
+		gSizer8 = wx.GridSizer( 0, 2, 0, 0 )
+		
+		self.calc_spec_button = wx.Button( self.m_panel12, wx.ID_ANY, u"Вычислить!", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.calc_spec_button.SetFont( wx.Font( wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString ) )
+		
+		gSizer8.Add( self.calc_spec_button, 0, wx.ALL|wx.EXPAND, 5 )
+		
+		
+		gSizer8.AddSpacer( ( 0, 0), 1, wx.EXPAND, 5 )
+		
+		
+		bSizer15.Add( gSizer8, 1, wx.EXPAND, 5 )
+		
+		fgSizer12 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer12.SetFlexibleDirection( wx.BOTH )
+		fgSizer12.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+		
+		self.prev_spec_button = wx.Button( self.m_panel12, wx.ID_ANY, u"открыть последний", wx.DefaultPosition, wx.DefaultSize, wx.BU_EXACTFIT )
+		fgSizer12.Add( self.prev_spec_button, 0, wx.ALL, 5 )
+		
+		self.m_button25 = wx.Button( self.m_panel12, wx.ID_ANY, u"открыть...", wx.DefaultPosition, wx.DefaultSize, wx.BU_EXACTFIT )
+		fgSizer12.Add( self.m_button25, 0, wx.ALL, 5 )
+		
+		
+		bSizer15.Add( fgSizer12, 1, wx.EXPAND, 5 )
+		
+		
+		self.m_panel12.SetSizer( bSizer15 )
+		self.m_panel12.Layout()
+		bSizer15.Fit( self.m_panel12 )
+		self.config_notebook.AddPage( self.m_panel12, u"С", False )
 		
 		fgSizer9.Add( self.config_notebook, 1, wx.EXPAND |wx.ALL, 2 )
 		
@@ -248,9 +308,18 @@ class MainVideoFrame ( wx.Frame ):
 		self.Layout()
 		self.m_statusBar1 = self.CreateStatusBar( 1, wx.ST_SIZEGRIP, wx.ID_ANY )
 		self.corner_menu = wx.Menu()
-		self.open_menu = wx.MenuItem( self.corner_menu, wx.ID_ANY, u"Октрыть проект...", wx.EmptyString, wx.ITEM_NORMAL )
-		self.open_menu.SetBitmap( wx.ArtProvider.GetBitmap( wx.ART_FILE_OPEN, wx.ART_MENU ) )
-		self.corner_menu.AppendItem( self.open_menu )
+		self.open_menu_top = wx.Menu()
+		self.open_menu = wx.MenuItem( self.open_menu_top, wx.ID_ANY, u"Октрыть проект...", wx.EmptyString, wx.ITEM_NORMAL )
+		self.open_menu.SetBitmap( wx.NullBitmap )
+		self.open_menu_top.AppendItem( self.open_menu )
+		
+		self.m_menuItem5 = wx.MenuItem( self.open_menu_top, wx.ID_ANY, u"Открыть видеофайл...", wx.EmptyString, wx.ITEM_NORMAL )
+		self.open_menu_top.AppendItem( self.m_menuItem5 )
+		
+		self.m_menuItem6 = wx.MenuItem( self.open_menu_top, wx.ID_ANY, u"Открыть спектр...", wx.EmptyString, wx.ITEM_NORMAL )
+		self.open_menu_top.AppendItem( self.m_menuItem6 )
+		
+		self.corner_menu.AppendSubMenu( self.open_menu_top, u"Открыть" )
 		
 		self.save_menu = wx.MenuItem( self.corner_menu, wx.ID_ANY, u"Сохранить проект", wx.EmptyString, wx.ITEM_NORMAL )
 		self.save_menu.SetBitmap( wx.ArtProvider.GetBitmap( wx.ART_FILE_SAVE, wx.ART_MENU ) )
