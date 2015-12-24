@@ -10,14 +10,18 @@ WWOL наподобие библиотеки, то вам необходимо �
 'init_essentials'.
 """
 
+import sys
+import os
 import logging
+from . import wwol_globals
 
 
-import wxversion
-try:
-    wxversion.ensureMinimal('3')
-except wxversion.AlreadyImportedError:
-    logging.warning("You'd better import start module first")
+if not hasattr(sys, 'frozen'):
+    import wxversion
+    try:
+        wxversion.ensureMinimal('3')
+    except wxversion.AlreadyImportedError:
+        logging.warning("You'd better import start module first")
 import wx
 
 
@@ -29,13 +33,23 @@ def init_essentials():
     "см. описание модуля"
     wwol_globals.app = wx.App()
     wx.Log_EnableLogging(False)
+    # wx.Image.AddHandler(wx.PNGHandler())
+    # wx.Image.AddHandler(wx.JPEGHandler())
    
 
 def main():
     "см. описание модуля"
+    if wwol_globals.VERBOSE:
+        log_level = logging.DEBUG
+    else:
+        log_level = logging.ERROR
     logging.basicConfig(format="%(levelname)s: %(module)s: %(message)s",
-      level=logging.DEBUG)
+                        level=log_level)
     logging.debug('Using wxPython version ' + wx.version())
+    
+    p = os.path.dirname(sys.argv[0])
+    if len(p) > 0:
+        os.chdir(p)
 
     init_essentials()
 

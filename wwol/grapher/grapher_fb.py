@@ -9,6 +9,7 @@
 
 import wx
 import wx.xrc
+from ..common import embed_gui_images
 
 ###########################################################################
 ## Class GrapherMainFB
@@ -348,7 +349,8 @@ class GrapherMainFB ( wx.Frame ):
 		self.Layout()
 		self.status_bar = self.CreateStatusBar( 1, wx.ST_SIZEGRIP, wx.ID_ANY )
 		self.extra_menu = wx.Menu()
-		self.screenshot_menu = wx.MenuItem( self.extra_menu, wx.ID_ANY, u"Сохранить картинку как есть...", wx.EmptyString, wx.ITEM_NORMAL )
+		self.screenshot_menu = wx.MenuItem( self.extra_menu, wx.ID_ANY, u"Сохранить изображение как есть...", wx.EmptyString, wx.ITEM_NORMAL )
+		self.screenshot_menu.SetBitmap(embed_gui_images.get_scrshotBitmap())
 		self.extra_menu.AppendItem( self.screenshot_menu )
 		
 		self.gnuplot_save_button = wx.MenuItem( self.extra_menu, wx.ID_ANY, u"Экспорт графика: скрипт + данные...", wx.EmptyString, wx.ITEM_NORMAL )

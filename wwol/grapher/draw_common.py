@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 
-import numpy as np
+import math
 import os.path
 import tempfile
 import subprocess
 import logging
+import sys
+
+from ..common.my_encoding_tools import fname2quotes
+from .. wwol_globals import VERBOSE
 
 def draw_conventions():
   """
@@ -46,15 +50,13 @@ def file4draw(created_files, file_prefix, file_suffix, mode="b"):
   return (fobj, fname)
 
 
-GNUPLOT_TERM = "windows"
-
-
 def launch_gnu_plot(created_files, script_body, mode, file_prefix=None,
     limits=None, cleanup=True, size=None):
   """
   Дополняет script_body (тип str) header-ом и/или footer-ом и скармливает 
   его gnuplot. 
   mode: "console" -нарисовать график и оставить пользователя в консоле gnuplot
+        "console+"
         "file" - нарисовать график в файл, молчаливый режим. Имя получившегося
                  файла будет возвращено как последний элемент в списке
                  created_files . Размер рисунка задается параметром size .
@@ -90,36 +92,61 @@ def launch_gnu_plot(created_files, script_body, mode, file_prefix=None,
     s = s+"replot\n"
   #console mode
   ret_tup = None  #return tuple
-  if (mode=="console"):
+  if (mode=="console" or mode=="console+"):
     if size is not None:
-      s = ("set term %s size %d,%d\n" % (GNUPLOT_TERM, size[0], size[1])) + s
+      s = ("set term %s size %d,%d\n" % ('GNUTERM', size[0], size[1])) + s
     fobj, fname = file4draw(created_files, file_prefix, ".txt", mode="t")
     fobj.close()  # почему-то под виндой работает только так: октр-закр-откр
     fobj = open(fname, "wt")
     fobj.write(s)
+    fobj.write(
+      "print '  -----===== Welcome to the console of GNUPLOT ! =====-----'\n")
+    fobj.write("print \"  Type ' exit ' to exit\"\n")
     fobj.close()
     
     #выводим в консоль скрипт, удаляя лишнии переносы в конце
-    print "  -----===== Script: =====-----"
-    n_spaces = 0
-    for ln in s.split("\n"):
-      if ln.strip() == "":
-        n_spaces += 1 
-      else:
-        if n_spaces > 0:
-          print "\n"*(n_spaces-1)
-        print ln
+    if VERBOSE:
+        print "  -----===== Script: =====-----"
         n_spaces = 0
-    print "  -----===== Welcome to the console of GNUPLOT ! =====-----"
-    print "  Type ' exit ' to exit"
+        for ln in s.split("\n"):
+          if ln.strip() == "":
+            n_spaces += 1 
+          else:
+            if n_spaces > 0:
+              print "\n"*(n_spaces-1)
+            print ln
+            n_spaces = 0
     
     # проверяем fname
     logging.debug('checking file: ' + fname)
-    f_dbg = open(fname, 'rt')
+    with open(fname, 'rt') as f_dbg:
+        pass
     logging.debug('ok')
     
-    rv = subprocess.call(("gnuplot",fname,"-"))
-    ret_tup = (rv,None)
+    if mode=="console+":
+        if sys.platform == 'win32':
+            rv = subprocess.call(('gnuplot', fname2quotes(fname), '-'))
+            ret_tup = (rv, None)
+        else:
+            TERM_NAMES = ['x-terminal-emulator', 'xgd-terminal']
+            for n_name in range(0, len(TERM_NAMES)):
+                try:
+                    subprocess.call((TERM_NAMES[n_name],
+                                     '-e',
+                                     'gnuplot ' + fname2quotes(fname) + ' -'))
+                    break
+                except OSError:
+                    if n_name == (len(TERM_NAMES) - 1):
+                        err_text = "Can't launch terminal. Tried: "
+                        for name in TERM_NAMES:
+                            err_text += name + ' '
+                        logging.debug(err_text)
+                        raise
+            ret_tup = (0, None)
+    else:
+      rv = subprocess.call(("gnuplot", fname, "-"))
+      ret_tup = (rv,None)
+    
     if (cleanup):
       for fname in created_files:
         os.remove(fname)
@@ -154,14 +181,14 @@ def launch_gnu_plot(created_files, script_body, mode, file_prefix=None,
   if (ret_tup is None):
     raise Exception("Неизвестный режим: mode="+mode)
   if (ret_tup[0]!=0):
-    logging.warning( "gnuplot returned %d, ERROR ?!" % ret_tup[0] )
+    logging.debug( "gnuplot returned %d, ERROR ?!" % ret_tup[0] )
   return ret_tup
   
 def get_dispers_kf():
   """
   Производит лямбда-функцию для расчета дисперсионки K(f)
   """
-  return lambda f: (2*np.pi*f)**2/9.8
+  return lambda f: (2*math.pi*f)**2/9.8
 
 JET_COLORMAP_CMD = "set palette defined ( 0 \"#000090\","\
                                          "1 \"#000fff\","\

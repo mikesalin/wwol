@@ -9,5 +9,6 @@
 
 app = None
 main_video_frame = None
+VERBOSE = False
 
 

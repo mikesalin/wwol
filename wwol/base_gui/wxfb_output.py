@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*- 
 
 ###########################################################################
-## Python code generated with wxFormBuilder (version Sep 17 2014)
+## Python code generated with wxFormBuilder (version Jun 17 2015)
 ## http://www.wxformbuilder.org/
 ##
 ## PLEASE DO "NOT" EDIT THIS FILE!
@@ -9,6 +9,9 @@
 
 import wx
 import wx.xrc
+
+ID_JUMP_FRAME_TOOL = 1000
+ID_JUMP_TIME_TOOL = 1001
 
 ###########################################################################
 ## Class MainVideoFrame
@@ -28,15 +31,19 @@ class MainVideoFrame ( wx.Frame ):
 		
 		self.live_proc_tool = self.my_toolbar.AddLabelTool( wx.ID_ANY, u"Живая обработка", wx.ArtProvider.GetBitmap( wx.ART_MISSING_IMAGE, wx.ART_TOOLBAR ), wx.NullBitmap, wx.ITEM_CHECK, wx.EmptyString, wx.EmptyString, None ) 
 		
+		self.view_step_tool = self.my_toolbar.AddLabelTool( wx.ID_ANY, wx.EmptyString, wx.ArtProvider.GetBitmap( wx.ART_MISSING_IMAGE, wx.ART_TOOLBAR ), wx.NullBitmap, wx.ITEM_NORMAL, wx.EmptyString, wx.EmptyString, None ) 
+		
 		self.prev_tool = self.my_toolbar.AddLabelTool( wx.ID_ANY, wx.EmptyString, wx.ArtProvider.GetBitmap( wx.ART_GO_BACK, wx.ART_TOOLBAR ), wx.NullBitmap, wx.ITEM_NORMAL, u"Назад", wx.EmptyString, None ) 
 		
 		self.next_tool = self.my_toolbar.AddLabelTool( wx.ID_ANY, wx.EmptyString, wx.ArtProvider.GetBitmap( wx.ART_GO_FORWARD, wx.ART_TOOLBAR ), wx.NullBitmap, wx.ITEM_NORMAL, u"Вперед", wx.EmptyString, None ) 
 		
-		self.jump_frame_tool = self.my_toolbar.AddLabelTool( wx.ID_ANY, u"кадр | кадров", wx.ArtProvider.GetBitmap( wx.ART_TICK_MARK, wx.ART_TOOLBAR ), wx.NullBitmap, wx.ITEM_NORMAL, u"Переход на кадр номер...", wx.EmptyString, None ) 
+		self.jump_frame_tool = self.my_toolbar.AddLabelTool( ID_JUMP_FRAME_TOOL, u"кадр | кадров", wx.ArtProvider.GetBitmap( wx.ART_TICK_MARK, wx.ART_TOOLBAR ), wx.NullBitmap, wx.ITEM_NORMAL, u"Переход на кадр номер...", wx.EmptyString, None ) 
 		
-		self.jump_time_tool = self.my_toolbar.AddLabelTool( wx.ID_ANY, u"мм:cc.мс | мм:сс.мс", wx.ArtProvider.GetBitmap( wx.ART_TICK_MARK, wx.ART_TOOLBAR ), wx.NullBitmap, wx.ITEM_NORMAL, u"Переход на указанное время...", wx.EmptyString, None ) 
+		self.jump_time_tool = self.my_toolbar.AddLabelTool( ID_JUMP_TIME_TOOL, u"мм:cc.мс | мм:сс.мс", wx.ArtProvider.GetBitmap( wx.ART_TICK_MARK, wx.ART_TOOLBAR ), wx.NullBitmap, wx.ITEM_NORMAL, u"Переход на указанное время...", wx.EmptyString, None ) 
 		
 		self.zoom_tool = self.my_toolbar.AddLabelTool( wx.ID_ANY, wx.EmptyString, wx.ArtProvider.GetBitmap( wx.ART_FIND, wx.ART_TOOLBAR ), wx.NullBitmap, wx.ITEM_CHECK, u"Масштабирание / перемещение", wx.EmptyString, None ) 
+		
+		self.scrshot_tool = self.my_toolbar.AddLabelTool( wx.ID_ANY, wx.EmptyString, wx.ArtProvider.GetBitmap( wx.ART_MISSING_IMAGE, wx.ART_TOOLBAR ), wx.NullBitmap, wx.ITEM_NORMAL, u"Сделать снимок экрана", wx.EmptyString, None ) 
 		
 		self.my_toolbar.Realize() 
 		
@@ -47,7 +54,7 @@ class MainVideoFrame ( wx.Frame ):
 		self.my_info_bar.SetEffectDuration( 500 )
 		bSizer1.Add( self.my_info_bar, 0, wx.ALL|wx.EXPAND, 5 )
 		
-		self.props_images_splitter = wx.SplitterWindow( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.SP_3D|wx.SP_3DSASH )
+		self.props_images_splitter = wx.SplitterWindow( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.SP_3D|wx.SP_NO_XP_THEME )
 		self.props_images_splitter.SetSashSize( 5 )
 		self.props_images_splitter.Bind( wx.EVT_IDLE, self.props_images_splitterOnIdle )
 		self.props_images_splitter.SetMinimumPaneSize( 20 )
@@ -79,20 +86,6 @@ class MainVideoFrame ( wx.Frame ):
 		self.m_panel10.Layout()
 		bSizer121.Fit( self.m_panel10 )
 		self.config_notebook.AddPage( self.m_panel10, u"И", True )
-		self.m_panel101 = wx.Panel( self.config_notebook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-		bSizer12 = wx.BoxSizer( wx.VERTICAL )
-		
-		self.m_staticText28 = wx.StaticText( self.m_panel101, wx.ID_ANY, u"Вид", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText28.Wrap( -1 )
-		self.m_staticText28.SetFont( wx.Font( wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString ) )
-		
-		bSizer12.Add( self.m_staticText28, 0, wx.ALL, 5 )
-		
-		
-		self.m_panel101.SetSizer( bSizer12 )
-		self.m_panel101.Layout()
-		bSizer12.Fit( self.m_panel101 )
-		self.config_notebook.AddPage( self.m_panel101, u"В", False )
 		self.m_panel11 = wx.Panel( self.config_notebook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer13 = wx.BoxSizer( wx.VERTICAL )
 		
@@ -101,6 +94,11 @@ class MainVideoFrame ( wx.Frame ):
 		self.m_staticText24.SetFont( wx.Font( wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString ) )
 		
 		bSizer13.Add( self.m_staticText24, 0, wx.ALL, 5 )
+		
+		self.camera_list_button = wx.Button( self.m_panel11, wx.ID_ANY, u"Выбрать камеру", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.camera_list_button.SetFont( wx.Font( wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString ) )
+		
+		bSizer13.Add( self.camera_list_button, 0, wx.ALL|wx.EXPAND, 5 )
 		
 		self.pick_horizont_button = wx.Button( self.m_panel11, wx.ID_ANY, u"Указать горизонт в кадре", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.pick_horizont_button.SetFont( wx.Font( wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString ) )
@@ -111,9 +109,6 @@ class MainVideoFrame ( wx.Frame ):
 		
 		self.simple_proj_button = wx.Button( self.m_panel11, wx.ID_ANY, u"простая проекц", wx.DefaultPosition, wx.DefaultSize, 0 )
 		gSizer6.Add( self.simple_proj_button, 0, wx.ALL|wx.EXPAND, 5 )
-		
-		self.camera_list_button = wx.Button( self.m_panel11, wx.ID_ANY, u"камеры...", wx.DefaultPosition, wx.DefaultSize, 0 )
-		gSizer6.Add( self.camera_list_button, 0, wx.ALL|wx.EXPAND, 5 )
 		
 		
 		bSizer13.Add( gSizer6, 0, wx.EXPAND, 5 )
@@ -132,18 +127,13 @@ class MainVideoFrame ( wx.Frame ):
 		
 		bSizer131.Add( self.m_staticText30, 0, wx.ALL, 5 )
 		
-		gSizer7 = wx.GridSizer( 0, 2, 0, 0 )
-		
-		self.select_area_button = wx.Button( self.m_panel111, wx.ID_ANY, u"Выбрать", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.select_area_button = wx.Button( self.m_panel111, wx.ID_ANY, u"Выделить...", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.select_area_button.SetFont( wx.Font( wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString ) )
 		
-		gSizer7.Add( self.select_area_button, 0, wx.ALL|wx.EXPAND, 5 )
+		bSizer131.Add( self.select_area_button, 0, wx.ALL|wx.EXPAND, 5 )
 		
-		self.select_multiple_areas_button = wx.Button( self.m_panel111, wx.ID_ANY, u"Несколько зон", wx.DefaultPosition, wx.DefaultSize, 0 )
-		gSizer7.Add( self.select_multiple_areas_button, 0, wx.ALL|wx.EXPAND, 5 )
-		
-		
-		bSizer131.Add( gSizer7, 0, wx.EXPAND, 5 )
+		self.select_multiple_areas_button = wx.Button( self.m_panel111, wx.ID_ANY, u"Выделить несколько зон", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer131.Add( self.select_multiple_areas_button, 0, wx.ALL|wx.EXPAND, 5 )
 		
 		fgSizer11 = wx.FlexGridSizer( 0, 3, 0, 0 )
 		fgSizer11.AddGrowableCol( 1 )
@@ -179,28 +169,25 @@ class MainVideoFrame ( wx.Frame ):
 		
 		bSizer15.Add( self.m_staticText31, 0, wx.ALL, 5 )
 		
-		gSizer8 = wx.GridSizer( 0, 2, 0, 0 )
+		fgSizer12 = wx.FlexGridSizer( 0, 3, 0, 0 )
+		fgSizer12.AddGrowableCol( 0 )
+		fgSizer12.SetFlexibleDirection( wx.BOTH )
+		fgSizer12.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 		
 		self.calc_spec_button = wx.Button( self.m_panel12, wx.ID_ANY, u"Вычислить!", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.calc_spec_button.SetFont( wx.Font( wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString ) )
 		
-		gSizer8.Add( self.calc_spec_button, 0, wx.ALL|wx.EXPAND, 5 )
+		fgSizer12.Add( self.calc_spec_button, 0, wx.ALL|wx.EXPAND, 5 )
 		
+		self.prev_spec_button = wx.BitmapButton( self.m_panel12, wx.ID_ANY, wx.ArtProvider.GetBitmap( wx.ART_GO_BACK, wx.ART_MENU ), wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW )
+		self.prev_spec_button.SetToolTipString( u"Открыть предыдущий спектр" )
 		
-		gSizer8.AddSpacer( ( 0, 0), 1, wx.EXPAND, 5 )
-		
-		
-		bSizer15.Add( gSizer8, 1, wx.EXPAND, 5 )
-		
-		fgSizer12 = wx.FlexGridSizer( 0, 2, 0, 0 )
-		fgSizer12.SetFlexibleDirection( wx.BOTH )
-		fgSizer12.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
-		
-		self.prev_spec_button = wx.Button( self.m_panel12, wx.ID_ANY, u"открыть последний", wx.DefaultPosition, wx.DefaultSize, wx.BU_EXACTFIT )
 		fgSizer12.Add( self.prev_spec_button, 0, wx.ALL, 5 )
 		
-		self.m_button25 = wx.Button( self.m_panel12, wx.ID_ANY, u"открыть...", wx.DefaultPosition, wx.DefaultSize, wx.BU_EXACTFIT )
-		fgSizer12.Add( self.m_button25, 0, wx.ALL, 5 )
+		self.load_spec_button = wx.BitmapButton( self.m_panel12, wx.ID_ANY, wx.ArtProvider.GetBitmap( wx.ART_FILE_OPEN, wx.ART_MENU ), wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW )
+		self.load_spec_button.SetToolTipString( u"Открыть спектр..." )
+		
+		fgSizer12.Add( self.load_spec_button, 0, wx.ALL, 5 )
 		
 		
 		bSizer15.Add( fgSizer12, 1, wx.EXPAND, 5 )
@@ -210,6 +197,61 @@ class MainVideoFrame ( wx.Frame ):
 		self.m_panel12.Layout()
 		bSizer15.Fit( self.m_panel12 )
 		self.config_notebook.AddPage( self.m_panel12, u"С", False )
+		self.m_panel13 = wx.Panel( self.config_notebook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		bSizer151 = wx.BoxSizer( wx.VERTICAL )
+		
+		fgSizer13 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer13.AddGrowableCol( 1 )
+		fgSizer13.SetFlexibleDirection( wx.BOTH )
+		fgSizer13.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+		
+		self.m_staticText32 = wx.StaticText( self.m_panel13, wx.ID_ANY, u"Снимок экрана", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText32.Wrap( -1 )
+		self.m_staticText32.SetFont( wx.Font( wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString ) )
+		
+		fgSizer13.Add( self.m_staticText32, 0, wx.ALL, 5 )
+		
+		self.scrshot_button = wx.Button( self.m_panel13, wx.ID_ANY, u"ОК", wx.DefaultPosition, wx.DefaultSize, wx.BU_EXACTFIT )
+		fgSizer13.Add( self.scrshot_button, 0, wx.ALL|wx.ALIGN_RIGHT, 5 )
+		
+		
+		bSizer151.Add( fgSizer13, 0, wx.EXPAND, 5 )
+		
+		fgSizer14 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer14.AddGrowableCol( 0 )
+		fgSizer14.AddGrowableCol( 1 )
+		fgSizer14.SetFlexibleDirection( wx.BOTH )
+		fgSizer14.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+		
+		self.left_scrshot_check = wx.CheckBox( self.m_panel13, wx.ID_ANY, u"Левый", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.left_scrshot_check.SetValue(True) 
+		fgSizer14.Add( self.left_scrshot_check, 0, wx.ALL, 5 )
+		
+		self.right_scrshot_check = wx.CheckBox( self.m_panel13, wx.ID_ANY, u"Правый", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_RIGHT )
+		fgSizer14.Add( self.right_scrshot_check, 0, wx.ALL|wx.ALIGN_RIGHT, 5 )
+		
+		self.raw_scrshot_check = wx.CheckBox( self.m_panel13, wx.ID_ANY, u"Исходный", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.raw_scrshot_check.SetValue(True) 
+		fgSizer14.Add( self.raw_scrshot_check, 0, wx.ALL, 5 )
+		
+		self.cur_view_scrshot_check = wx.CheckBox( self.m_panel13, wx.ID_ANY, u"Текущий вид", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_RIGHT )
+		fgSizer14.Add( self.cur_view_scrshot_check, 0, wx.ALL|wx.ALIGN_RIGHT, 5 )
+		
+		self.single_scrshot_check = wx.CheckBox( self.m_panel13, wx.ID_ANY, u"Один", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.single_scrshot_check.SetValue(True) 
+		fgSizer14.Add( self.single_scrshot_check, 0, wx.ALL, 5 )
+		
+		self.many_scrshot_check = wx.CheckBox( self.m_panel13, wx.ID_ANY, u"Все", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_RIGHT )
+		fgSizer14.Add( self.many_scrshot_check, 0, wx.ALL|wx.ALIGN_RIGHT, 5 )
+		
+		
+		bSizer151.Add( fgSizer14, 0, 0, 5 )
+		
+		
+		self.m_panel13.SetSizer( bSizer151 )
+		self.m_panel13.Layout()
+		bSizer151.Fit( self.m_panel13 )
+		self.config_notebook.AddPage( self.m_panel13, u"Ск", False )
 		
 		fgSizer9.Add( self.config_notebook, 1, wx.EXPAND |wx.ALL, 2 )
 		
@@ -236,7 +278,7 @@ class MainVideoFrame ( wx.Frame ):
 		
 		fgSizer10.Add( self.apply_json_button, 0, wx.ALL|wx.ALIGN_RIGHT, 5 )
 		
-		self.reset_json_button = wx.BitmapButton( self.m_panel6, wx.ID_ANY, wx.ArtProvider.GetBitmap( wx.ART_DELETE, wx.ART_MENU ), wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW )
+		self.reset_json_button = wx.BitmapButton( self.m_panel6, wx.ID_ANY, wx.ArtProvider.GetBitmap( wx.ART_UNDO, wx.ART_MENU ), wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW )
 		self.reset_json_button.SetToolTipString( u"Сброс (восстановить предыдущие значения)" )
 		
 		fgSizer10.Add( self.reset_json_button, 0, wx.ALL|wx.ALIGN_RIGHT, 5 )
@@ -256,27 +298,27 @@ class MainVideoFrame ( wx.Frame ):
 		self.m_panel7 = wx.Panel( self.props_images_splitter, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer9 = wx.BoxSizer( wx.VERTICAL )
 		
-		self.ab_splitter = wx.SplitterWindow( self.m_panel7, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.SP_3D|wx.SP_3DSASH )
+		self.ab_splitter = wx.SplitterWindow( self.m_panel7, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.SP_3D|wx.SP_NO_XP_THEME )
 		self.ab_splitter.SetSashSize( 5 )
 		self.ab_splitter.Bind( wx.EVT_IDLE, self.ab_splitterOnIdle )
 		self.ab_splitter.SetMinimumPaneSize( 20 )
 		
-		self.m_panel1 = wx.Panel( self.ab_splitter, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		self.a_window_panel = wx.Panel( self.ab_splitter, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer2 = wx.BoxSizer( wx.VERTICAL )
 		
-		self.a_bmp = wx.StaticBitmap( self.m_panel1, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.a_bmp = wx.StaticBitmap( self.a_window_panel, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer2.Add( self.a_bmp, 1, wx.ALL|wx.EXPAND, 5 )
 		
-		self.a_footer_static_text = wx.StaticText( self.m_panel1, wx.ID_ANY, u"Вход", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.a_footer_static_text = wx.StaticText( self.a_window_panel, wx.ID_ANY, u"Вход", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.a_footer_static_text.Wrap( -1 )
 		self.a_footer_static_text.SetFont( wx.Font( wx.NORMAL_FONT.GetPointSize(), 75, 90, 90, False, wx.EmptyString ) )
 		
 		bSizer2.Add( self.a_footer_static_text, 0, wx.ALL|wx.EXPAND, 5 )
 		
 		
-		self.m_panel1.SetSizer( bSizer2 )
-		self.m_panel1.Layout()
-		bSizer2.Fit( self.m_panel1 )
+		self.a_window_panel.SetSizer( bSizer2 )
+		self.a_window_panel.Layout()
+		bSizer2.Fit( self.a_window_panel )
 		self.m_panel2 = wx.Panel( self.ab_splitter, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer3 = wx.BoxSizer( wx.VERTICAL )
 		
@@ -293,7 +335,7 @@ class MainVideoFrame ( wx.Frame ):
 		self.m_panel2.SetSizer( bSizer3 )
 		self.m_panel2.Layout()
 		bSizer3.Fit( self.m_panel2 )
-		self.ab_splitter.SplitVertically( self.m_panel1, self.m_panel2, 350 )
+		self.ab_splitter.SplitVertically( self.a_window_panel, self.m_panel2, 350 )
 		bSizer9.Add( self.ab_splitter, 1, wx.EXPAND, 5 )
 		
 		
@@ -313,11 +355,11 @@ class MainVideoFrame ( wx.Frame ):
 		self.open_menu.SetBitmap( wx.NullBitmap )
 		self.open_menu_top.AppendItem( self.open_menu )
 		
-		self.m_menuItem5 = wx.MenuItem( self.open_menu_top, wx.ID_ANY, u"Открыть видеофайл...", wx.EmptyString, wx.ITEM_NORMAL )
-		self.open_menu_top.AppendItem( self.m_menuItem5 )
+		self.open_video_menu = wx.MenuItem( self.open_menu_top, wx.ID_ANY, u"Открыть видеофайл...", wx.EmptyString, wx.ITEM_NORMAL )
+		self.open_menu_top.AppendItem( self.open_video_menu )
 		
-		self.m_menuItem6 = wx.MenuItem( self.open_menu_top, wx.ID_ANY, u"Открыть спектр...", wx.EmptyString, wx.ITEM_NORMAL )
-		self.open_menu_top.AppendItem( self.m_menuItem6 )
+		self.open_spec_menu = wx.MenuItem( self.open_menu_top, wx.ID_ANY, u"Открыть спектр...", wx.EmptyString, wx.ITEM_NORMAL )
+		self.open_menu_top.AppendItem( self.open_spec_menu )
 		
 		self.corner_menu.AppendSubMenu( self.open_menu_top, u"Открыть" )
 		
@@ -329,6 +371,11 @@ class MainVideoFrame ( wx.Frame ):
 		self.save_as_menu.SetBitmap( wx.ArtProvider.GetBitmap( wx.ART_FILE_SAVE_AS, wx.ART_MENU ) )
 		self.corner_menu.AppendItem( self.save_as_menu )
 		
+		self.corner_menu.AppendSeparator()
+		
+		self.about_menu = wx.MenuItem( self.corner_menu, wx.ID_ANY, u"О программе", wx.EmptyString, wx.ITEM_NORMAL )
+		self.corner_menu.AppendItem( self.about_menu )
+		
 		self.Bind( wx.EVT_RIGHT_DOWN, self.MainVideoFrameOnContextMenu ) 
 		
 		
@@ -339,27 +386,42 @@ class MainVideoFrame ( wx.Frame ):
 		self.Bind( wx.EVT_SIZE, self._size_func )
 		self.Bind( wx.EVT_TOOL, self._menu_tool_func, id = self.menu_tool.GetId() )
 		self.Bind( wx.EVT_TOOL, self._preview_tool_func, id = self.preview_tool.GetId() )
+		self.Bind( wx.EVT_TOOL, self._view_step_tool_func, id = self.view_step_tool.GetId() )
 		self.Bind( wx.EVT_TOOL, self._prev_tool_func, id = self.prev_tool.GetId() )
 		self.Bind( wx.EVT_TOOL, self._next_tool_func, id = self.next_tool.GetId() )
 		self.Bind( wx.EVT_TOOL, self._jump_frame_tool_func, id = self.jump_frame_tool.GetId() )
 		self.Bind( wx.EVT_TOOL, self._jump_time_tool_func, id = self.jump_time_tool.GetId() )
 		self.Bind( wx.EVT_TOOL, self._zoom_tool_func, id = self.zoom_tool.GetId() )
+		self.Bind( wx.EVT_TOOL, self._scrshot_button_func, id = self.scrshot_tool.GetId() )
 		self.config_notebook.Bind( wx.EVT_NOTEBOOK_PAGE_CHANGED, self._config_notebook_changed_func )
 		self.config_notebook.Bind( wx.EVT_NOTEBOOK_PAGE_CHANGING, self._config_notebook_changing_func )
 		self.source_button.Bind( wx.EVT_BUTTON, self._source_button_func )
+		self.camera_list_button.Bind( wx.EVT_BUTTON, self._camera_list_button_func )
 		self.pick_horizont_button.Bind( wx.EVT_BUTTON, self._pick_horizont_button_func )
 		self.simple_proj_button.Bind( wx.EVT_BUTTON, self._simple_proj_button_func )
-		self.camera_list_button.Bind( wx.EVT_BUTTON, self._camera_list_button_func )
 		self.select_area_button.Bind( wx.EVT_BUTTON, self._select_area_button_func )
 		self.select_multiple_areas_button.Bind( wx.EVT_BUTTON, self._select_multiple_areas_button_func )
+		self.calc_spec_button.Bind( wx.EVT_BUTTON, self._calc_spec_button_func )
+		self.prev_spec_button.Bind( wx.EVT_BUTTON, self._prev_spec_button_func )
+		self.load_spec_button.Bind( wx.EVT_BUTTON, self._load_spec_button_func )
+		self.scrshot_button.Bind( wx.EVT_BUTTON, self._scrshot_button_func )
+		self.left_scrshot_check.Bind( wx.EVT_CHECKBOX, self._checkbox_like_radio )
+		self.right_scrshot_check.Bind( wx.EVT_CHECKBOX, self._checkbox_like_radio )
+		self.raw_scrshot_check.Bind( wx.EVT_CHECKBOX, self._checkbox_like_radio )
+		self.cur_view_scrshot_check.Bind( wx.EVT_CHECKBOX, self._checkbox_like_radio )
+		self.single_scrshot_check.Bind( wx.EVT_CHECKBOX, self._checkbox_like_radio )
+		self.many_scrshot_check.Bind( wx.EVT_CHECKBOX, self._checkbox_like_radio )
 		self.json_text.Bind( wx.EVT_TEXT, self._json_text_func )
 		self.apply_json_button.Bind( wx.EVT_BUTTON, self._apply_json_button_func )
 		self.reset_json_button.Bind( wx.EVT_BUTTON, self._reset_json_button_func )
 		self.json_defaults_button.Bind( wx.EVT_BUTTON, self._json_defaults_button_func )
 		self.ab_splitter.Bind( wx.EVT_SPLITTER_SASH_POS_CHANGED, self._size_func )
 		self.Bind( wx.EVT_MENU, self._open_menu_func, id = self.open_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self._open_video_menu_func, id = self.open_video_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self._load_spec_button_func, id = self.open_spec_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self._save_menu_func, id = self.save_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self._save_as_menu_func, id = self.save_as_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self._about_menu_func, id = self.about_menu.GetId() )
 	
 	def __del__( self ):
 		pass
@@ -378,6 +440,9 @@ class MainVideoFrame ( wx.Frame ):
 	def _preview_tool_func( self, event ):
 		event.Skip()
 	
+	def _view_step_tool_func( self, event ):
+		event.Skip()
+	
 	def _prev_tool_func( self, event ):
 		event.Skip()
 	
@@ -393,6 +458,9 @@ class MainVideoFrame ( wx.Frame ):
 	def _zoom_tool_func( self, event ):
 		event.Skip()
 	
+	def _scrshot_button_func( self, event ):
+		event.Skip()
+	
 	def _config_notebook_changed_func( self, event ):
 		event.Skip()
 	
@@ -402,13 +470,13 @@ class MainVideoFrame ( wx.Frame ):
 	def _source_button_func( self, event ):
 		event.Skip()
 	
+	def _camera_list_button_func( self, event ):
+		event.Skip()
+	
 	def _pick_horizont_button_func( self, event ):
 		event.Skip()
 	
 	def _simple_proj_button_func( self, event ):
-		event.Skip()
-	
-	def _camera_list_button_func( self, event ):
 		event.Skip()
 	
 	def _select_area_button_func( self, event ):
@@ -416,6 +484,24 @@ class MainVideoFrame ( wx.Frame ):
 	
 	def _select_multiple_areas_button_func( self, event ):
 		event.Skip()
+	
+	def _calc_spec_button_func( self, event ):
+		event.Skip()
+	
+	def _prev_spec_button_func( self, event ):
+		event.Skip()
+	
+	def _load_spec_button_func( self, event ):
+		event.Skip()
+	
+	
+	def _checkbox_like_radio( self, event ):
+		event.Skip()
+	
+	
+	
+	
+	
 	
 	def _json_text_func( self, event ):
 		event.Skip()
@@ -433,10 +519,17 @@ class MainVideoFrame ( wx.Frame ):
 	def _open_menu_func( self, event ):
 		event.Skip()
 	
+	def _open_video_menu_func( self, event ):
+		event.Skip()
+	
+	
 	def _save_menu_func( self, event ):
 		event.Skip()
 	
 	def _save_as_menu_func( self, event ):
+		event.Skip()
+	
+	def _about_menu_func( self, event ):
 		event.Skip()
 	
 	def props_images_splitterOnIdle( self, event ):
@@ -604,7 +697,7 @@ class SelDlg ( wx.Dialog ):
 class SourceDlg ( wx.Dialog ):
 	
 	def __init__( self, parent ):
-		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Источник кадров", pos = wx.DefaultPosition, size = wx.Size( 600,350 ), style = wx.DEFAULT_DIALOG_STYLE )
+		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Источник кадров", pos = wx.DefaultPosition, size = wx.Size( 620,400 ), style = wx.DEFAULT_DIALOG_STYLE )
 		
 		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
 		
@@ -614,7 +707,7 @@ class SourceDlg ( wx.Dialog ):
 		self.m_panel7 = wx.Panel( self.source_type_choice, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer7 = wx.BoxSizer( wx.VERTICAL )
 		
-		fgSizer2 = wx.FlexGridSizer( 0, 4, 0, 0 )
+		fgSizer2 = wx.FlexGridSizer( 0, 3, 0, 0 )
 		fgSizer2.AddGrowableCol( 1 )
 		fgSizer2.SetFlexibleDirection( wx.BOTH )
 		fgSizer2.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
@@ -629,12 +722,17 @@ class SourceDlg ( wx.Dialog ):
 		self.browse_video_file = wx.Button( self.m_panel7, wx.ID_ANY, u"...", wx.DefaultPosition, wx.DefaultSize, wx.BU_EXACTFIT )
 		fgSizer2.Add( self.browse_video_file, 0, wx.ALL, 5 )
 		
+		self.m_staticText33 = wx.StaticText( self.m_panel7, wx.ID_ANY, u"Временные файлы:", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText33.Wrap( -1 )
+		fgSizer2.Add( self.m_staticText33, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+		
+		temp_path_choiceChoices = [ u"держать в стандартной системной временной папке", u"держать в указанной ниже папке 'Путь к картинкам'" ]
+		self.temp_path_choice = wx.Choice( self.m_panel7, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, temp_path_choiceChoices, 0 )
+		self.temp_path_choice.SetSelection( 0 )
+		fgSizer2.Add( self.temp_path_choice, 1, wx.ALL|wx.EXPAND, 5 )
+		
 		
 		bSizer7.Add( fgSizer2, 1, wx.EXPAND, 5 )
-		
-		self.user_temp_path_check = wx.CheckBox( self.m_panel7, wx.ID_ANY, u"Специальное место для временных файлов", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.user_temp_path_check.SetValue(True) 
-		bSizer7.Add( self.user_temp_path_check, 0, wx.ALL|wx.EXPAND, 5 )
 		
 		
 		self.m_panel7.SetSizer( bSizer7 )
@@ -642,8 +740,8 @@ class SourceDlg ( wx.Dialog ):
 		bSizer7.Fit( self.m_panel7 )
 		self.source_type_choice.AddPage( self.m_panel7, u"Ffmpeg, авто", True )
 		self.m_panel8 = wx.Panel( self.source_type_choice, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-		fgSizer21 = wx.FlexGridSizer( 0, 5, 0, 0 )
-		fgSizer21.AddGrowableCol( 3 )
+		fgSizer21 = wx.FlexGridSizer( 0, 3, 0, 0 )
+		fgSizer21.AddGrowableCol( 1 )
 		fgSizer21.SetFlexibleDirection( wx.BOTH )
 		fgSizer21.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 		
@@ -651,17 +749,25 @@ class SourceDlg ( wx.Dialog ):
 		self.m_staticText41.Wrap( -1 )
 		fgSizer21.Add( self.m_staticText41, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 		
-		self.loader_cmd_help = wx.HyperlinkCtrl( self.m_panel8, wx.ID_ANY, u"(?)", wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.HL_DEFAULT_STYLE )
-		fgSizer21.Add( self.loader_cmd_help, 0, wx.ALL, 5 )
-		
-		self.use_shell_check = wx.CheckBox( self.m_panel8, wx.ID_ANY, u"shell", wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer21.Add( self.use_shell_check, 0, wx.ALL, 5 )
-		
 		self.loader_cmd_text = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		fgSizer21.Add( self.loader_cmd_text, 1, wx.ALL|wx.EXPAND, 5 )
 		
 		self.auto_cmd_button = wx.Button( self.m_panel8, wx.ID_ANY, u"A", wx.DefaultPosition, wx.DefaultSize, wx.BU_EXACTFIT )
 		fgSizer21.Add( self.auto_cmd_button, 0, wx.ALL|wx.EXPAND, 5 )
+		
+		
+		fgSizer21.AddSpacer( ( 0, 0), 1, wx.EXPAND, 5 )
+		
+		gSizer72 = wx.GridSizer( 0, 2, 0, 0 )
+		
+		self.loader_cmd_help = wx.HyperlinkCtrl( self.m_panel8, wx.ID_ANY, u"Справка", wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.HL_DEFAULT_STYLE )
+		gSizer72.Add( self.loader_cmd_help, 0, wx.ALL, 5 )
+		
+		self.use_shell_check = wx.CheckBox( self.m_panel8, wx.ID_ANY, u"shell", wx.DefaultPosition, wx.DefaultSize, 0 )
+		gSizer72.Add( self.use_shell_check, 0, wx.ALL, 5 )
+		
+		
+		fgSizer21.Add( gSizer72, 1, wx.EXPAND, 5 )
 		
 		
 		self.m_panel8.SetSizer( fgSizer21 )
@@ -690,7 +796,7 @@ class SourceDlg ( wx.Dialog ):
 		
 		fgSizer8.AddSpacer( ( 0, 0), 1, wx.EXPAND, 5 )
 		
-		self.pic_path_comment_static_text = wx.StaticText( self, wx.ID_ANY, u"Шаблон вида:  my_path/img%04d.bmp", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.pic_path_comment_static_text = wx.StaticText( self, wx.ID_ANY, u"Задайте шаблон вида:  my_path/img%04d.bmp", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.pic_path_comment_static_text.Wrap( -1 )
 		fgSizer8.Add( self.pic_path_comment_static_text, 0, wx.ALL, 5 )
 		
@@ -715,7 +821,7 @@ class SourceDlg ( wx.Dialog ):
 		self.finish_text = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		fgSizer10.Add( self.finish_text, 0, wx.ALL|wx.EXPAND, 5 )
 		
-		self.max_finish_sttext = wx.StaticText( self, wx.ID_ANY, u"Max", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.max_finish_sttext = wx.StaticText( self, wx.ID_ANY, u"--> Max", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.max_finish_sttext.Wrap( -1 )
 		fgSizer10.Add( self.max_finish_sttext, 0, wx.ALL|wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 5 )
 		
@@ -744,7 +850,7 @@ class SourceDlg ( wx.Dialog ):
 		
 		fgSizer8.AddSpacer( ( 0, 0), 1, wx.EXPAND, 5 )
 		
-		self.m_staticText25 = wx.StaticText( self, wx.ID_ANY, u"Число кадров для БПФ:", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText25 = wx.StaticText( self, wx.ID_ANY, u"Длина пачки кадров:", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText25.Wrap( -1 )
 		fgSizer8.Add( self.m_staticText25, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 		
@@ -762,6 +868,13 @@ class SourceDlg ( wx.Dialog ):
 		
 		
 		fgSizer8.AddSpacer( ( 0, 0), 1, wx.EXPAND, 5 )
+		
+		
+		fgSizer8.AddSpacer( ( 0, 0), 1, wx.EXPAND, 5 )
+		
+		self.m_staticText35 = wx.StaticText( self, wx.ID_ANY, u"Этот параметр определяет порцию для загрузки и окно Фурье", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText35.Wrap( -1 )
+		fgSizer8.Add( self.m_staticText35, 0, wx.ALL, 5 )
 		
 		
 		bSizer6.Add( fgSizer8, 1, wx.EXPAND, 5 )
@@ -788,9 +901,10 @@ class SourceDlg ( wx.Dialog ):
 		self.source_type_choice.Bind( wx.EVT_CHOICEBOOK_PAGE_CHANGED, self.source_type_choice_func2 )
 		self.source_type_choice.Bind( wx.EVT_CHOICEBOOK_PAGE_CHANGING, self.source_type_choice_func1 )
 		self.browse_video_file.Bind( wx.EVT_BUTTON, self._browse_video_file_func )
-		self.user_temp_path_check.Bind( wx.EVT_CHECKBOX, self.hide_show_items )
-		self.loader_cmd_help.Bind( wx.EVT_HYPERLINK, self.loader_cmd_help_func )
+		self.temp_path_choice.Bind( wx.EVT_CHOICE, self.hide_show_items )
 		self.auto_cmd_button.Bind( wx.EVT_BUTTON, self.auto_cmd_button_func )
+		self.loader_cmd_help.Bind( wx.EVT_HYPERLINK, self.loader_cmd_help_func )
+		self.pic_path_browse_button.Bind( wx.EVT_BUTTON, self._pic_path_browse_button_func )
 		self.max_finish_check.Bind( wx.EVT_CHECKBOX, self.hide_show_items )
 		self.m_sdbSizer1Apply.Bind( wx.EVT_BUTTON, self.apply_button_func )
 		self.m_sdbSizer1Cancel.Bind( wx.EVT_BUTTON, self.close_func )
@@ -816,10 +930,13 @@ class SourceDlg ( wx.Dialog ):
 	def hide_show_items( self, event ):
 		event.Skip()
 	
+	def auto_cmd_button_func( self, event ):
+		event.Skip()
+	
 	def loader_cmd_help_func( self, event ):
 		event.Skip()
 	
-	def auto_cmd_button_func( self, event ):
+	def _pic_path_browse_button_func( self, event ):
 		event.Skip()
 	
 	

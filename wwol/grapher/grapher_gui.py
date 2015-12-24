@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 import os
+import sys
 import wx
 
 from . import grapher_fb
@@ -10,10 +11,12 @@ from . import basic_plots
 from . import skf
 from . import calibr
 from ..common import embed_gui_images
+from ..common.my_encoding_tools import U
 
 class GrapherMain(grapher_fb.GrapherMainFB):
     """
     Главное окно
+    Родительским окном должно быть MainVideoFrame
     .my_spec - хранящийся спектр, PowerSpec
     .cur_draw_func(created_files, mode, size) - функциональный
                объект, реализующий вызов launch_gnu_plot с нужными параметрами
@@ -36,6 +39,8 @@ class GrapherMain(grapher_fb.GrapherMainFB):
                  то следует исползовать стандратные значения
     .last_swh_freq_str
     .transf_result_frame
+    .base_title
+    
     .AFTER_RESIZE_TIMER_INTERVAL
     """
     #constructor
@@ -55,6 +60,7 @@ class GrapherMain(grapher_fb.GrapherMainFB):
         self.last_swh_freq_str = "0"
         self.transf_result_frame = None
         self.AFTER_RESIZE_TIMER_INTERVAL = 500
+        self.base_title = self.GetTitle()
         #Допиливаем интрефейс:
         self.extra_menu_button.SetBitmap(embed_gui_images.get_menu3Bitmap())
         self.angle_tip_bitmap.SetBitmap(embed_gui_images.get_phi_hintBitmap())
@@ -71,7 +77,7 @@ class GrapherMain(grapher_fb.GrapherMainFB):
         Возвращает:
           объект окна, тип GrapherMain
         """
-        fr = GrapherMain(None)
+        fr = GrapherMain(self.GetParent())
         if new_spec is None:
             new_spec = self.my_spec
         cur_freq = (self.freq_choice.GetSelection() + 1) * self.my_spec.df
@@ -82,7 +88,7 @@ class GrapherMain(grapher_fb.GrapherMainFB):
           fr.proj_name = "transformed " + self.proj_name
         else:
           fr.proj_name = new_proj_name
-        fr.SetTitle(fr.proj_name + " - " + str( fr.GetTitle() ))
+        fr.SetTitle(U(fr.proj_name) + u" - " + fr.GetTitle())
         self.grtype_choice_func1(None) # обновили self.view_ctrl ...
         fr.view_ctrl = self.view_ctrl        
         fr.last_swh_freq_str = self.last_swh_freq_str
@@ -186,12 +192,14 @@ class GrapherMain(grapher_fb.GrapherMainFB):
     
     def open_button_func(self, event):
         "Нажатие Открыть (open_button)"
-        dlg = wx.DirDialog(self, u"Выберите папку со спектром")
+        dlg = wx.DirDialog(self,
+                           u"Выберите папку со спектром",
+                           style = wx.FD_OPEN)
         res = dlg.ShowModal()
         if res != wx.ID_OK:
             dlg.Destroy()
             return
-        path = dlg.GetPath()
+        path = dlg.GetPath().encode('utf-8')
         dlg.Destroy()
         self.open_button_func_act(path)
         
@@ -205,8 +213,8 @@ class GrapherMain(grapher_fb.GrapherMainFB):
         wx.Yield()
         try:
             loaded_spec = power_spec.load_text_spec(path)            
-        except:
-            logging.error("Can't load spectrum from " + path)
+        except Exception as err:
+            logging.debug("Can't load spectrum from %s , %s", path, str(err))
             dlg = wx.MessageDialog(self, u"Ошибка при загрузке спектра", "",\
                                    wx.ICON_ERROR)
             dlg.ShowModal()
@@ -220,6 +228,16 @@ class GrapherMain(grapher_fb.GrapherMainFB):
         self.info_text.SetValue("")
         
         self.set_spec(loaded_spec)
+        proj_name = os.path.basename(path)
+        if len(proj_name) == 0:
+            if len(path) > 0 and \
+              (proj_name[-1] == '\\' or proj_name[-1] == '/'):
+                path = path[:-1]
+                proj_name = os.path.basename(path)
+        if len(proj_name) == 0: proj_name = path
+        self.proj_name = proj_name
+        self.SetTitle(U(proj_name) + u" - " + self.base_title)
+        
         
         #заполнение остальный полей управления
         self.xlim_check.SetValue(False)
@@ -303,13 +321,13 @@ class GrapherMain(grapher_fb.GrapherMainFB):
                 s = basic_plots.draw_sf(self.my_spec, cleanup_files_, file_prefix)
                 is_linear = True
         except IOError:
-            self.SetStatusText("")
-            if file_prefix is None:
-                logging.error("Can't write temp files!")
-                return
-            else:
-                logging.error("Can't save files with prefix " + file_prefix)
-                raise
+            self.SetStatusText("Ошибка: не могу записать временные файлы")
+            #if file_prefix is None:
+            #    logging.debug("Can't write temp files!")
+            #    return
+            #else:
+            #    logging.debug("Can't save files with prefix " + file_prefix)
+            #    raise
 
         #границы по осям
         limits_on_off = [self.xlim_check.GetValue(), self.xlim_check.GetValue(),\
@@ -384,7 +402,7 @@ class GrapherMain(grapher_fb.GrapherMainFB):
             rv = self.cur_draw_func(self.cleanup_files, "file", size)
         except OSError:
             #совсем фейл
-            logging.error("Can't run gnuplot")
+            logging.debug("Can't run gnuplot")
             fail_text = u"Не удалось запустить gnuplot"
             self.cur_draw_func = None # значит это был плохой скрипт
             self.gnuplot_output_text.SetValue(fail_text)
@@ -422,7 +440,7 @@ class GrapherMain(grapher_fb.GrapherMainFB):
             self.cur_draw_func = None # значит это был плохой скрипт              
             if rv[0]==0:
                 #очень странный фейл
-                logging.error("No image file was generated!")
+                logging.debug("No image file was generated!")
                 dlg = wx.MessageDialog(self, u"Ошибка взаимодействия с "\
                    u"gnuplot: не удалось загрузить файл", "", wx.ICON_ERROR)
                 dlg.ShowModal()
@@ -475,7 +493,6 @@ class GrapherMain(grapher_fb.GrapherMainFB):
         self.find_freq_text.SetValue("")
                     
     def report_bad_input(self):
-        logging.warning("Bad input")
         dlg = wx.MessageDialog(self, u"Неверный ввод", "", wx.ICON_EXCLAMATION)
         dlg.ShowModal()
         dlg.Destroy()
@@ -497,7 +514,7 @@ class GrapherMain(grapher_fb.GrapherMainFB):
                 try:
                     os.remove(fname)
                 except OSError:
-                    logging.warning("Can't remove " + fname)            
+                    logging.debug("Can't remove " + fname)            
         self.cleanup_files = []
     
     def gnuplot_session_button_func(self, event):
@@ -511,14 +528,24 @@ class GrapherMain(grapher_fb.GrapherMainFB):
         size_wx = self.screen_bitmap.GetSize()
         size = (size_wx.GetWidth(), size_wx.GetHeight())
         
-        self.Hide()
-        wx.Yield()                
+        if sys.platform == 'win32':
+            self.Hide()
+            if self.GetParent() is not None:
+                self.GetParent().Hide()
+            wx.Yield()                
         try:
-            self.cur_draw_func(self.cleanup_files, "console", size)
+            self.cur_draw_func(self.cleanup_files, "console+", size)
         except OSError:
-            pass   #ругнется следующий вызов
-        self.Show()
-        self.show_cur_graph() #обновляем
+            dlg = wx.MessageDialog(self, u"Что-то пошло не так", "", wx.ICON_ERROR)
+            dlg.ShowModal()
+            dlg.Destroy()
+        if sys.platform == 'win32':
+            if self.GetParent() is not None:
+                self.GetParent().Show()
+            self.Show()
+            self.Raise()
+            self.SetFocus()
+        # self.show_cur_graph() #обновляем
     
     def gnuplot_save_button_func(self, event):
         """
@@ -547,19 +574,19 @@ class GrapherMain(grapher_fb.GrapherMainFB):
             if self.cur_draw_func is None:
                 return
         except OSError, IOError:
-            logging.error("Can't save files!")
+            logging.debug("Can't save files!")
             dlg = wx.MessageDialog(self, u"Ошибка записи", "", wx.ICON_ERROR)
             dlg.ShowModal()
             dlg.Destroy()
             
         saved_files = self.cleanup_files
         if len(saved_files)>0:
-            logging.info("Files were saved to folder: " +\
+            logging.debug("Files were saved to folder: " +\
                 self.gnuplot_save_default_dir)
-            logging.info("Data:")
+            logging.debug("Data:")
             for s in saved_files[:-1]:
-                logging.info(s)
-            logging.info("Script for gnuplot: " + saved_files[-1])
+                logging.debug(s)
+            logging.debug("Script for gnuplot: " + saved_files[-1])
         saved_files[:] = []
         
     def grtype_choice_func1(self, event):
@@ -683,7 +710,7 @@ class GrapherMain(grapher_fb.GrapherMainFB):
         try:
             power_spec.save_text_spec(path, self.my_spec)            
         except Exception as err:
-            logging.error("Can't save spectrum to:\n%s\n%s" % (path, str(err)))
+            logging.debug("Can't save spectrum to:\n%s\n%s" % (path, str(err)))
             dlg = wx.MessageDialog(self, u"Ошибка при сохранении спектра", "",\
                                    wx.ICON_ERROR)
             dlg.ShowModal()
@@ -696,22 +723,10 @@ class GrapherMain(grapher_fb.GrapherMainFB):
     def screenshot_menu_func(self, event):
         bmp = self.screen_bitmap.GetBitmap()
         if not bmp.IsOk(): return
-        dlg = wx.FileDialog(
-            self,
-            message = u'Сохранить изображение',
-            wildcard = u'BMP-файлы (*.bmp)|*.bmp|Все файлы (*.*)|*.*',
-            style = wx.FD_SAVE)
-        rv = dlg.ShowModal()
-        fname = ''
-        if rv != wx.ID_OK:
-            dlg.Destroy()
-            return
-        fname = dlg.GetPath()
-        dlg.Destroy()
-        rv = bmp.SaveFile(fname, wx.BITMAP_TYPE_BMP)
-        if not rv:
-            dlg = wx.MessageDialog(self, u"Не могу сохранить изображение", "",\
-                                   wx.ICON_ERROR)
+        self.GetParent().save_bitmap(bmp)
+        self.Raise()
+        self.SetFocus()
+    
 
 def main():
     logging.basicConfig(format="%(levelname)s: %(funcName)s: %(msg)s",

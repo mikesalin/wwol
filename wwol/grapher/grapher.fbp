@@ -5528,7 +5528,7 @@
                 <property name="name">extra_menu</property>
                 <property name="permission">protected</property>
                 <object class="wxMenuItem" expanded="1">
-                    <property name="bitmap"></property>
+                    <property name="bitmap">Load From Art Provider; wxART_MISSING_IMAGE; wxART_MENU</property>
                     <property name="checked">0</property>
                     <property name="enabled">1</property>
                     <property name="help"></property>

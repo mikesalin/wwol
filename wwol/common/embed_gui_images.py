@@ -393,14 +393,6 @@ _menu3 = PyEmbeddedImage(
 get_menu3Bitmap = _make_my_getter(_menu3)
 
 #----------------------------------------------------------------------
-_projection = PyEmbeddedImage(
-    "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAIAAAAC64paAAAAA3NCSVQICAjb4U/gAAAAaklE"
-    "QVQ4jdVTQQ7AIAhrF/7/ZXbQJa5IZF7MelNbWiDS3bGLa1t5VGwASFaocTqWPQimBmd7ziBR"
-    "SUp3qVio7SiX89jRZE5r9ZY8PBsZ6xrCnoq2iLGXyjHpS1z37HwZaV3p7t+sBD/9zzcRgTkj"
-    "6yrh5QAAAABJRU5ErkJggg==")
-get_projectionBitmap = _make_my_getter(_projection)
-
-#----------------------------------------------------------------------
 _video = PyEmbeddedImage(
     "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAIAAAAC64paAAAAA3NCSVQICAjb4U/gAAAAm0lE"
     "QVQ4jc1TwRHEIAiEnIXQCXSmdiad0In3YOI4SUZu4uf2xQgLu4pYSoG3OF4zd8nYe/eo1vo7"
@@ -428,13 +420,6 @@ _eye = PyEmbeddedImage(
 get_eyeBitmap = _make_my_getter(_eye)
 
 #----------------------------------------------------------------------
-_areas = PyEmbeddedImage(
-    "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAIAAAAC64paAAAAA3NCSVQICAjb4U/gAAAAU0lE"
-    "QVQ4jWP8//8/A7mACZnDyEiBZopsJhWwMKC6Fs4mJihYkNUxMhKlBw4G1s9wAHEzI3Ex9v//"
-    "fxZcEvh1QiwYOD8PUc3YQ5vI2GKkWn4eOpoBO+4ULkkvI34AAAAASUVORK5CYII=")
-get_areasBitmap = _make_my_getter(_areas)
-
-#----------------------------------------------------------------------
 _phi_hint = PyEmbeddedImage(
     "iVBORw0KGgoAAAANSUhEUgAAADIAAAAoCAIAAAAzED4bAAAAAXNSR0IArs4c6QAAAARnQU1B"
     "AACxjwv8YQUAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAAFySURBVFhH7ZRRssIgDEVdFwtyG92C"
@@ -458,4 +443,33 @@ _power_spec_button = PyEmbeddedImage(
     "MkXpzDJjJDirszlFWO/veQPySSSrNKp1YP3C9Okz2B77vUjxUAHlr/DxMzgeHu/H+f3D5mPk"
     "51i2pRv2CTh3/wGPng/sA2UyewAAAABJRU5ErkJggg==")
 get_power_spec_buttonBitmap = _power_spec_button.GetBitmap
+
+#----------------------------------------------------------------------
+_scrshot = PyEmbeddedImage(
+    "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAIAAAAC64paAAAAA3NCSVQICAjb4U/gAAABNklE"
+    "QVQ4jdWUsZKCMBCGNxtmCDZxdGwoLWh5Ccfn4AF8IscHsjs5h4beioYKkF2IBXcrKtc4d8Vl"
+    "ttns/yWbP5ko5+Dtge+jvwan6el8/pT0dPrwPK0UDDGf2wnaOXAOEBER1fd4lWmtpWqMGSh4"
+    "2zDn/s4wpVSe533fXy4XY8z07oPueDxqrQU7HA5N01RVtd/vi6IgojRNEfEBlDMzsxTW6zUR"
+    "WXt3WGvdtu1ut/N9fwLuum7wGRGZOcsyaQQAgiBIkoSZZXIaBgDnXBiGz/Yg9n0/bnvaMCLa"
+    "brdj5xaLxWq1ck8XK2nbtjKZ53lVVdLIcrk0xjRNU5blAzhuW8z0PK+uayIS6VN6h+M4BoDZ"
+    "bDZ+mNZaZmZmIrper8PSw+q+7282my/4p4iiSNTW2leB+p+fwQ3m9cRGF3VKYAAAAABJRU5E"
+    "rkJggg==")
+get_scrshotBitmap = _make_my_getter(_scrshot, '#ffff00')
+
+#----------------------------------------------------------------------
+_area2 = PyEmbeddedImage(
+    "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAIAAAAC64paAAAAA3NCSVQICAjb4U/gAAAAZklE"
+    "QVQ4jb2TwQ7AIAhD12X//8v14IVUVGBGjsZHbUGQfKr1lkmFAdxTRvcsmsEgYO8BSOV34tm1"
+    "+laNh/BFaQq7/uXQ9xxMLhcYSevFgeMDU3hLWnHd7dTkdMPiJMlfS3LuP1+FGynWNhiCD4Wb"
+    "AAAAAElFTkSuQmCC")
+get_area2Bitmap = _make_my_getter(_area2)
+
+#----------------------------------------------------------------------
+_step = PyEmbeddedImage(
+    "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAIAAAAC64paAAAAA3NCSVQICAjb4U/gAAAAhklE"
+    "QVQ4jaWSUQ6AIAxDLfHehpPPj8UFRymg/SKkj5ZlMLPjq0p/BWARRkpuyWkpkrxegcOLgxgm"
+    "O6/DVW2X4BX8a2AHK9+eTw07D4CWn/+ZdtmAA8gbJTaMAq22a3MYqJ6TlAC3veD2aqoww8x6"
+    "0uwSgeEpW5npOTw7VGngqLM7y6inUJhvSCBTEZWGtQMAAAAASUVORK5CYII=")
+get_stepBitmap = _make_my_getter(_step)
+
 

@@ -1,4 +1,12 @@
 *.pyc
 stuff/*
+swimmer
+swimmer_
+*.exe
+*.dll
+dist/*
+build/*
+
+
 
 

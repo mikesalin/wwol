@@ -4,7 +4,7 @@
 """
 
 from math import *
-import logging  #TODO: оставить logging только для debug-а
+import logging
 import tempfile
 from collections import namedtuple
 import json
@@ -13,6 +13,7 @@ import jsonschema
 from . import loading
 from . import geom
 from ..common import my_encoding_tools
+U = my_encoding_tools.U
 
 class ConfigError(Exception):
     "Класс исключений, связанных с неправильным вводом параметров проекта"
@@ -86,7 +87,9 @@ class Config:
       .auto_set_fft_sizes (bool)
     
     не ясно куда отнести:
-      .max_freq [RT]: макс частота для сохранения спектра
+      .max_freq [RT]: макс частота для сохранения спектра,
+                      <=0 -- использовать умолчательное значение,
+                      см. также valid_max_freq
     
     """
     def __init__(self):
@@ -184,7 +187,7 @@ class Config:
         if self.need_user_pic_path():
             try:
                 dummy = self.user_pic_path % 11
-            except TypeError:
+            except TypeError, ValueError:
                 warn_txt += "'Путь к картинкам' должен содержать '%d'.\n"
             self.pic_path = self.user_pic_path
         else:
@@ -196,10 +199,10 @@ class Config:
             temp_fname = fobj.name
             fobj.close()
             pos = temp_fname.find(SAMPLE_NUM)
-            temp_fname_templ = temp_fname[:pos] + "%d" \
+            temp_fname_templ = temp_fname[:pos] + "%04d" \
                                + temp_fname[pos + len(SAMPLE_NUM) :]
             self.pic_path = temp_fname_templ
-            logging.debug("Temporary picture path is set to: " + temp_fname_templ)
+            logging.debug(U("Temporary picture path is set to: " + temp_fname_templ))
             
         if self.source_type == FFMPEG_AUTO_SOURCE:
             any_except = False
@@ -285,7 +288,7 @@ class Config:
             if (a_name in existing_names) or (a_name in RESERVED_NAMES):
                 b_warn = True
                 a_name = _unique_name(existing_names, 'area')
-                ad = a.__dict__
+                ad = a._asdict()
                 ad['name'] = a_name
                 self.areas_list[j] = ProcessingArea(**ad)
             existing_names.append(a_name)
@@ -308,7 +311,7 @@ class Config:
         if self.auto_set_fft_sizes:
             for j in range(0, len(self.areas_list)):
                 a = self.areas_list[j]
-                ad = a.__dict__
+                ad = a._asdict()
                 set_default_fft_size_to(ad)
                 self.areas_list[j] = ProcessingArea(**ad)
         
@@ -338,7 +341,7 @@ class Config:
             for key_name in sect_shema["properties"].keys():
                 sect[key_name] = self.__dict__[key_name]
         
-        res["areas"]["areas_list"] = [a.__dict__ for a in self.areas_list]
+        res["areas"]["areas_list"] = [a._asdict() for a in self.areas_list]
         
         return res
         
@@ -352,7 +355,7 @@ class Config:
     
     def set_area_coord(self, num, coord):
         a = self.areas_list[num]
-        ad = a.__dict__
+        ad = a._asdict()
         ad['coord'] = coord
         if self.auto_set_fft_sizes:
             set_default_fft_size_to(ad)
@@ -378,10 +381,14 @@ class Config:
             issues_text += "- Выберите источник кадров\n"
 
         geom_is_dummy = True
-        for comp in ["a", "b", "c"]:
-            if abs(self.proj_coef.__dict__[comp] 
-              - geom.IDENTICATL_PROJECTION.__dict__[comp]) > 1e-6:
-                geom_is_dummy = False
+#        for comp in ["a", "b", "c"]:
+#            if abs(self.proj_coef.__dict__[comp] 
+#              - geom.IDENTICATL_PROJECTION.__dict__[comp]) > 1e-6:
+#                geom_is_dummy = False
+        u = self.proj_coef
+        v = geom.IDENTICATL_PROJECTION
+        cmp = lambda x,y: abs(x - y) < 1e-6
+        geom_is_dummy = cmp(u.a, v.a) and cmp(u.b, v.b) and cmp(u.c, v.c)
         if geom_is_dummy:
             issues_text += "- Задайте параметры геометрии\n"
         
@@ -390,6 +397,13 @@ class Config:
             issues_text += "- Выберите область обработки\n"
         
         return (ready_flag, issues_text)
+    
+    def valid_max_freq(self):
+        if self.max_freq > 0:
+            return self.max_freq
+        else:
+            return self.fps * 0.5
+
 
 
 def _schema_for_int_tuple(size):
@@ -531,13 +545,13 @@ def _load_config_more_options(text,
         else:
             data = json.loads(text)
     except IOError:
-        logging.error('IOError in load_config!')
+        logging.debug('IOError in load_config!')
         raise ConfigError("Не могу открыть файл проекта: " + str(fname))
     except ValueError as err:
-        logging.error('Json parser failed. SEE DETAILS:\n' + str(err) +
-                      '\nSEE FAILED JSON CODE:\n' + text)
-        raise ConfigError("Параметры проекта должны быть записаны в JSON-"
-                          "формате. Подробности: " + str(err))
+        logging.debug(U('Json parser failed. SEE DETAILS:\n' + str(err) +
+                      '\nSEE FAILED JSON CODE:\n' + text))
+        raise ConfigError(U("Параметры проекта должны быть записаны в JSON-"
+                          "формате. Подробности: " + str(err)))
     data = my_encoding_tools.unicode2str_recursively(data)
     
     # Вторичная проверка входа:
@@ -546,7 +560,7 @@ def _load_config_more_options(text,
     except jsonschema.ValidationError as err:
         err_txt, dummy = my_encoding_tools.limit_text_len(
             str(err), max_len = 150, allow_multiline = True)
-        logging.error('Jsonschema validator failed. SEE DETAILS:\n' + str(err)
+        logging.debug('Jsonschema validator failed. SEE DETAILS:\n' + str(err)
                       + '\nSEE FAILED JSON CODE:\n' + text)
         raise ConfigError("Неверная структра параметров проекта. Подробности: "
                           + err_txt)

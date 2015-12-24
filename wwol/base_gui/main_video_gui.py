@@ -1,11 +1,17 @@
 # -*- coding: utf-8 -*-
 "В этом модуле определен класс главного окна: MainVideoFrame"
 
+# Код требует рефакторинга: 
+# 1. Оформить табы в отдельный класс
+# 2. Определиться со сценарием поведения (сделать конечный автомат):
+#    нет изображения -- загружается -- есть изображение -- ..?
+
 import logging
 import os
 import threading
 from math import *
 import copy
+import sys
 import json
 import wx
 
@@ -23,6 +29,9 @@ from ..common import embed_gui_images
 from . import sel_gui
 from ..engine import geom
 from ..common.my_encoding_tools import *
+from ..grapher.grapher_gui import GrapherMain
+from .. import __version__ as ABOUT_VERSION
+from .. import year as ABOUT_YEAR
 
 class MainVideoFrame(wxfb_output.MainVideoFrame):
     """
@@ -60,6 +69,10 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
     .is_closing (bool):  чтобы отменить отбработку некоторых событий (например, 
                          _config_notebook_changing_func) когда уже закрываемся
     .prev_power_spec_path (str)
+    .default_scrshot_file_type (int)
+    .default_scrshot_dir (str)
+    .default_scrshot_jpeg_quality (int)
+    .scrshot_tooltip_head (unicode)
     
     .HOURGLASS (wx.Bitmap)
     .SOLID_WHITE_PEN (wx.Pen)
@@ -92,12 +105,20 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         self.project_filename = ""
         self.is_closing = False
         self.prev_power_spec_path = ""
+        self.default_scrshot_file_type = 0
+        self.default_scrshot_dir = ''
+        self.default_scrshot_jpeg_quality = 90
+        self.scrshot_tooltip_head = self.my_toolbar.GetToolShortHelp(
+            self.scrshot_tool.GetId())
+        self._update_scrshot_tooltip()
         
         self.HOURGLASS = embed_gui_images.get_hourglassBitmap()
         self.SOLID_WHITE_PEN = wx.Pen('white', view.LINE_WIDTH, wx.SOLID)
         self.INVIS_BRUSH = wx.Brush('white', wx.TRANSPARENT)
         
         #Допиливаем интерфейс:
+        
+        # картинки на кнопках:
         self.my_toolbar.SetToolNormalBitmap(self.menu_tool.GetId(),
                                             embed_gui_images.get_menu3Bitmap())
         self.my_toolbar.SetToolNormalBitmap(self.preview_tool.GetId(),
@@ -105,13 +126,18 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         self.my_toolbar.SetToolNormalBitmap(
             self.live_proc_tool.GetId(),
             embed_gui_images.get_double_playBitmap())
+        self.my_toolbar.SetToolNormalBitmap(
+            self.scrshot_tool.GetId(),
+            embed_gui_images.get_scrshotBitmap())
+        self.my_toolbar.SetToolNormalBitmap(self.view_step_tool.GetId(),
+                                            embed_gui_images.get_stepBitmap())
 
         # картинки на табах:
         tab_bmps = [embed_gui_images.get_videoBitmap(),
                       embed_gui_images.get_eyeBitmap(),
-                      embed_gui_images.get_projectionBitmap(),
-                      embed_gui_images.get_areasBitmap(),
-                      embed_gui_images.get_power_spec_buttonBitmap()]
+                      embed_gui_images.get_area2Bitmap(),
+                      embed_gui_images.get_power_spec_buttonBitmap(),
+                      embed_gui_images.get_scrshotBitmap()]
         self.config_notebook_image_list = wx.ImageList(20, 20)
         for bmp in tab_bmps:
            self.config_notebook_image_list.Add(bmp)
@@ -143,7 +169,16 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         "Нажали на кнопку закрыть (крестик)."
         if not self._ensure_saved():
             event.Veto()
-            return False
+            return
+        
+        #"аккурантно" закрыть все окна графера
+        for wnd in self.GetChildren():
+            if isinstance(wnd, GrapherMain):
+                logging.debug(u"Auto-close '" + wnd.GetTitle() + u"'")
+                if not wnd.Close():
+                    event.Veto()
+                    return
+        
         event.Skip()
         self.is_closing = True
                 
@@ -151,7 +186,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         self._close_viewer()
 
         #debug info:
-        logging.debug("Theads, which are alive at exit:")
+        logging.debug("Threads, which are alive at exit:")
         lt = threading.enumerate()
         for t in lt:
             if not t.daemon:
@@ -176,6 +211,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         self.sel_dlg_to_be_shown = False
         self.my_toolbar.ToggleTool(self.preview_tool.GetId(), False)
         self.a_footer_static_text.SetLabel('')
+        wx.CallAfter(lambda: self._clear_screen())
     
     def viewer_crushed(self, message):
         """
@@ -183,7 +219,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         message - string
         """
         self._close_viewer()
-        msg_dlg = wx.MessageDialog(self, message, "", wx.ICON_ERROR)        
+        msg_dlg = wx.MessageDialog(self, U(message), "", wx.ICON_ERROR)        
         msg_dlg.ShowModal()
         msg_dlg.Destroy()
         
@@ -247,10 +283,11 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
             if tool_id in [prev_tool_id, next_tool_id]: continue
             self.my_toolbar.EnableTool(tool_id, True)
             
-        wh = self.viewer.get_raw_img_size()
-        a_footer_text = "Вход: %dx%d, %0.3f кадров/сек" \
-            % ((self.viewer.get_raw_img_size()) + (self.config.fps,))
-        self.a_footer_static_text.SetLabel(U(a_footer_text))
+        if self.viewer is not None:
+            wh = self.viewer.get_raw_img_size()
+            a_footer_text = "Вход: %dx%d, %0.3f кадров/сек" \
+                % ((self.viewer.get_raw_img_size()) + (self.config.fps,))
+            self.a_footer_static_text.SetLabel(U(a_footer_text))
 
         if self.maintain_sel_trpz_flag == 2:  # было в image_updated
             self._maintain_sel_trpz_act()
@@ -318,6 +355,11 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
             return
         self.viewer.goto_frame(self.cur_frame_num + self.config.button_step)
 
+    def _notify_bad_input_simply(self):
+        dlg = wx.MessageDialog(self, u"Неверный ввод", "", wx.ICON_EXCLAMATION)
+        dlg.ShowModal()
+        dlg.Destroy()  
+
     def _jump_frame_tool_func(self, event):
         """
         Нажали на кнопку, где написан номер кадра.
@@ -326,7 +368,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         if self.viewer is None:
             logging.debug("suddenly not available")
             return        
-        dlg = wx.TextEntryDialog(self, "Номер кадра для перехода:", "",\
+        dlg = wx.TextEntryDialog(self, u"Номер кадра для перехода:", "",\
                                  "%d" % (self.cur_frame_num+1) )
         code = dlg.ShowModal()
         txt_res = dlg.GetValue()
@@ -337,10 +379,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
             if (num < 1) or (num > self.config.frames_count):
                 raise ValueError
         except ValueError:
-            logging.warning("Bad input")
-            dlg = wx.MessageDialog(self, "Неверный ввод", "", wx.ICON_EXCLAMATION)
-            dlg.ShowModal()
-            dlg.Destroy()  
+            self._notify_bad_input_simply()
             return      
         self.viewer.goto_frame(num - 1)
 
@@ -353,7 +392,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
             logging.debug("suddenly not available")
             return
         dlg = wx.TextEntryDialog(self,
-                                 "Время для перехода в формате мин:сек.мс :",
+                                 u"Время для перехода в формате мин:сек.мс :",
                                  "",
                                  self._frame_to_time_str(self.cur_frame_num) )
         code = dlg.ShowModal()
@@ -382,10 +421,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
             if (n < 0) or (n >= self.config.frames_count):
                 success = False
         if not success:
-            logging.warning("Bad input")
-            dlg = wx.MessageDialog(self, "Неверный ввод", "", wx.ICON_EXCLAMATION)
-            dlg.ShowModal()
-            dlg.Destroy()  
+            self._notify_bad_input_simply()
             return      
         self.viewer.goto_frame(n)
 
@@ -398,13 +434,14 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         if self.zoom_tool.IsToggled():
             self.zoom_dlg = zoom_gui.ZoomDlg(self)
             self.zoom_dlg.ShowWithoutActivating()
-            bar_pos = self.my_toolbar.GetScreenPosition()
-            tool_index = self.my_toolbar.GetToolPos(self.zoom_tool.GetId())
-            tool_size = self.my_toolbar.GetToolSize()
-            ofs = 200
-            pos = (bar_pos[0] + tool_size[0] * tool_index + ofs,
-                   bar_pos[1] + tool_size[1])
-            self.zoom_dlg.Move(pos)
+            self.zoom_dlg.Move(self.b_bmp.GetScreenPosition())
+#            bar_pos = self.my_toolbar.GetScreenPosition()
+#            tool_index = self.my_toolbar.GetToolPos(self.zoom_tool.GetId())
+#            tool_size = self.my_toolbar.GetToolSize()
+#            ofs = 200
+#            pos = (bar_pos[0] + tool_size[0] * tool_index + ofs,
+#                   bar_pos[1] + tool_size[1])
+#            self.zoom_dlg.Move(pos)
         self._rebind_mouse_events("a")
         self._rebind_mouse_events("b")
         self._rebind_mouse_wheel_event()
@@ -544,12 +581,16 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         self.my_toolbar.ToggleTool(self.preview_tool.GetId(), True)
 
     def hourglass(self):
-        """
-        Рисует песочные часы на левой картинке поверх всего, что там есть.
-        Это состояние не сохраняется после перерисовки окна.
-        """
-        dc = wx.ClientDC(self.a_bmp)
+        "Рисует песочные часы на левой картинке поверх всего, что там есть"
+        #dc = wx.ClientDC(self.a_bmp)
+        #dc.DrawBitmap(self.HOURGLASS, 10, 10, True)
+        dest = self.a_bmp
+        bmp = dest.GetBitmap()
+        dc = wx.MemoryDC(bmp)
         dc.DrawBitmap(self.HOURGLASS, 10, 10, True)
+        dc.SelectObject(wx.NullBitmap)
+        dest.SetBitmap(bmp)
+
 
     def _select_point_a(self, event):
         """
@@ -639,8 +680,6 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
 
         st_bmp = self.select_ab_side(side, self.a_bmp, self.b_bmp)
         dc = wx.ClientDC(st_bmp)
-          #bmp = st_bmp.GetBitmap()  -- способ обойтись без OFFSET
-          #dc = wx.MemoryDC(bmp)
         lf = dc.GetLogicalFunction()
         dc.SetLogicalFunction(wx.XOR)
         dc.DrawRectangleList(rect_list, self.SOLID_WHITE_PEN, self.INVIS_BRUSH)
@@ -756,7 +795,8 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
             self.maintain_sel_trpz_flag = 2
             return
         rects = self.sel_data.rects_a
-        if self.sel_data.mode == Selection.SINGLE_RECT_A:
+        if self.sel_data.mode == Selection.SINGLE_RECT_A and \
+          (self.sel_data.sel_item is not None):
             rects = copy.deepcopy(rects)
             rects.append(self.sel_data.sel_item)
         self.sel_data.trpz = list(
@@ -839,17 +879,22 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
             else:
                 self._hide_areas(call_update = True)
         
-        if self.config_notebook.GetSelection() == 4: # рисование спетров
+        if self.config_notebook.GetSelection() == 3: # рисование спектров
             ready_flag, issues_text = self.config.power_spec_check_list()
             self.calc_spec_button.Enabled = ready_flag
             self.prev_spec_button.Enabled = (len(self.prev_power_spec_path) > 0)
-            self.json_text.SetValue(issues_text)
-    
+            self.json_text.SetValue(U(issues_text))
+            self.apply_json_button.Enabled = False
+            self.reset_json_button.Enabled = False
+           
     def _config_notebook_changed_func(self, event):
         "Переключили вкладку настроек -- заполняем текстовое поле"
-        SECT_NAMES = ["", "view", "geom", "areas", ""]
+        SECT_NAMES = ["", "geom", "areas", ""]
         num = self.config_notebook.GetSelection()
-        self._enable_json_editing(SECT_NAMES[num])
+        if len(SECT_NAMES) > num:
+            self._enable_json_editing(SECT_NAMES[num])
+        else:
+            self._enable_json_editing("")
         self._decorate_image_for_tab(True)
     
     def _config_notebook_changing_func(self, event):
@@ -900,6 +945,8 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
             dlg.ShowModal()
             dlg.Destroy()
         self._decorate_image_for_tab(True)
+        if ok:
+            self._enable_json_editing(self.json_editing_sect)
 
     def _apply_json_button_func_act(self):
         """
@@ -960,8 +1007,10 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         self.config = new_config
         self.changed = False
         self._config_notebook_changed_func(None)
+        self._clear_screen()
         
-        #Делаем серую картинку
+    def _clear_screen(self):
+        "Делаем серую картинку"
         for dest in [self.a_bmp, self.b_bmp]:
             w, h = dest.GetSizeTuple()
             bmp = wx.EmptyBitmap(w, h)
@@ -1016,9 +1065,9 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
                           ensure_ascii = False,
                           indent = 2)
         except IOError as err:
-            logging.error("Can't save to '%s': %s",
-                          self.project_filename,
-                          str(err))
+            logging.debug(u"Can't save to '%s': %s",
+                          U(self.project_filename),
+                          U(str(err)))
             dlg = wx.MessageDialog(self,
                                    U("Не могу сохранить проект в файл: '%s'" %
                                      self.project_filename),
@@ -1093,7 +1142,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
             dlg.ShowModal()
             dlg.Destroy()
         
-        self.project_cahnged = False
+        self.project_changed = False
         self.project_filename = filename2open
         if self.config.source_set:
             self.enter_preview()
@@ -1199,7 +1248,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         
         if cameras[sel].has_key(IS_GUI_FUNCTION) and \
           cameras[sel][IS_GUI_FUNCTION]:
-            dlg = wx.MessageDialog(self, 'Не работает')
+            dlg = wx.MessageDialog(self, u'Не работает')
             dlg.ShowModal()
             dlg.Destroy()
             return
@@ -1329,5 +1378,251 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
             self.project_changed = True
         self._display_areas()
     
+    def _calc_spec_button_func(self, event):
+        "Нажали на кнопку Вычислить (спектр)"
+        # спросим max_freq
+        dlg = wx.TextEntryDialog(self,
+                                 u"Максимальная частота:",
+                                 "",
+                                 repr(self.config.valid_max_freq()))
+        rv = dlg.ShowModal()
+        str_val = dlg.GetValue()
+        dlg.Destroy()
+        if rv != wx.ID_OK:
+            return
+        try:
+            self.config.max_freq = float(str_val)
+        except ValueError:
+            self._notify_bad_input_simply()
+            return
+        
+        rv = assembling.legacy_spectrum(self)
+        self._decorate_image_for_tab(True)
+        if rv and sys.platform == 'win32':
+            self._prev_spec_button_func(None)
+    
+    def _prev_spec_button_func(self, event):
+        "Нажали на кнопку 'Открыть предыдущий спектр'"
+        grapher = GrapherMain(self)
+        grapher.Show()
+        grapher.open_button_func_act(self.prev_power_spec_path)
+        if grapher.my_spec.is_empty():
+            grapher.Destroy()
+        
+    def _load_spec_button_func(self, event):
+        "Нажали на кнопку 'Открыть спектр'"
+        grapher = GrapherMain(self)
+        grapher.Show()
+        wx.Yield()
+        grapher.open_button_func(None)
+        if grapher.my_spec.is_empty():
+            grapher.Destroy()
+    
+    def _checkbox_like_radio(self, event):
+        """
+        Обработчик события нажатия на CheckBox, чтобы он вел себя как RadioBox
+        Здесь забиты имена все CheckBox-ов, которые объединены в группы
+        """
+        GROUPS = [
+            [self.left_scrshot_check, self.right_scrshot_check],
+            [self.raw_scrshot_check, self.cur_view_scrshot_check],
+            [self.single_scrshot_check, self.many_scrshot_check]
+        ]
+        
+        this_group = None
+        this_item = None
+        for gr in GROUPS:
+            for item in gr:
+                if event.GetId() == item.GetId():
+                    this_group = gr
+                    this_item = item
+                    break
+        if this_group is None: return
+        
+        any_checked = False
+        too_many_checked = False
+        for ch in this_group:
+            if ch.IsChecked():
+                if any_checked:
+                    too_many_checked = True
+                any_checked = True
+        
+        if too_many_checked:
+            for ch in this_group:
+                ch.SetValue(False)
+            this_item.SetValue(True)
+        if not any_checked:
+            for ch in this_group:
+                if not (ch is this_item):
+                    ch.SetValue(True)
+                    break
+        
+        self._update_scrshot_tooltip()
+    
+    def _update_scrshot_tooltip(self):
+        "Задает подпись к кнопке скриншот в зависимости от нажатых кнопок"
+        CHECKS = [self.left_scrshot_check, self.right_scrshot_check,
+                  self.raw_scrshot_check, self.cur_view_scrshot_check,
+                  self.single_scrshot_check, self.many_scrshot_check]
+        s = u''
+        for ch in CHECKS:
+            if ch.GetValue():
+                if len(s) > 0:
+                    s += u', '
+                s += ch.GetLabelText()
+        self.my_toolbar.SetToolShortHelp(
+            self.scrshot_tool.GetId(),
+            self.scrshot_tooltip_head + u'\n[' + s + u']')
+        
+    def _scrshot_button_func(self, event):
+        "Сделать скриншот -- нажали кнопку ОК на вкладке 'снимок экрана'"
+        if self.single_scrshot_check.GetValue():
+            self._make_single_scrshot()
+        else:
+            pass # не cделано
+    
+    def _make_single_scrshot(self):
+        "Сделать скриншот, один кадр"
+        bmp = None
+        if self.cur_view_scrshot_check.GetValue():
+            if self.left_scrshot_check.GetValue():
+                bmp = self.a_bmp.GetBitmap()
+            else:
+                bmp = self.b_bmp.GetBitmap()
+        else:
+            if self.left_scrshot_check.GetValue():
+                if self.viewer is not None:
+                    img = self.viewer.get_raw_img()
+                    if (img is not None) and (img.IsOk()):
+                        bmp = img.ConvertToBitmap()
+                        
+            else:
+                pass # не сделано
+        if (bmp is None) or (not bmp.IsOk()):
+            dlg = wx.MessageDialog(self, u"Не готово", '', wx.OK)
+            dlg.ShowModal()
+            dlg.Destroy()
+            return
+        self.save_bitmap(bmp)
+        
+    def save_bitmap(self, bmp, default_fname = 'screenshot'):
+        """
+        Сохраняет изображения в файл.
+        Предварительно выводит диалог для запроса имени файла.
+        Хранит в self предыдущий путь, номер типа файла и качество JPEG.
+        """
+        # спрашиваем файл
+        BMP_ID = 0
+        PNG_ID = 1
+        JPEG_ID= 2
+        DUMMY_ID = 3
+        exts = {BMP_ID: u'.bmp', PNG_ID:u'.png', JPEG_ID:u'.jpg'}
+        ft = self.default_scrshot_file_type
+        dlg = wx.FileDialog(
+            self,
+            message = u'Сохранить изображение',
+            defaultDir = U(self.default_scrshot_dir),
+            defaultFile = U(default_fname) + exts[ft],
+            wildcard = u'BMP|*.bmp|PNG|*.png|JPEG|*.jpg|Все файлы (*.*)|*.*',
+            style = wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+        dlg.SetFilterIndex(ft)
+        rv = dlg.ShowModal()
+        fname = dlg.GetPath()
+        ft = dlg.GetFilterIndex()
+        if ft == DUMMY_ID: ft = BMP_ID
+        dlg.Destroy()
+        if rv != wx.ID_OK:
+            return
+        self.default_scrshot_file_type = ft
+        self.default_scrshot_dir = os.path.dirname(fname.encode('utf-8'))
+        
+        # сохраняем
+        if ft == JPEG_ID:
+            # надо спросить качество
+            q = -1
+            while q < 0:
+                dlg = wx.TextEntryDialog(self,
+                                         u"Качество изображения (0-100):",
+                                         "",
+                                         str(self.default_scrshot_jpeg_quality))
+                rv = dlg.ShowModal()
+                text_value = dlg.GetValue()
+                dlg.Destroy()
+                if rv != wx.ID_OK: return
+                try:
+                    q = int(text_value)
+                except ValueError:
+                    pass
+            img = wx.ImageFromBitmap(bmp)
+            img.SetOptionInt(wx.IMAGE_OPTION_QUALITY, q)
+            self.default_scrshot_jpeg_quality = q
+            save_ok = img.SaveFile(fname, wx.BITMAP_TYPE_JPEG)
+        else:
+            save_ok = bmp.SaveFile(fname,
+                                   {BMP_ID: wx.BITMAP_TYPE_BMP,
+                                    PNG_ID: wx.BITMAP_TYPE_PNG} [ft])
+        if not save_ok:
+            dlg = wx.MessageDialog(self, u"Не могу сохранить изображение", "",\
+                                   wx.ICON_ERROR)
+            dlg.ShowModal()
+            dlg.Destroy()
+    
+    def _open_video_menu_func(self, event):
+        "Меню 'Открыть видеофайл...'"
+        if not self._ensure_saved():
+            return
+        
+        dlg = wx.FileDialog(self,
+                            u'Открыть видеофайл',
+                            '',
+                            '',
+                            u'Все файлы (*.*)|*.*',
+                            wx.FD_OPEN)
+        rv = dlg.ShowModal()
+        filename2open = clean_input_string(dlg.GetPath())
+        dlg.Destroy()
+        if rv != wx.ID_OK: return
+
+        new_config = configuration.Config()
+        new_config.source_type = configuration.FFMPEG_AUTO_SOURCE
+        new_config.video_filename = filename2open
+        self._reset_config(new_config)
+        self.project_changed = True
+        self.project_filename = ''
+        self._source_button_func(None)
+            
+    def _view_step_tool_func(self, event):
+        val = -1
+        text = str(self.config.button_step)
+        first_query = True
+        while val <= 0:
+            msg_u = u'Шаг для стрелок, число кадров:'
+            if not first_query:
+                msg_u = u'Неверный ввод.\n' + msg_u
+            first_query = False
+            dlg = wx.TextEntryDialog(self, msg_u, '', text)
+            rv = dlg.ShowModal()
+            text = dlg.GetValue()
+            dlg.Destroy()
+            if rv != wx.ID_OK: return
+            try:
+                val = int(text)
+            except ValueError:
+                pass
+        self.config.button_step = val
+
+    def _about_menu_func(self, event):
+        "Меню 'О программе'"
+        dlg = wx.MessageDialog(self,
+                               u'WWOL: Wind-Wave Optical Lab\n'
+                               u'ver. %s\n'
+                               u'(c) Michael Salin, %d\n'
+                               u'mikesalin@gmail.com'                               
+                               % (ABOUT_VERSION, ABOUT_YEAR),
+                               u'WWOL',
+                               wx.OK)
+        dlg.ShowModal()
+        dlg.Destroy()
+        
 
 

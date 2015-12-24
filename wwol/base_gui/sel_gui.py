@@ -6,6 +6,7 @@ import wx
 
 from . import wxfb_output
 from .mvf_aux_classes import Selection
+from ..common.my_encoding_tools import U
 
 class SelDlg(wxfb_output.SelDlg):
     """
@@ -64,9 +65,9 @@ class SelDlg(wxfb_output.SelDlg):
             # мышь передана в управлении зуму
             INFO_IF_BLOCKED = "Закройте окно масштабирования, чтобы " \
                               "продолжить работу"
-            self.info_static_text.SetLabel(INFO_IF_BLOCKED)
+            self.info_static_text.SetLabel(U(INFO_IF_BLOCKED))
         else:
-            self.info_static_text.SetLabel(self.basic_info)
+            self.info_static_text.SetLabel(U(self.basic_info))
             parent.a_bmp.SetCursor(wx.StockCursor(wx.CURSOR_CROSS))
             # NB: потом будет не только 'a'
         sel_data = parent.sel_data

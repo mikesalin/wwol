@@ -3,12 +3,13 @@
 
 import copy
 import logging
+import os.path
 import wx
 
 from . import wxfb_output
 from ..engine import configuration
 ConfigError = configuration.ConfigError
-from ..common.my_encoding_tools import clean_input_string
+from ..common.my_encoding_tools import clean_input_string, U
 from ..engine import loading
 
 class SourceDlg(wxfb_output.SourceDlg):
@@ -18,7 +19,11 @@ class SourceDlg(wxfb_output.SourceDlg):
     При создании поля диалога инициализируются из parent.config.
     Результатом нажатия ОК (или Отмены после Применить) является изменение
     GetParent().config и вызов GetParent().enter_preview
-    """ 
+    """
+
+    SYSTEM_TEMP_PATH_CHOICE = 0
+    USER_TEMP_PATH_CHOICE = 1
+    
     def __init__(self, parent):
         wxfb_output.SourceDlg.__init__(self, parent) #initialize parent class
         self.config2form(parent.config)
@@ -28,12 +33,16 @@ class SourceDlg(wxfb_output.SourceDlg):
         "Заполняет поля ввода в соответствии с config (тип Config)"
         self.source_type_choice.SetSelection(config.source_type)
         
-        self.video_filename_text.SetValue(config.video_filename)
-        self.user_temp_path_check.SetValue(config.user_pic_path_in_auto_mode)
-        self.loader_cmd_text.SetValue(config.user_loader_cmd)
+        self.video_filename_text.SetValue(U(config.video_filename))
+        #self.user_temp_path_check.SetValue(config.user_pic_path_in_auto_mode)
+        if config.user_pic_path_in_auto_mode:
+            self.temp_path_choice.SetSelection(self.USER_TEMP_PATH_CHOICE)
+        else:
+            self.temp_path_choice.SetSelection(self.SYSTEM_TEMP_PATH_CHOICE)
+        self.loader_cmd_text.SetValue(U(config.user_loader_cmd))
         self.use_shell_check.SetValue(config.user_use_shell)
         
-        self.pic_path_text.SetValue(config.user_pic_path)
+        self.pic_path_text.SetValue(U(config.user_pic_path))
         self.start_text.SetValue("%d" % config.frames_range[0])
         if config.frames_range[1] == -1:
             s = ""
@@ -61,7 +70,9 @@ class SourceDlg(wxfb_output.SourceDlg):
         self.fps_text.Show(not auto_sect)
         self.fps_static_text.Show(not auto_sect)
         
-        user_temp_path = (not auto_sect) or self.user_temp_path_check.GetValue()
+        #user_temp_path = (not auto_sect) or self.user_temp_path_check.GetValue()
+        user_temp_path = (not auto_sect) or \
+          (self.temp_path_choice.GetSelection() == self.USER_TEMP_PATH_CHOICE)
         self.pic_path_text.Show(user_temp_path)
         self.pic_path_static_text.Show(user_temp_path)
         self.pic_path_comment_static_text.Show(user_temp_path)
@@ -91,7 +102,7 @@ class SourceDlg(wxfb_output.SourceDlg):
             warn_txt = config.post_config('source')
         except ConfigError as err:
             msg_dlg = wx.MessageDialog(self,
-                                       "Неправильный ввод настроек! %s" % err,
+                                       U("Неправильный ввод настроек! %s" % err),
                                        "",
                                        wx.ICON_ERROR)
             msg_dlg.ShowModal()
@@ -100,9 +111,9 @@ class SourceDlg(wxfb_output.SourceDlg):
         if warn_txt != "":
             msg_dlg = wx.MessageDialog(
                 self,
-                "Замечание по введенным параметрам:\n\n%s"
+                U("Замечание по введенным параметрам:\n\n%s"
                 "\nПрименить новые параметры?"
-                    % warn_txt,
+                    % warn_txt),
                 "",
                 wx.ICON_EXCLAMATION | wx.YES_NO)
             rv = msg_dlg.ShowModal()
@@ -148,7 +159,9 @@ class SourceDlg(wxfb_output.SourceDlg):
                                self.video_filename_text.GetValue())
         config.user_pic_path = clean_input_string(
                                self.pic_path_text.GetValue())
-        config.user_pic_path_in_auto_mode= self.user_temp_path_check.GetValue()
+        #config.user_pic_path_in_auto_mode = self.user_temp_path_check.GetValue()
+        config.user_pic_path_in_auto_mode = \
+            self.temp_path_choice.GetSelection() == self.USER_TEMP_PATH_CHOICE
         try:
             config.frames_range = (int(self.start_text.GetValue()), -1)
             if not self.max_finish_check.GetValue():
@@ -169,8 +182,8 @@ class SourceDlg(wxfb_output.SourceDlg):
                  if config.frames_range[0] < true_start:
                      msg_dlg = wx.MessageDialog(
                        self,
-                       "Рекомендуется начинать обработку с кадра № %d, поскольку "
-                       "в начале записи содержатся пустые кадры." % true_start,
+                       u"Рекомендуется начинать обработку с кадра № %d, поскольку "
+                       u"в начале записи содержатся пустые кадры." % true_start,
                        "",
                        wx.ICON_EXCLAMATION | wx.OK | wx.CANCEL)
                      res = msg_dlg.ShowModal()
@@ -185,21 +198,21 @@ class SourceDlg(wxfb_output.SourceDlg):
         "Нажали на знак вопроса около поля 'команда' -- отобразить подсказку"
         msg_dlg = wx.MessageDialog(
             self,
-            "В данном режиме WWOL будет время от времени запускать FFMPEG "
-            "(или в общем случае любую другую программу) с помощью указанной "
-            "Вами команды, чтобы получить фрагмент видеозаписи в виде пачки "
-            "файлов графического формата, которая "
-            "может содержать параметры подстановки:\n"
-            "$START -- время начала очередного запрашиваемого фрагмента (сек),"
-            "\n$PRESTART -- грубое значение времени начала.\n"
-            "$SOFT_START -- добавка: START = PRESTART + SOFT_START "
-            "(грубый-точный поиск начала).\n"
-            "Эта команда должна сгенерировать файлы с именем, соответствующим "
-            "полю 'Путь к картинкам', в количестве 'Число кадров для БПФ'. "
-            "Если стоит галка 'shell', то команда будет вызываться через "
-            "shell. \n"
-            "Кнопка 'A' выдаст Вам стандартный вид команды, которую бы "
-            "использовал WWOL в режиме 'ffmpeg (авто)'.",
+            u"В данном режиме WWOL будет время от времени запускать FFMPEG "
+            u"(или в общем случае любую другую программу) с помощью указанной "
+            u"Вами команды, чтобы получить фрагмент видеозаписи в виде пачки "
+            u"файлов графического формата, которая "
+            u"может содержать параметры подстановки:\n"
+            u"$START -- время начала очередного запрашиваемого фрагмента (сек),"
+            u"\n$PRESTART -- грубое значение времени начала.\n"
+            u"$SOFT_START -- добавка: START = PRESTART + SOFT_START "
+            u"(грубый-точный поиск начала).\n"
+            u"Эта команда должна сгенерировать файлы с именем, соответствующим "
+            u"полю 'Путь к картинкам', в количестве 'Число кадров для БПФ'. "
+            u"Если стоит галка 'shell', то команда будет вызываться через "
+            u"shell. \n"
+            u"Кнопка 'A' выдаст Вам стандартный вид команды, которую бы "
+            u"использовал WWOL в режиме 'ffmpeg (авто)'.",
             "",
             wx.ICON_INFORMATION)
         msg_dlg.ShowModal()
@@ -247,4 +260,20 @@ class SourceDlg(wxfb_output.SourceDlg):
         dlg.Destroy()
         if rv == wx.ID_CANCEL: return
         self.video_filename_text.SetValue(fname)
+    
+    def _pic_path_browse_button_func(self, event):
+        if self.source_type_choice.GetSelection() == 0:
+            msg_u = u"Выберите папку для временных картинок"
+        else:
+            msg_u = u"Выберите папку с картинками"
+        dlg = wx.DirDialog(self,
+                           msg_u,
+                           os.path.dirname(self.pic_path_text.GetValue()))
+        res = dlg.ShowModal()
+        if res != wx.ID_OK:
+            dlg.Destroy()
+            return
+        self.pic_path_text.SetValue(dlg.GetPath())
+        dlg.Destroy()
+        
 

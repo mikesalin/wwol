@@ -30,6 +30,9 @@ class PowerSpec:
     self.dxy=1
     self.df=1
     self.calibr_details = None
+  
+  def is_empty(self):
+    return self.data is None
 
 STD_CALIBR_FLAG = -3
 _DESC2_FNAME = "descr2.txt"
@@ -67,8 +70,8 @@ def load_text_spec(dir_name):
   Nkx = Skxy_1st.shape[0]
   Nky = Skxy_1st.shape[1]
   Nf = int(param[3])
-  #logging.info("Loading spectrum from text files")
-  #logging.info("Nkx=%d  Nky=%d  Nf=%d" % (Nkx, Nky, Nf))
+  logging.debug("Loading spectrum from text files")
+  logging.debug("Nkx=%d  Nky=%d  Nf=%d" % (Nkx, Nky, Nf))
   res = PowerSpec()
   res.data = np.ndarray((Nkx,Nky,Nf),order='F');
   res.dkx = float(param[0])
@@ -81,7 +84,8 @@ def load_text_spec(dir_name):
   
   res.data[:,:,0] = Skxy_1st
   for nf in range(1,Nf):
-    fname = "Skxy_%03d.txt" % int( round( df*(nf+1)*100 ))
+    # fname = "Skxy_%03d.txt" % int( round( df*(nf+1)*100 ))
+    fname = "Skxy_%03.0f.txt" % ( df*(nf+1)*100 )
     fname = os.path.join(dir_name,fname)
     Skxy = np.loadtxt(fname)
     res.data[:,:,nf] = Skxy
@@ -92,10 +96,10 @@ def load_text_spec(dir_name):
     et[:,1] = np.power(10.0, et[:,1]*0.1)
     res.etalon = [et]
     res.etalon_tag = ["etalon"]
-    #logging.info("etalon: provided")
+    logging.debug("etalon: provided")
   except IOError:
     pass
-    #logging.info("etalon: not provided")
+    logging.debug("etalon: not provided")
     
   return res
 

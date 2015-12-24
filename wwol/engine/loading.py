@@ -12,6 +12,8 @@ from collections import namedtuple
 from datetime import datetime
 import wx
 
+from ..common.my_encoding_tools import fname2quotes, U, double_backslash
+
 __all__ = ["image_loader", "ffmpeg_loader", "find_last_image",
            "LoadingError", "FrameLoaddingFailed", "BadFormatString", "NoData",
            "frame_numbering", "make_ffmpeg_cmd", "VideoProbeResult",
@@ -74,8 +76,8 @@ def subs_frame_num(pic_path, frame_num):
     try:
         res = pic_path % frame_num
     except TypeError:
-        logging.error("Can't parse '%s'! "\
-                      "Expected smth like 'file%%04d.bmp'." % pic_path)
+        logging.debug(U("Can't parse '%s'! "\
+                        "Expected smth like 'file%%04d.bmp'." % pic_path))
         raise BadFormatString()
     return res
 
@@ -111,7 +113,7 @@ class AsyncImageLoader(threading.Thread):
                 continue
             img = wx.Image(filename)
             if not img.IsOk():
-                logging.error("Can't load '%s'!" % filename)
+                logging.debug(U("Can't load '%s'!" % filename))
                 img = FrameLoaddingFailed()
             self.result_queue.put( (frame_num, img) )
 
@@ -153,7 +155,7 @@ def image_loader(pic_path, numbers_range):
                 async_loader.task_queue.put(frame_num)
                 (check_num, data) = async_loader.result_queue.get()
                 if check_num != frame_num:
-                    logging.error("iternal error")
+                    logging.debug("iternal error")
                     raise Exception("iternal error")
             if isinstance(data, Exception): raise data
             # перед выдачаей кадра запускаем предзагрузку следующего
@@ -216,7 +218,7 @@ def cleanup_files(pic_path, numbers_range):
             except OSError:
                 warn_count += 1
     if warn_count > 0:
-        logging.warn("Can't cleanup %d file(s)", warn_count)
+        logging.debug("Can't cleanup %d file(s)", warn_count)
 
 
 def make_ffmpeg_cmd_final(loader_cmd, exact_start, prestart):
@@ -239,8 +241,8 @@ def make_ffmpeg_cmd_final(loader_cmd, exact_start, prestart):
         try:
             s = st.substitute(START = "%0.3f" % exact_start)
         except (KeyError, ValueError):
-            logging.error("Can't substitute START or PRESTART and SOFT_START"
-                          " to '%s'!", loader_cmd)
+            logging.debug(u"Can't substitute START or PRESTART and SOFT_START"
+                            " to '%s'!", U(loader_cmd))
             raise BadFormatString()
     return s
 
@@ -342,17 +344,17 @@ def ffmpeg_loader(loader_cmd, pic_path, pack_len, frames_range, fps,
                     SOFT_START_OFFSET = 10
                     prestart = max(exact_start - SOFT_START_OFFSET, 0.0)
                     s = make_ffmpeg_cmd_final(loader_cmd, exact_start, prestart)
-                    logging.info(
-                      "WWOL is going to get frames %d..%d using command: '%s'\n",
+                    logging.debug(
+                      u"WWOL is going to get frames %d..%d using command: '%s'\n",
                       start1 + 1,
                       start1 + pack_len,
-                      s)
+                      U(s))
                                         
                     # - поехали                    
                     if use_shell:
                         subprocess.check_call(s, shell = True)
                     else:
-                        unshell = shlex.split(s)
+                        unshell = shlex.split(double_backslash(s))
                         if len(unshell) == 0: unshell = [""]
                         subprocess.check_call(unshell, shell = False)
                     on_finish_lap()
@@ -360,10 +362,10 @@ def ffmpeg_loader(loader_cmd, pic_path, pack_len, frames_range, fps,
                     # - проверяем, появились ли файлы в папке
                     if not (os.access(subs_frame_num(pic_path, 1), os.F_OK) and
                       os.access(subs_frame_num(pic_path, pack_len), os.F_OK)):
-                        logging.error("No files were created!")
+                        logging.debug("No files were created!")
                         raise FrameLoaddingFailed()
                 except (OSError, subprocess.CalledProcessError) as e:
-                    logging.error(str(e))
+                    logging.debug(U(str(e)))
                     raise FrameLoaddingFailed()
             
             have_got_img = False
@@ -391,7 +393,7 @@ def ffmpeg_loader(loader_cmd, pic_path, pack_len, frames_range, fps,
                 try:
                     img = img_loader_.send(frame_num + ofs)
                 except StopIteration:
-                    logging.error("slave img_loader_ has risen StopIteration")
+                    logging.debug("slave img_loader_ has risen StopIteration")
                     raise FrameLoaddingFailed()
             fresh = False
             #logging.debug("yeilding frame_num = " + str(frame_num))
@@ -417,14 +419,6 @@ FFMPEG_CMD_TEMPLATE = "$FFMPEG -ss $PRESTART -i $VIDEO_FILENAME " \
 FFMPEG_BIN_PATH = ""
 FFMPEG_NAME = "ffmpeg"
 FFPROBE_NAME = "ffprobe"
-
-
-def fname2quotes(s):
-    "Сначала удаляет из строки кавычки, затем обертывает ее кавычки, когда надо."
-    s = ''.join(s.split('"'))
-    if s.find(' ') >= 0 or s.find("'") >= 0 or len(s) == 0:
-        s = '"' + s + '"'
-    return s
 
 
 def make_ffmpeg_cmd(video_filename, pack_len, pic_path, force_out_fps):
@@ -473,16 +467,28 @@ def video_probe(filename):
     
     cmd = FFMPEG_BIN_PATH + FFPROBE_NAME + " " + fname2quotes(filename)
     try:
-        txt = subprocess.check_output(shlex.split(cmd),
-                                      stderr=subprocess.STDOUT)
+#        txt = subprocess.check_output(shlex.split(cmd),
+#                                      stderr=subprocess.STDOUT)
+        # Python 2.6:
+        pp = subprocess.Popen(shlex.split(double_backslash(cmd)),
+                              stdin=subprocess.PIPE,
+                              stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE)
+        txt, txt_err = pp.communicate()
+        txt += txt_err
+        if pp.returncode != 0:
+            logging.debug(u"FFPROBE returned %d (non-zero), command was:\n%s",
+                          pp.returncode, U(cmd))
+            raise FrameLoaddingFailed()
     except OSError:
-        logging.debug("OSError occured while executing: '%s'", cmd)
-        logging.error("Can't launch FFPROBE!")
-    except subprocess.CalledProcessError as e:
-        logging.debug("FFPROBE returned %d (non-zero), details are below.\n"
-                      "Command:\n  %s\nOutput:\n%s", e.returncode, cmd, e.output)
-        logging.error("FFPROBE can't open video file!")
-        raise FrameLoaddingFailed()
+        logging.debug(u"OSError occured while executing: '%s'" % U(cmd))
+        logging.debug("Can't launch FFPROBE!")
+#    except subprocess.CalledProcessError as e:
+#        logging.debug(u"FFPROBE returned %d (non-zero), details are below.\n"
+#                      u"Command:\n  %s\nOutput:\n%s",
+#                      e.returncode, U(cmd), U(e.output))
+#        logging.debug("FFPROBE can't open video file!")
+#        raise FrameLoaddingFailed()
     
     logging.debug('Parsing FFPROBE output:\n' + txt)
     lines = txt.split('\n')
@@ -500,7 +506,7 @@ def video_probe(filename):
                 try:
                     dd = datetime.strptime(s[:pos].strip(), '%H:%M:%S.%f')
                 except ValueError as e:
-                    logging.error(str(e))
+                    logging.debug(U(str(e)))
                     raise FrameLoaddingFailed()
                 dur = dd.hour * 3600.0 + dd.minute * 60.0 + dd.second \
                       + dd.microsecond * 1e-6
@@ -513,13 +519,13 @@ def video_probe(filename):
                 try:
                     start = float(s[:pos].strip())
                 except ValueError as e:
-                    logging.error(str(e))
+                    logging.debug(U(str(e)))
                     raise FrameLoaddingFailed()
                 
                 break
         if dur <= 0: raise FrameLoaddingFailed()
     except FrameLoaddingFailed as e:
-        logging.error("Error while parsing FFPROBE output, 'Duration' section")
+        logging.debug("Error while parsing FFPROBE output, 'Duration' section")
         raise e
     logging.debug("Got start %0.4f and duartion %0.4f", start, dur)
 
@@ -535,7 +541,7 @@ def video_probe(filename):
                 try:
                     fps = float(s[pos1 + len(SEP) : pos2].strip())
                 except ValueError as e:
-                    logging.error(str(e))
+                    logging.debug(U(str(e)))
                     raise FrameLoaddingFailed()
                 break
         if fps <= 0: raise FrameLoaddingFailed()

@@ -27,9 +27,14 @@ def unicode2str_recursively(input):
     #stackoverflow, Mark Amery
     byteify = unicode2str_recursively
     if isinstance(input, dict):
-        return {byteify(key):byteify(value) for key,value in input.iteritems()}
+        #return {byteify(key):byteify(value) for key,value in input.iteritems()}
+        #Python 2.6:
+        d = { }
+        for key,value in input.iteritems():
+            d[byteify(key)] = byteify(value)
+        return d
     elif isinstance(input, list):
-        return [byteify(element) for element in input]
+        return list(byteify(element) for element in input)
     elif isinstance(input, unicode):
         return input.encode('utf-8')
     else:
@@ -67,4 +72,19 @@ def limit_text_len(text, max_len, allow_multiline):
 
     return (mod_text, (lines_cut or len_cut))
 
-
+def fname2quotes(s):
+    "Сначала удаляет из строки кавычки, затем обертывает ее кавычки, когда надо."
+    s = ''.join(s.split('"'))
+    if s.find(' ') >= 0 or s.find("'") >= 0 or len(s) == 0:
+        s = '"' + s + '"'
+    return s
+    
+def double_backslash(s):
+    "удваивает все слэши \\ , чтобы не было эскейп-последовательности"
+    pos = 0
+    while pos < len(s):
+        pos = s.find('\\', pos)
+        if pos < 0: break
+        s = s[:pos] + '\\' + s[pos:]
+        pos = pos + 2
+    return s

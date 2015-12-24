@@ -107,12 +107,12 @@ class Preview:
     .config
     .loader
     .working_thread
-    .raw_img
-    .zoom_cache -- см. одноименный параметр _resize_image
-    .view_param_lock -- следующие объекты с отступом защищены этим мьютексом
+    .raw_img        -- для доступа извне есть get_raw_img
+    .zoom_cache     -- см. одноименный параметр _resize_image
+    .view_param_lock - следующие объектызащищены этим мьютексом:
       .a_panel      -- тип PanelParam
       .sel_data     -- тип Selection, копия main_video_frame.sel_data
-      .raw_img_size -- (width, height)
+      .raw_img_size -- (width, height), для доступа извне есть get_raw_img_size
     .first_call_goto_frame
     .frame_num_ofs
     """
@@ -550,12 +550,22 @@ class Preview:
         """
         Возвращает размер исходного изображения (без масштабирования) в виде
         (int, int), т.е (ширина, высота). Возвращает (0, 0), если еще ни одно
-        изображение не было загружено и размер не известен.
+        изображение не было загружено и размер неизвестен.
         """
         self.view_param_lock.acquire()
         rv = self.raw_img_size
         self.view_param_lock.release()
         return rv
+        
+    def get_raw_img(self):
+        "Возвращает исходное изображение, кт. сейчас лежит в буфере, или None"
+        q = Queue.Queue()
+        self._enqueue_task(lambda: q.put(self.raw_img.Copy()))
+        try:
+            res = q.get(block = True, timeout = 1)
+        except Queue.Empty:
+            return None
+        return res
     
 
 
