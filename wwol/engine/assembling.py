@@ -240,7 +240,7 @@ def legacy_spectrum(mvf):
             swimmer_exit_code = subprocess.call((SWIMMER, fname))
         except OSError:
             mvf.Show()
-            _error2gui(mvf, U("Не могу запустить " + SWIMMER))
+            _error2gui(mvf, "Не могу запустить " + SWIMMER)
             return False
 
         mvf.Show()

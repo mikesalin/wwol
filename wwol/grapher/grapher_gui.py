@@ -13,6 +13,8 @@ from . import calibr
 from ..common import embed_gui_images
 from ..common.my_encoding_tools import U
 
+default_spec_path = ''
+
 class GrapherMain(grapher_fb.GrapherMainFB):
     """
     Главное окно
@@ -192,15 +194,17 @@ class GrapherMain(grapher_fb.GrapherMainFB):
     
     def open_button_func(self, event):
         "Нажатие Открыть (open_button)"
+        global default_spec_path
         dlg = wx.DirDialog(self,
                            u"Выберите папку со спектром",
-                           style = wx.FD_OPEN)
+                           U(default_spec_path))
         res = dlg.ShowModal()
         if res != wx.ID_OK:
             dlg.Destroy()
             return
         path = dlg.GetPath().encode('utf-8')
         dlg.Destroy()
+        default_spec_path = path
         self.open_button_func_act(path)
         
     def open_button_func_act(self, path):
@@ -260,7 +264,7 @@ class GrapherMain(grapher_fb.GrapherMainFB):
     
     def plot_button_func_act(self, do_show=True, file_prefix=None):
         """
-        Вторая часть функции для кнопки "Построить". Также если есть
+        Вторая (и главная) часть функции для кнопки "Построить". Если есть
         необходимость программно нажать на "Построить", то нужно вызывать
         данную функцию.
         Считывает данные из полей ввода.
@@ -589,6 +593,8 @@ class GrapherMain(grapher_fb.GrapherMainFB):
             logging.debug("Script for gnuplot: " + saved_files[-1])
         saved_files[:] = []
         
+        self.plot_button_func_act()
+        
     def grtype_choice_func1(self, event):
         "Переключение типа графика, уход со вкладки."
         t = (self.xlim_check.GetValue(),
@@ -723,9 +729,9 @@ class GrapherMain(grapher_fb.GrapherMainFB):
     def screenshot_menu_func(self, event):
         bmp = self.screen_bitmap.GetBitmap()
         if not bmp.IsOk(): return
-        self.GetParent().save_bitmap(bmp)
-        self.Raise()
-        self.SetFocus()
+        self.GetParent().save_bitmap(bmp, parent_window = self)
+        #self.Raise()
+        #self.SetFocus()
     
 
 def main():

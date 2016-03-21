@@ -2238,7 +2238,7 @@
                                                                 <property name="vgap">0</property>
                                                                 <object class="sizeritem" expanded="0">
                                                                     <property name="border">5</property>
-                                                                    <property name="flag">wxALL|wxEXPAND</property>
+                                                                    <property name="flag">wxALL|wxEXPAND|wxALIGN_CENTER_VERTICAL</property>
                                                                     <property name="proportion">0</property>
                                                                     <object class="wxButton" expanded="0">
                                                                         <property name="BottomDockable">1</property>
@@ -2326,7 +2326,7 @@
                                                                 </object>
                                                                 <object class="sizeritem" expanded="0">
                                                                     <property name="border">5</property>
-                                                                    <property name="flag">wxALL</property>
+                                                                    <property name="flag">wxALL|wxALIGN_CENTER_VERTICAL</property>
                                                                     <property name="proportion">0</property>
                                                                     <object class="wxBitmapButton" expanded="0">
                                                                         <property name="BottomDockable">1</property>
@@ -2419,7 +2419,7 @@
                                                                 </object>
                                                                 <object class="sizeritem" expanded="0">
                                                                     <property name="border">5</property>
-                                                                    <property name="flag">wxALL</property>
+                                                                    <property name="flag">wxALL|wxALIGN_CENTER_VERTICAL</property>
                                                                     <property name="proportion">0</property>
                                                                     <object class="wxBitmapButton" expanded="0">
                                                                         <property name="BottomDockable">1</property>
@@ -5623,7 +5623,7 @@
             <property name="minimum_size"></property>
             <property name="name">SelDlg</property>
             <property name="pos"></property>
-            <property name="size">180,180</property>
+            <property name="size">180,250</property>
             <property name="style">wxCAPTION</property>
             <property name="subclass"></property>
             <property name="title"></property>
@@ -6630,7 +6630,7 @@
                                                     <property name="caption"></property>
                                                     <property name="caption_visible">1</property>
                                                     <property name="center_pane">0</property>
-                                                    <property name="choices">&quot;держать в стандартной системной временной папке&quot; &quot;держать в указанной ниже папке &apos;Путь к картинкам&apos;&quot;</property>
+                                                    <property name="choices">&quot;держать в стандартной временной папке&quot; &quot;держать в указанной ниже папке &apos;Путь к картинкам&apos;&quot;</property>
                                                     <property name="close_button">1</property>
                                                     <property name="context_help"></property>
                                                     <property name="context_menu">1</property>

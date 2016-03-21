@@ -6,15 +6,17 @@
 
 import sys
 from distutils.core import setup
+import shutil
 import py2exe
-from jsonschema_py2exe_workaround import JsonSchemaCollector
+from wwol.setup_.jsonschema_py2exe_workaround import JsonSchemaCollector
             
 sys.path.append("C:\\Program Files (x86)\\Microsoft Visual Studio 9.0\\VC\\"
                 "Redist\\X86\\Microsoft.VC90.CRT")
 
 setup(windows = ['start_from_here.py'],
       options = {'py2exe' : {'excludes' : ['Tkinter',
-                                           'Tkconstants'
+                                           'Tkconstants',
+                                           'scipy.sparse'
                                           ]
                              }
                 },
@@ -22,5 +24,6 @@ setup(windows = ['start_from_here.py'],
        zipfile=None
 )
 
-# см.
-#http://stackoverflow.com/questions/30942612/py2exe-not-recognizing-jsonschema
+more_files = ['swimmer_.exe', 'libfftw3-3.dll']
+for fname in more_files:
+    shutil.copyfile(fname, 'dist\\' + fname)

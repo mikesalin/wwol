@@ -12,6 +12,7 @@ import threading
 from math import *
 import copy
 import sys
+import string
 import json
 import wx
 
@@ -434,14 +435,8 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         if self.zoom_tool.IsToggled():
             self.zoom_dlg = zoom_gui.ZoomDlg(self)
             self.zoom_dlg.ShowWithoutActivating()
-            self.zoom_dlg.Move(self.b_bmp.GetScreenPosition())
-#            bar_pos = self.my_toolbar.GetScreenPosition()
-#            tool_index = self.my_toolbar.GetToolPos(self.zoom_tool.GetId())
-#            tool_size = self.my_toolbar.GetToolSize()
-#            ofs = 200
-#            pos = (bar_pos[0] + tool_size[0] * tool_index + ofs,
-#                   bar_pos[1] + tool_size[1])
-#            self.zoom_dlg.Move(pos)
+            px, py = self.b_bmp.GetScreenPositionTuple()
+            self.zoom_dlg.Move(wx.Point(px - 180, py))
         self._rebind_mouse_events("a")
         self._rebind_mouse_events("b")
         self._rebind_mouse_wheel_event()
@@ -725,7 +720,8 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         self.rect_state = False
         #self.maintain_sel_trpz_flag = 0
         self.sel_dlg = sel_gui.SelDlg(self, info)
-        self.sel_dlg.Move(self.b_bmp.GetScreenPosition())
+        px, py = self.b_bmp.GetScreenPositionTuple()
+        self.sel_dlg.Move(wx.Point(px - 180, py + 200))
         self.sel_dlg_to_be_shown = True
         self._rebind_mouse_events()
         self._viewer_update_view()
@@ -1505,12 +1501,14 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
             return
         self.save_bitmap(bmp)
         
-    def save_bitmap(self, bmp, default_fname = 'screenshot'):
+    def save_bitmap(self, bmp, default_fname = 'screenshot', parent_window = None):
         """
         Сохраняет изображения в файл.
         Предварительно выводит диалог для запроса имени файла.
         Хранит в self предыдущий путь, номер типа файла и качество JPEG.
         """
+        if parent_window is None:
+            parent_window = self
         # спрашиваем файл
         BMP_ID = 0
         PNG_ID = 1
@@ -1519,7 +1517,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         exts = {BMP_ID: u'.bmp', PNG_ID:u'.png', JPEG_ID:u'.jpg'}
         ft = self.default_scrshot_file_type
         dlg = wx.FileDialog(
-            self,
+            parent_window,
             message = u'Сохранить изображение',
             defaultDir = U(self.default_scrshot_dir),
             defaultFile = U(default_fname) + exts[ft],
@@ -1536,12 +1534,25 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         self.default_scrshot_file_type = ft
         self.default_scrshot_dir = os.path.dirname(fname.encode('utf-8'))
         
+        # расширение файла
+        fname1, fname_ext = os.path.splitext(fname)
+        if string.lower(fname_ext) != exts[ft]:
+            dlg = wx.MessageDialog(self,
+                                   u"Изменить расширение файла на '%s'?"
+                                       % exts[ft],
+                                   "",
+                                   wx.YES_NO)
+            rv = dlg.ShowModal()
+            dlg.Destroy()
+            if rv == wx.ID_YES:
+                fname = fname1 + exts[ft]
+        
         # сохраняем
         if ft == JPEG_ID:
             # надо спросить качество
             q = -1
             while q < 0:
-                dlg = wx.TextEntryDialog(self,
+                dlg = wx.TextEntryDialog(parent_window,
                                          u"Качество изображения (0-100):",
                                          "",
                                          str(self.default_scrshot_jpeg_quality))
@@ -1562,7 +1573,9 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
                                    {BMP_ID: wx.BITMAP_TYPE_BMP,
                                     PNG_ID: wx.BITMAP_TYPE_PNG} [ft])
         if not save_ok:
-            dlg = wx.MessageDialog(self, u"Не могу сохранить изображение", "",\
+            dlg = wx.MessageDialog(parent_window,
+                                   u"Не могу сохранить изображение",
+                                   "",
                                    wx.ICON_ERROR)
             dlg.ShowModal()
             dlg.Destroy()

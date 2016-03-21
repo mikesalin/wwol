@@ -89,6 +89,7 @@ class SelDlg(wxfb_output.SelDlg):
         else:
             al.pop()
         self.adjust()
+        parent._maintain_sel_trpz_act()
         if parent.viewer is not None: parent.viewer.update_view()
     
     def _done_cancel_button_func(self, done):

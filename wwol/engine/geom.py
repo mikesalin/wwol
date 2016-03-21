@@ -23,6 +23,7 @@ import logging
 from collections import namedtuple
 from math import *
 import scipy.optimize
+from distutils.version import StrictVersion
 
 ProjectingCoef = namedtuple('ProjectingCoef', ['a', 'b', 'c'])
 IDENTICATL_PROJECTION = ProjectingCoef(0, 1, 1)
@@ -149,8 +150,11 @@ def pixels_to_angle(coord, config, img_size, mode):
     poly_deriv2 = lambda r: 6 * k1 * r + 20 * k2 * r**3
     # r = l0 * tg_a - нормированный радиус, без дисторсии
     if k1 != 0.0 or k2 != 0.0:
+        fprime2_kwarg = {'fprime2': poly_deriv2}
+        if StrictVersion(scipy.__version__) < StrictVersion('0.11'):
+            fprime2_kwarg = { }
         r = scipy.optimize.newton(poly, r_, fprime = poly_deriv,
-                                  fprime2 = poly_deriv2)
+                                  **fprime2_kwarg)
     else:
         r = r_
     # x, y - идеальные координаты, ненормированные, от центра и y вверх.

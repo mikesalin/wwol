@@ -177,17 +177,17 @@ class MainVideoFrame ( wx.Frame ):
 		self.calc_spec_button = wx.Button( self.m_panel12, wx.ID_ANY, u"Вычислить!", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.calc_spec_button.SetFont( wx.Font( wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString ) )
 		
-		fgSizer12.Add( self.calc_spec_button, 0, wx.ALL|wx.EXPAND, 5 )
+		fgSizer12.Add( self.calc_spec_button, 0, wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, 5 )
 		
 		self.prev_spec_button = wx.BitmapButton( self.m_panel12, wx.ID_ANY, wx.ArtProvider.GetBitmap( wx.ART_GO_BACK, wx.ART_MENU ), wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW )
 		self.prev_spec_button.SetToolTipString( u"Открыть предыдущий спектр" )
 		
-		fgSizer12.Add( self.prev_spec_button, 0, wx.ALL, 5 )
+		fgSizer12.Add( self.prev_spec_button, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 		
 		self.load_spec_button = wx.BitmapButton( self.m_panel12, wx.ID_ANY, wx.ArtProvider.GetBitmap( wx.ART_FILE_OPEN, wx.ART_MENU ), wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW )
 		self.load_spec_button.SetToolTipString( u"Открыть спектр..." )
 		
-		fgSizer12.Add( self.load_spec_button, 0, wx.ALL, 5 )
+		fgSizer12.Add( self.load_spec_button, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 		
 		
 		bSizer15.Add( fgSizer12, 1, wx.EXPAND, 5 )
@@ -641,7 +641,7 @@ class ZoomDlg ( wx.Dialog ):
 class SelDlg ( wx.Dialog ):
 	
 	def __init__( self, parent ):
-		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 180,180 ), style = wx.CAPTION )
+		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 180,250 ), style = wx.CAPTION )
 		
 		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
 		
@@ -726,7 +726,7 @@ class SourceDlg ( wx.Dialog ):
 		self.m_staticText33.Wrap( -1 )
 		fgSizer2.Add( self.m_staticText33, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 		
-		temp_path_choiceChoices = [ u"держать в стандартной системной временной папке", u"держать в указанной ниже папке 'Путь к картинкам'" ]
+		temp_path_choiceChoices = [ u"держать в стандартной временной папке", u"держать в указанной ниже папке 'Путь к картинкам'" ]
 		self.temp_path_choice = wx.Choice( self.m_panel7, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, temp_path_choiceChoices, 0 )
 		self.temp_path_choice.SetSelection( 0 )
 		fgSizer2.Add( self.temp_path_choice, 1, wx.ALL|wx.EXPAND, 5 )
