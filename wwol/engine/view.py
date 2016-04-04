@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Модуль отрисовки кадров. Разделяется основной поток (где GUI) и рабочий поток,
-где подготавливается отрисовка. Главный класс здесь -- это:
-  Preview
+где подготавливается отрисовка. Главный класс здесь -- это Preview
 """
 
 import copy
@@ -104,13 +103,13 @@ class Preview:
      
     Данные:
     .main_video_frame -- тип MainVideoFrame
-    .config
     .loader
     .working_thread
     .raw_img        -- для доступа извне есть get_raw_img
     .zoom_cache     -- см. одноименный параметр _resize_image
     .view_param_lock - следующие объектызащищены этим мьютексом:
       .a_panel      -- тип PanelParam
+      .b_panel
       .sel_data     -- тип Selection, копия main_video_frame.sel_data
       .raw_img_size -- (width, height), для доступа извне есть get_raw_img_size
     .first_call_goto_frame
@@ -133,6 +132,7 @@ class Preview:
         self.frame_num_ofs = frame_num_ofs
 
         self.a_panel = PanelParam()
+        self.b_panel = PanelParam()
         self.sel_data = Selection()
         self.raw_img_size = (0, 0)
         
@@ -150,13 +150,13 @@ class Preview:
         if self.loader is None:
             return None
         if keep_loader:
-            loader_obj = self.loader
+            retruned_loader_obj = self.loader
             self.loader = None
         else:
-            loader_obj = None
+            retruned_loader_obj = None
             self.loader.close()
-        self.loader = None
-        return loader_obj
+            self.loader = None
+        return retruned_loader_obj
     
     def __del__(self):
         self.close() # двойной close() не ошибка
@@ -189,7 +189,10 @@ class Preview:
         # NB: _report_warn ?
 
     def goto_frame(self, num):
-        "num -- int - номер кадра, или None - первый/следующий кадр"
+        """
+        num -- int - номер кадра
+        NB: теперь не принимаем goto_frame(None)
+        """
         self._take_view_param()
         task = lambda: self._goto_frame_act(num)
         return self._enqueue_task(task)
@@ -207,8 +210,23 @@ class Preview:
         self.view_param_lock.acquire()
         self.a_panel = copy.deepcopy(self.main_video_frame.a_panel)
         self.a_panel.size = self.main_video_frame.a_bmp.GetSizeTuple()
+        self.b_panel = copy.deepcopy(self.main_video_frame.b_panel)
+        self.b_panel.size = self.main_video_frame.b_bmp.GetSizeTuple()
         self.sel_data = copy.deepcopy(self.main_video_frame.sel_data)
         self.view_param_lock.release()
+    
+    def _report_loading_error(self, err):
+        err_subtype = "LoadingError (not a subtype)"
+        more_err_info = ""
+        if isinstance(err, loading.FrameLoaddingFailed):
+            err_subtype = "FrameLoaddingFailed"
+        if isinstance(err, loading.BadFormatString):
+            err_subtype = "BadFormatString"
+        if isinstance(err, loading.NoData):
+            err_subtype = "NoData"
+            more_err_info = " (или слишком мало кадров для обработки)"
+        logging.debug("_goto_frame_act caught " + err_subtype)
+        self._report_error("Ошибка при загрузке кадров%s." % more_err_info)
     
     def _goto_frame_act(self, num):
         """
@@ -219,30 +237,15 @@ class Preview:
           None -- все хорошо
           FAIL_STOP -- при ошибке
         """
-        if self.first_call_goto_frame and (num is not None):
-            stop_flag = self._goto_frame_act(None)
-            if stop_flag is not None: return stop_flag
-        self.first_call_goto_frame = False
-        
         try:                
-            if num is None:
-                self.raw_img = self.loader.next()
-            else:
-                self.raw_img = self.loader.send(num + self.frame_num_ofs)
+            if self.first_call_goto_frame:
+                dummy = self.loader.next()  # пнуть, чтобы заработал
+                self.first_call_goto_frame = False
+
+            self.raw_img = self.loader.send(num + self.frame_num_ofs)
         except loading.LoadingError as err:
             # обработка ошибок:
-            err_subtype = "LoadingError (not a subtype)"
-            more_err_info = ""
-            if isinstance(err, loading.FrameLoaddingFailed):
-                err_subtype = "FrameLoaddingFailed"
-            if isinstance(err, loading.BadFormatString):
-                err_subtype = "BadFormatString"
-            if isinstance(err, loading.NoData):
-                err_subtype = "NoData"
-                more_err_info = " (или слишком мало кадров для обработки)"
-            logging.debug("_goto_frame_act caught " + err_subtype)
-            
-            self._report_error("Ошибка при загрузке кадров%s." % more_err_info)
+            self._report_loading_error(err)
             return ViewerWorkingThread.FAIL_STOP
         self.zoom_cache = []
         

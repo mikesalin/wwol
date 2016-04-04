@@ -6,7 +6,22 @@ swimmer_
 *.dll
 dist/*
 build/*
+*.o
+wwol/engine/c_part/_transform_frame.*
+wwol/engine/c_part/transform_frame.py
+wwol/engine/c_part/*_wrap.c
+wwol/engine/c_part/test_result.bmp
 
-
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+wwol/engine/c_part/test_ext_msvc2013/Debug/*
+wwol/engine/c_part/test_ext_msvc2013/Release/*
+*.ncb
+*.opendb
+*.opensdf
+*.sdf
+*.cachefile
 
 

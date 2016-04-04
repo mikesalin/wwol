@@ -85,12 +85,15 @@ class Config:
       .active_area_num [RT]: может принимать значение -1, когда не выбрано
       .areas_list (list of ProcessingArea-s):  может содержать [RT] элементы
       .auto_set_fft_sizes (bool)
-    
-    не ясно куда отнести:
-      .max_freq [RT]: макс частота для сохранения спектра,
-                      <=0 -- использовать умолчательное значение,
-                      см. также valid_max_freq
-    
+    processing:
+      .max_freq_of_output_spec (float): макс частота для сохранения спектра,
+                                    <=0 -- использовать умолчательное значение,
+                                    см. также valid_max_freq
+      .force_time_wnd_if_no_overlap (bool): Если True, то оконная функция
+                      по времени будет применяться всегда. Если False, то
+                      действует стандартное поведение: окно включено только
+                      тогда, когда включено перекрытие.
+      .space_wnd (bool): применять окно по пространсву и обрезать выход.
     """
     def __init__(self):
         # source:
@@ -124,8 +127,10 @@ class Config:
         self.active_area_num = -1
         self.areas_list = []
         self.auto_set_fft_sizes = True
-        # ..?
-        self.max_freq = 0
+        # processing
+        self.max_freq_of_output_spec = 0
+        self.force_time_wnd_if_no_overlap = False
+        self.space_wnd = True
     
     def need_user_pic_path(self):
         return (not self.source_type == FFMPEG_AUTO_SOURCE) or \
@@ -152,7 +157,8 @@ class Config:
         SUBROUTINES = {'source':self._post_config_source,
                        'view':self._post_config_view,
                        'geom':self._post_config_geom,
-                       'areas':self._post_config_areas}
+                       'areas':self._post_config_areas,
+                       'processing':self._post_config_processing}
 
         if isinstance(modified_sections, str):
             modified_sections = [modified_sections]
@@ -317,6 +323,10 @@ class Config:
         
         return warn_txt
     
+    def _post_config_processing(self):
+        "См. post_config. Здесь идет работа в части параметров обработки"
+        return ''
+    
     def valid_frames_range(self):
         """
         Тоже, что и self.frames_range, только в возращаемом tuple второй член
@@ -399,8 +409,8 @@ class Config:
         return (ready_flag, issues_text)
     
     def valid_max_freq(self):
-        if self.max_freq > 0:
-            return self.max_freq
+        if self.max_freq_of_output_spec > 0:
+            return self.max_freq_of_output_spec
         else:
             return self.fps * 0.5
 
@@ -474,7 +484,16 @@ SCHEMA = {
                 }, #end of areas["properties"]["areas_list"]
                 "auto_set_fft_sizes":{"type":"boolean"}
             } #end of areas["properties"]
-        } #end of areas
+        }, #end of areas
+        "processing": {
+            "type":"object",
+            "additionalProperties":False,
+            "properties":{
+                "max_freq_of_output_spec":"number",
+                "force_time_wnd_if_no_overlap":"boolean",
+                "space_wnd":"boolean"
+            } #end of processing["properties"]
+        } #end of processing
     }
 }
 #NB: диапазоны большинства числовых значений проверяются в post_config,

@@ -47,6 +47,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
     .prev_mouse_x
     .prev_mouse_y
     .a_panel (view.PanelParam, параметр size игнорируется)
+    .b_panel
     .sel_ok (bool)
     .sel_data (Selection)
     .sel_callback (callable)
@@ -91,6 +92,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         self.prev_mouse_x = 0
         self.prev_mouse_y = 0
         self.a_panel = view.PanelParam()
+        self.b_panel = view.PanelParam()
         self.sel_ok = False
         self.sel_data = Selection()
         self.sel_callback = None
@@ -1376,7 +1378,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
     
     def _calc_spec_button_func(self, event):
         "Нажали на кнопку Вычислить (спектр)"
-        # спросим max_freq
+        # спросим max_freq_of_output_spec
         dlg = wx.TextEntryDialog(self,
                                  u"Максимальная частота:",
                                  "",
@@ -1387,7 +1389,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         if rv != wx.ID_OK:
             return
         try:
-            self.config.max_freq = float(str_val)
+            self.config.max_freq_of_output_spec = float(str_val)
         except ValueError:
             self._notify_bad_input_simply()
             return
