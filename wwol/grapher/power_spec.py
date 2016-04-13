@@ -83,11 +83,20 @@ def load_text_spec(dir_name):
     res.calibr_details = [calibr_flag] + list(float(s) for s in param[5:])
   
   res.data[:,:,0] = Skxy_1st
+  modif_freq = [0., -0.005, 0.005] # когда из-за округления не можем найти файл
   for nf in range(1,Nf):
-    # fname = "Skxy_%03d.txt" % int( round( df*(nf+1)*100 ))
-    fname = "Skxy_%03.0f.txt" % ( df*(nf+1)*100 )
-    fname = os.path.join(dir_name,fname)
-    Skxy = np.loadtxt(fname)
+    for n_attempt in range(0, 3):
+        f100 = df*(nf+1)*100 + modif_freq[n_attempt]
+        fname = "Skxy_%03.0f.txt" % f100
+        fname = os.path.join(dir_name,fname)
+        try:
+            Skxy = np.loadtxt(fname)
+        except IOError:
+            if n_attempt == 2:
+                raise
+            else:
+                continue
+        break
     res.data[:,:,nf] = Skxy
   
   try:

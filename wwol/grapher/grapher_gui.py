@@ -10,6 +10,8 @@ from . import draw_common
 from . import basic_plots
 from . import skf
 from . import calibr
+from . import cross_section
+from . import polar
 from ..common import embed_gui_images
 from ..common.my_encoding_tools import U
 
@@ -42,9 +44,18 @@ class GrapherMain(grapher_fb.GrapherMainFB):
     .last_swh_freq_str
     .transf_result_frame
     .base_title
+    .last_plotted_2d
     
     .AFTER_RESIZE_TIMER_INTERVAL
     """
+    # порядок вариантов в grtype_choice
+    SKXY = 0
+    SKF = 1
+    SF = 2
+    SK = 3
+    SECT = 4
+    POLAR = 5
+    
     #constructor
     def __init__(self, parent):        
         grapher_fb.GrapherMainFB.__init__(self,parent) #initialize parent class
@@ -63,9 +74,11 @@ class GrapherMain(grapher_fb.GrapherMainFB):
         self.transf_result_frame = None
         self.AFTER_RESIZE_TIMER_INTERVAL = 500
         self.base_title = self.GetTitle()
+        self.last_plotted_2d = cross_section.LastPlotted2D()
         #Допиливаем интрефейс:
         self.extra_menu_button.SetBitmap(embed_gui_images.get_menu3Bitmap())
         self.angle_tip_bitmap.SetBitmap(embed_gui_images.get_phi_hintBitmap())
+        self.angle_tip_bitmap1.SetBitmap(embed_gui_images.get_phi_hintBitmap())
         self.do_filtering_button.Enabled = False
     
     def clone_window(self, new_spec = None, new_proj_name = None):
@@ -292,20 +305,24 @@ class GrapherMain(grapher_fb.GrapherMainFB):
             
         #основа
         try:
-            if self.grtype_choice.GetSelection()==0:
+            if self.grtype_choice.GetSelection() == self.SKXY:
                 #Skxy            
-                s = basic_plots.draw_skxy(self.my_spec, cleanup_files_,\
-                    file_prefix, nfreq=self.freq_choice.GetSelection(),\
-                    dispers_curve=self.theor_choice.GetSelection())
-            if self.grtype_choice.GetSelection()==1:
+                s = basic_plots.draw_skxy(
+                    self.my_spec,
+                    cleanup_files_,
+                    file_prefix,
+                    nfreq=self.freq_choice.GetSelection(),
+                    dispers_curve=self.theor_choice.GetSelection(),
+                    last_plotted_2d = self.last_plotted_2d)
+            if self.grtype_choice.GetSelection() == self.SKF:
                 #Skf
                 angles_text = (self.angle1_text.GetValue(),\
                                self.angle2_text.GetValue())
                 try:
                     angles = (float(angles_text[0]), float(angles_text[1]))
+                    if angles[0] >= angles[1]:
+                        angles = None
                 except ValueError:
-                    angles = None
-                if angles[0] >= angles[1]:
                     angles = None
                 if angles is not None:
                     prev_bmp = self.screen_bitmap.GetBitmap()
@@ -313,25 +330,120 @@ class GrapherMain(grapher_fb.GrapherMainFB):
                         embed_gui_images._hourglass.GetBitmap())
                     wx.Yield()
                     
-                    s = skf.draw_skf(self.my_spec, cleanup_files_,
-                        file_prefix,\
-                        dispers_curve=self.theor_choice.GetSelection(),\
-                        phi0=angles[0], phi1=angles[1],\
-                        high_res=self.high_res_check.GetValue())
+                    s = skf.draw_skf(
+                        self.my_spec,
+                        cleanup_files_,
+                        file_prefix,
+                        dispers_curve=self.theor_choice.GetSelection(),
+                        phi0=angles[0],
+                        phi1=angles[1],\
+                        high_res=self.high_res_check.GetValue(),
+                        last_plotted_2d = self.last_plotted_2d)
 
                     self.screen_bitmap.SetBitmap(prev_bmp)
-            if self.grtype_choice.GetSelection()==2:
+            if self.grtype_choice.GetSelection() == self.SK:
+                #Sk
+                is_linear = True
+                self.last_plotted_2d.reset()
+                angles_text = (self.angle1_text1.GetValue(),\
+                               self.angle2_text1.GetValue())
+                try:
+                    angles = (float(angles_text[0]), float(angles_text[1]))
+                    if angles[0] >= angles[1]:
+                        angles = None
+                except ValueError:
+                    angles = None
+                if angles is not None:
+                    prev_bmp = self.screen_bitmap.GetBitmap()
+                    self.screen_bitmap.SetBitmap(
+                        embed_gui_images._hourglass.GetBitmap())
+                    wx.Yield()
+                    
+                    s = skf.draw_sk(self.my_spec,
+                                    cleanup_files_,
+                                    file_prefix,
+                                    phi0=angles[0], phi1=angles[1],
+                                    high_res=self.high_res_check1.GetValue())
+
+                    self.screen_bitmap.SetBitmap(prev_bmp)
+            if self.grtype_choice.GetSelection() == self.SF:
                 #Sf
                 s = basic_plots.draw_sf(self.my_spec, cleanup_files_, file_prefix)
                 is_linear = True
+                self.last_plotted_2d.reset()
+            if self.grtype_choice.GetSelection() == self.SECT:
+                # сечение графика
+                is_linear = True
+                if not self.last_plotted_2d.valid:
+                    self.SetStatusText("")
+                    dlg = wx.MessageDialog(
+                        self,
+                        u"Сначала постройте какой-нибудь двумерный график.\n"
+                        u"Данная вкладка предназначена для построения сечений "
+                        u"двумерного графика, который был построен перед этим.",
+                        "",
+                        wx.ICON_ERROR)
+                    dlg.ShowModal()
+                    dlg.Destroy()
+                    return
+                vals_str1 = self.sect_vals_text.GetValue().split(' ')
+                vals_str2 = []
+                for a in vals_str1:
+                    if len(a) > 0:
+                        vals_str2.append(a)
+                if len(vals_str2) == 0:
+                    ok = False
+                else:
+                    try:
+                        vals = list(float(a) for a in vals_str2)
+                        ok = True
+                    except ValueError:
+                        ok = False
+                if ok:
+                     s = cross_section.draw_section_along_x_or_y(
+                         self.last_plotted_2d,
+                         ['x','y'][self.sect_dir_choice.GetSelection()],
+                         vals,
+                         cleanup_files_,
+                         file_prefix)
+            if self.grtype_choice.GetSelection() == self.POLAR:
+                # Угловая зависимость
+                is_linear = True
+                ok = True
+                vals_str1 = self.freqs_for_polar_text.GetValue().split(' ')
+                vals_str2 = []
+                for a in vals_str1:
+                    if len(a) > 0:
+                        vals_str2.append(a)
+                if len(vals_str2) == 0:
+                    ok = False
+                else:
+                    try:
+                        vals = list(float(a) for a in vals_str2)
+                        k_range_min = float(self.k_range_min_text.GetValue())
+                        k_range_max = float(self.k_range_max_text.GetValue())
+                    except ValueError:
+                        ok = False
+                if ok:
+                    s = polar.draw_angular_spec(
+                        input_spec = self.my_spec,
+                        freq_list = vals,
+                        k_range_is_relative = self.k_range_is_relative_check.GetValue(),
+                        k_range = (k_range_min, k_range_max),
+                        polar = self.polar_check.GetValue(),
+                        dB = self.polar_in_dB_check.GetValue(),
+                        norm_to_max = self.polar_norm_check.GetValue(),
+                        created_files = cleanup_files_,
+                        file_prefix = file_prefix)
+
         except IOError:
-            self.SetStatusText("Ошибка: не могу записать временные файлы")
-            #if file_prefix is None:
-            #    logging.debug("Can't write temp files!")
-            #    return
-            #else:
-            #    logging.debug("Can't save files with prefix " + file_prefix)
-            #    raise
+            dlg = wx.MessageDialog(self,
+                                   u"Ошибка: не могу записать временные файлы",
+                                   "",
+                                   wx.ICON_ERROR)
+            dlg.ShowModal()
+            dlg.Destroy()
+            return
 
         #границы по осям
         limits_on_off = [self.xlim_check.GetValue(), self.xlim_check.GetValue(),\
@@ -354,11 +466,17 @@ class GrapherMain(grapher_fb.GrapherMainFB):
             limits_list.append(val)
         limits = tuple(limits_list)
         
+        if (self.grtype_choice.GetSelection() == self.POLAR) \
+          and self.polar_check.GetValue():
+            if (limits[0] is not None) and (s is not None):
+                s = polar.script_to_set_rlimits(limits[0], limits[1]) + s
+            limits = [] 
+        
         if s is None:
             self.report_bad_input()
             self.SetStatusText("")
             return
-          
+        
         #достаем info
         s_lines_list = s.split("\n")
         in_info_section = False
@@ -397,8 +515,6 @@ class GrapherMain(grapher_fb.GrapherMainFB):
             self.screen_bitmap.SetBitmap(wx.EmptyBitmap(1,1))
             return
         
-        #size_wx = self.screen_bitmap.GetSize()
-        #size = (size_wx.GetWidth(), size_wx.GetHeight())
         size = self.screen_panel.GetSizeTuple()
         self.gnuplot_output_text.SetValue("") # сброс     
         self.SetStatusText(u"Запуск gnuplot...")        
@@ -525,17 +641,26 @@ class GrapherMain(grapher_fb.GrapherMainFB):
         """
         Нажали кнопку Интерактивная сессия (кнопка с луппой)
         """
-        #NB: в wxPython3 ecnm диалог с кнопкой "не показвать больше".
+        # NB: есть диалог с кнопкой "не показвать больше".
+        # там можно объяснить пользователю, что тут происходит
+        
         self.plot_button_func_act(do_show=False)        
         if self.cur_draw_func is None: return
                 
         size_wx = self.screen_bitmap.GetSize()
         size = (size_wx.GetWidth(), size_wx.GetHeight())
         
+        hidden_windows = []
         if sys.platform == 'win32':
             self.Hide()
+            hidden_windows = [self] + hidden_windows
             if self.GetParent() is not None:
+                for wnd in self.GetParent().GetChildren():
+                    if isinstance(wnd, wx.Frame):
+                        wnd.Hide()
+                        hidden_windows = [wnd] + hidden_windows
                 self.GetParent().Hide()
+                hidden_windows = [self.GetParent()] + hidden_windows
             wx.Yield()                
         try:
             self.cur_draw_func(self.cleanup_files, "console+", size)
@@ -544,9 +669,8 @@ class GrapherMain(grapher_fb.GrapherMainFB):
             dlg.ShowModal()
             dlg.Destroy()
         if sys.platform == 'win32':
-            if self.GetParent() is not None:
-                self.GetParent().Show()
-            self.Show()
+            for wnd in hidden_windows:
+                wnd.Show()
             self.Raise()
             self.SetFocus()
         # self.show_cur_graph() #обновляем
@@ -597,6 +721,7 @@ class GrapherMain(grapher_fb.GrapherMainFB):
         
     def grtype_choice_func1(self, event):
         "Переключение типа графика, уход со вкладки."
+        # Запомнить, что ввели в поля с границами графика
         t = (self.xlim_check.GetValue(),
              self.xmin_text.GetValue(),
              self.xmax_text.GetValue(),
@@ -610,9 +735,25 @@ class GrapherMain(grapher_fb.GrapherMainFB):
         while len(self.view_ctrl) < n+1:
            self.view_ctrl.append(None)
         self.view_ctrl[n] = t
+        
+        # Делаем так, чтобы поля ввода для S(K,f) и S(K) показывали одно и тоже
+        pairs = [[self.angle1_text, self.angle1_text1],
+                 [self.angle2_text, self.angle2_text1],
+                 [self.high_res_check, self.high_res_check1]]
+        do_copy_vals = False
+        if (self.grtype_choice.GetSelection() == self.SKF):
+            src, dst = (0, 1)
+            do_copy_vals = True
+        if (self.grtype_choice.GetSelection() == self.SK):
+            src, dst = (1, 0)
+            do_copy_vals = True
+        if do_copy_vals:
+            for p in pairs:
+                p[dst].SetValue(p[src].GetValue())
     
     def grtype_choice_func2(self, event):
         "Переключение типа графика, приход на новую вкладку."
+        # Изменить значения полей с границами графика
         n = self.grtype_choice.GetSelection()
         if (len(self.view_ctrl) > n) and ( self.view_ctrl[n] is not None):
             t = self.view_ctrl[n]
@@ -627,6 +768,21 @@ class GrapherMain(grapher_fb.GrapherMainFB):
         self.clim_check.SetValue(t[6])
         self.cmin_text.SetValue(t[7])
         self.cmax_text.SetValue(t[8])
+        
+        if n == self.POLAR:
+            self.set_that_freq_button.SetLabel('<= ' +
+                self.freq_choice.GetString(self.freq_choice.GetSelection()))
+    
+    def _set_that_freq_button_func(self, event):
+        """
+        Нажали на вкладке 'Угловая зависимость' на кнопку, котрая вставляет
+        значение частоты со вкладки Skxy
+        """
+        text = self.freqs_for_polar_text.GetValue()
+        if len(text) > 0:
+            text += ' '
+        text += self.freq_choice.GetString(self.freq_choice.GetSelection())
+        self.freqs_for_polar_text.SetValue(text)
     
     def swh_menu_func(self, event):
       """

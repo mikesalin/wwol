@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+"""
+Типы графиков, где мы переходим к модулю волнового числа:
+S(K,f)   calc_skf, draw_skf
+S(K)     draw_sk
+"""
 
 import numpy as np
 import math
@@ -80,13 +85,14 @@ def calc_skf(skxy, phi0=-180, phi1=180, high_res=False):
   return out
   
 def draw_skf(spec, created_files, file_prefix=None, dispers_curve=0,\
-            phi0=-180, phi1=180, high_res=False):
+            phi0=-180, phi1=180, high_res=False,
+            last_plotted_2d = None):
   """
   spec -- тип KFSpec или PowerSpec
   phi0, phi1 и high_res -- имеют смысл только, когда spec -- типа PowerSpec,
                            см. calc_skf
+  last_plotted_2d -- тип cross_section.LastPlotted2D
   См. общие конвенции: help(draw_conventions)
-  TODO: limits
   """    
   dinam_range=40
   
@@ -124,8 +130,10 @@ def draw_skf(spec, created_files, file_prefix=None, dispers_curve=0,\
   s = s+"set cbrange [%0.3f:%0.3f]\n" % (M-dinam_range, M)
   s = s + JET_COLORMAP_CMD
   s = s+"unset key\n"
-  s = s+"set xlabel 'wavenumber (rad/m)'\n"
-  s = s+"set ylabel 'frequency (Hz)'\n"
+  x_label = 'wavenumber (rad/m)'
+  s = s+"set xlabel '%s'\n" % x_label
+  y_label = 'frequency (Hz)'
+  s = s+"set ylabel '%s'\n" % y_label
   #скрипт для дисперсионки  
   if (dispers_curve>0):    
     dispers_file_desc="'%s' binary format='%%float32%%float32'"% dispers_fname
@@ -140,6 +148,52 @@ def draw_skf(spec, created_files, file_prefix=None, dispers_curve=0,\
             % (dispers_file_desc, skf.df/2)      
   else:  
     s = s+"replot\n";
-  s += "#INFO\n#df = %0.3f [Hz]\n#dk = %0.3f [rad/m]\n" % (skf.df, skf.dk)
+  s += "#INFO:\n#df = %0.3f [Hz]\n#dk = %0.3f [rad/m]\n" % (skf.df, skf.dk)
+
+  if last_plotted_2d is not None:
+      last_plotted_2d.valid = True
+      last_plotted_2d.data = output
+      last_plotted_2d.x_label = x_label
+      last_plotted_2d.y_label = y_label
+      last_plotted_2d.x_short_name = 'K'
+      last_plotted_2d.y_short_name = 'f'
+    
+  return s
+  
+  
+def draw_sk(spec, created_files, file_prefix=None,
+            phi0=-180, phi1=180, high_res=False):
+  """
+  spec(KFSpec или PowerSpec)
+  phi0, phi1 и high_res -- имеют смысл только, когда spec -- типа PowerSpec,
+                           см. calc_skf
+  См. общие конвенции: help(draw_conventions)
+  """    
+  if isinstance(spec, PowerSpec):
+    skf=calc_skf(spec, phi0, phi1, high_res)
+  else:
+    skf=spec
+  
+  sk = np.ndarray((skf.data.shape[0], 2))
+  sk[:, 1] = np.sum(skf.data, 1) * skf.df
+  sk[:, 0] = np.arange(1, skf.data.shape[0] + 1) * skf.dk
+  
+  # Пишем файл с данными
+  data_fobj, data_fname = file4draw(created_files, file_prefix, "sk.dat")
+  data_fobj.close()
+  np.savetxt(data_fname, sk)
+  # скрипт
+  s = ""
+  s += "unset key\n"
+  s += "set xlabel 'wavenumber (rad / m)'\n"
+  s += "set ylabel 'level (dB)'\n"  
+  s += "plot '%s'\\\n  using ($1):( 10 * log10($2 + 1e-10) )\\\n" % data_fname
+  s += "  with lines\\\n"
+  s += "  title 'data'\n"  
+  s += "#INFO:\n#dk = %0.3f [rad/m]\n" % skf.dk
+  
+#  check_Hs = 4 * math.sqrt(np.sum(sk[:,1]) * skf.dk)
+#  s += "#Check Hs by S(k): %0.3f\n" % check_Hs
   
   return s
+  

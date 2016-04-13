@@ -4,8 +4,8 @@ from .draw_common import *
 from .power_spec import *
 import math
 
-def draw_skxy(power_spec, created_files, file_prefix=None,\
-    freq=None, nfreq=None, dispers_curve=0):
+def draw_skxy(power_spec, created_files, file_prefix=None,
+    freq=None, nfreq=None, dispers_curve=0, last_plotted_2d = None):
   """
   Рисование сечения спектра в координатах (kx,ky).
   Частота задается или в Гц (freq) или по номеру (nfreq)
@@ -19,9 +19,9 @@ def draw_skxy(power_spec, created_files, file_prefix=None,\
     nfreq = round(freq/power_spec.df)-1    
   if (nfreq<0) or (nfreq>=power_spec.data.shape[2]):
     if nfreq is None:
-      raise Exception("Частота № nfreq=%d недоступна" % nfreq)
-    else:
       raise Exception("Частота freq=%0.3f недоступна" % freq)
+    else:
+      raise Exception("Частота № nfreq=%d недоступна" % nfreq)
   if freq is None:
     freq = power_spec.df*(nfreq+1)
   
@@ -71,11 +71,22 @@ def draw_skxy(power_spec, created_files, file_prefix=None,\
       s = s+"replot '%s' binary format='%%float32' using " % phi_fname
       s = s+"(%s*cos($1)):(%s*sin($1)) with lines ls 1\n" % (var_name,var_name)
     s = s+"set style line 1 lw 2 lc rgb 'white'\n"
-  s = s + "set xlabel 'Kx (rad/m)'\nset ylabel 'Ky (rad/m)'\n"
+  x_label = 'Kx (rad/m)'
+  y_label = 'Ky (rad/m)'
+  s = s + "set xlabel '%s'\nset ylabel '%s'\n" % (x_label, y_label)
   s = s + "replot\n"
   #info
   s += "#INFO:\n#dkx = %0.3f [rad/m]\n#dky = %0.3f [rad/m]\n" % \
        (power_spec.dkx, power_spec.dky)
+
+  if last_plotted_2d is not None:
+      last_plotted_2d.valid = True
+      last_plotted_2d.data = output
+      last_plotted_2d.x_label = x_label
+      last_plotted_2d.y_label = y_label
+      last_plotted_2d.x_short_name = 'Kx'
+      last_plotted_2d.y_short_name = 'Ky'
+
   return s
 
 

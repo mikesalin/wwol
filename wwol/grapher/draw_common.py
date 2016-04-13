@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"Общие функции для построения графиков через gnuplot"
 
 import math
 import os.path
@@ -6,6 +7,7 @@ import tempfile
 import subprocess
 import logging
 import sys
+import numpy as np
 
 from ..common.my_encoding_tools import fname2quotes
 from .. wwol_globals import VERBOSE
@@ -56,12 +58,12 @@ def launch_gnu_plot(created_files, script_body, mode, file_prefix=None,
   Дополняет script_body (тип str) header-ом и/или footer-ом и скармливает 
   его gnuplot. 
   mode: "console" -нарисовать график и оставить пользователя в консоле gnuplot
-        "console+"
+        "console+"-под линуксом открывает новый терминал и дальше как "console"
+                   под виндой полностью идентично "console"
         "file" - нарисовать график в файл, молчаливый режим. Имя получившегося
                  файла будет возвращено как последний элемент в списке
                  created_files . Размер рисунка задается параметром size .
         "just_save_script"
-        TODO:"console+" -- открыть новую консоль, ......      
   Возращает tuple: (exit_code, None) или (exit_code, output) 
   limits: tuple (xmin, xmax, ymin, ymax, color_min, color_max)
           Чтобы использоваться стандартные значения для какого-то из параметров,
@@ -123,11 +125,7 @@ def launch_gnu_plot(created_files, script_body, mode, file_prefix=None,
         pass
     logging.debug('ok')
     
-    if mode=="console+":
-        if sys.platform == 'win32':
-            rv = subprocess.call(('gnuplot', fname2quotes(fname), '-'))
-            ret_tup = (rv, None)
-        else:
+    if (mode=="console+") and (sys.platform == 'linux2'):
             TERM_NAMES = ['x-terminal-emulator', 'xgd-terminal']
             for n_name in range(0, len(TERM_NAMES)):
                 try:
@@ -144,7 +142,7 @@ def launch_gnu_plot(created_files, script_body, mode, file_prefix=None,
                         raise
             ret_tup = (0, None)
     else:
-      rv = subprocess.call(("gnuplot", fname, "-"))
+      rv = subprocess.call(("gnuplot", fname2quotes(fname), "-"))
       ret_tup = (rv,None)
     
     if (cleanup):
@@ -156,7 +154,7 @@ def launch_gnu_plot(created_files, script_body, mode, file_prefix=None,
     if size is None: size = (600,500)
     fobj, fname = file4draw(created_files, file_prefix, ".png");
     fobj.close()
-    head = "set term png size %d,%d truecolor\n" % size
+    head = "set term pngcairo size %d,%d truecolor enhanced\n" % size
     set_output_line = "set output '%s'\n" % fname
       #вообще, первую картинку можно было отправить в /dev/null
     head = head + set_output_line
@@ -200,4 +198,3 @@ JET_COLORMAP_CMD = "set palette defined ( 0 \"#000090\","\
                                          "7 \"#ee0000\","\
                                          "8 \"#7f0000\")\n"
 
-  

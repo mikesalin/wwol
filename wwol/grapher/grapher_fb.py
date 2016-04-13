@@ -9,6 +9,7 @@
 
 import wx
 import wx.xrc
+
 from ..common import embed_gui_images
 
 ###########################################################################
@@ -96,7 +97,7 @@ class GrapherMainFB ( wx.Frame ):
 		self.m_panel41.SetSizer( fgSizer1 )
 		self.m_panel41.Layout()
 		fgSizer1.Fit( self.m_panel41 )
-		self.grtype_choice.AddPage( self.m_panel41, u"S(Kx,Ky)", True )
+		self.grtype_choice.AddPage( self.m_panel41, u"S(Kx,Ky)", False )
 		self.m_panel51 = wx.Panel( self.grtype_choice, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer10 = wx.BoxSizer( wx.VERTICAL )
 		
@@ -120,7 +121,7 @@ class GrapherMainFB ( wx.Frame ):
 		fgSizer2.Add( self.angle_tip_bitmap, 0, wx.ALL, 5 )
 		
 		
-		bSizer10.Add( fgSizer2, 1, wx.EXPAND, 5 )
+		bSizer10.Add( fgSizer2, 0, wx.EXPAND, 5 )
 		
 		self.high_res_check = wx.CheckBox( self.m_panel51, wx.ID_ANY, u"Увеличить разрешение", wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer10.Add( self.high_res_check, 0, wx.ALL, 5 )
@@ -131,7 +132,130 @@ class GrapherMainFB ( wx.Frame ):
 		bSizer10.Fit( self.m_panel51 )
 		self.grtype_choice.AddPage( self.m_panel51, u"S(K,f)", False )
 		self.m_panel6 = wx.Panel( self.grtype_choice, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-		self.grtype_choice.AddPage( self.m_panel6, u"S(f)", False )
+		self.grtype_choice.AddPage( self.m_panel6, u"S(f)", True )
+		self.m_panel13 = wx.Panel( self.grtype_choice, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		bSizer101 = wx.BoxSizer( wx.VERTICAL )
+		
+		fgSizer21 = wx.FlexGridSizer( 0, 4, 0, 0 )
+		fgSizer21.AddGrowableCol( 1 )
+		fgSizer21.AddGrowableCol( 2 )
+		fgSizer21.SetFlexibleDirection( wx.HORIZONTAL )
+		fgSizer21.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+		
+		self.m_staticText31 = wx.StaticText( self.m_panel13, wx.ID_ANY, u"Угол [град]:", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText31.Wrap( -1 )
+		fgSizer21.Add( self.m_staticText31, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+		
+		self.angle1_text1 = wx.TextCtrl( self.m_panel13, wx.ID_ANY, u"-180", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer21.Add( self.angle1_text1, 1, wx.ALL|wx.EXPAND, 5 )
+		
+		self.angle2_text1 = wx.TextCtrl( self.m_panel13, wx.ID_ANY, u"180", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer21.Add( self.angle2_text1, 1, wx.ALL|wx.EXPAND, 5 )
+		
+		self.angle_tip_bitmap1 = wx.StaticBitmap( self.m_panel13, wx.ID_ANY, wx.ArtProvider.GetBitmap( wx.ART_TIP, wx.ART_TOOLBAR ), wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer21.Add( self.angle_tip_bitmap1, 0, wx.ALL, 5 )
+		
+		
+		bSizer101.Add( fgSizer21, 1, wx.EXPAND, 5 )
+		
+		self.high_res_check1 = wx.CheckBox( self.m_panel13, wx.ID_ANY, u"Увеличить разрешение", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer101.Add( self.high_res_check1, 0, wx.ALL, 5 )
+		
+		
+		self.m_panel13.SetSizer( bSizer101 )
+		self.m_panel13.Layout()
+		bSizer101.Fit( self.m_panel13 )
+		self.grtype_choice.AddPage( self.m_panel13, u"S(K)", False )
+		self.m_panel131 = wx.Panel( self.grtype_choice, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		bSizer12 = wx.BoxSizer( wx.VERTICAL )
+		
+		fgSizer8 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer8.AddGrowableCol( 1 )
+		fgSizer8.SetFlexibleDirection( wx.BOTH )
+		fgSizer8.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+		
+		sect_dir_choiceChoices = [ u"вдоль x, когда y =", u"вдоль y, когда x =" ]
+		self.sect_dir_choice = wx.Choice( self.m_panel131, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, sect_dir_choiceChoices, 0 )
+		self.sect_dir_choice.SetSelection( 0 )
+		fgSizer8.Add( self.sect_dir_choice, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+		
+		self.sect_vals_text = wx.TextCtrl( self.m_panel131, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer8.Add( self.sect_vals_text, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
+		
+		
+		bSizer12.Add( fgSizer8, 0, wx.EXPAND, 5 )
+		
+		self.m_staticText141 = wx.StaticText( self.m_panel131, wx.ID_ANY, u"Список через пробел", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText141.Wrap( -1 )
+		bSizer12.Add( self.m_staticText141, 0, wx.ALL|wx.ALIGN_RIGHT, 5 )
+		
+		
+		self.m_panel131.SetSizer( bSizer12 )
+		self.m_panel131.Layout()
+		bSizer12.Fit( self.m_panel131 )
+		self.grtype_choice.AddPage( self.m_panel131, u"Сечение", False )
+		self.panel14 = wx.Panel( self.grtype_choice, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		bSizer13 = wx.BoxSizer( wx.VERTICAL )
+		
+		fgSizer14 = wx.FlexGridSizer( 0, 3, 0, 0 )
+		fgSizer14.AddGrowableCol( 1 )
+		fgSizer14.SetFlexibleDirection( wx.BOTH )
+		fgSizer14.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+		
+		self.m_staticText19 = wx.StaticText( self.panel14, wx.ID_ANY, u"Список частот:", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText19.Wrap( -1 )
+		fgSizer14.Add( self.m_staticText19, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+		
+		self.freqs_for_polar_text = wx.TextCtrl( self.panel14, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.freqs_for_polar_text.SetToolTipString( u"Список частот через пробел" )
+		
+		fgSizer14.Add( self.freqs_for_polar_text, 0, wx.ALL|wx.EXPAND, 5 )
+		
+		self.set_that_freq_button = wx.Button( self.panel14, wx.ID_ANY, u"<= 1.000", wx.DefaultPosition, wx.DefaultSize, wx.BU_EXACTFIT )
+		fgSizer14.Add( self.set_that_freq_button, 0, wx.ALL, 5 )
+		
+		
+		bSizer13.Add( fgSizer14, 1, wx.EXPAND, 5 )
+		
+		self.m_staticText16 = wx.StaticText( self.panel14, wx.ID_ANY, u"Границы  интегрирования по K:", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText16.Wrap( -1 )
+		bSizer13.Add( self.m_staticText16, 0, wx.ALL|wx.ALIGN_BOTTOM, 5 )
+		
+		gSizer4 = wx.GridSizer( 0, 2, 0, 0 )
+		
+		self.k_range_min_text = wx.TextCtrl( self.panel14, wx.ID_ANY, u"0.5", wx.DefaultPosition, wx.DefaultSize, 0 )
+		gSizer4.Add( self.k_range_min_text, 0, wx.ALL|wx.EXPAND, 5 )
+		
+		self.k_range_max_text = wx.TextCtrl( self.panel14, wx.ID_ANY, u"1.5", wx.DefaultPosition, wx.DefaultSize, 0 )
+		gSizer4.Add( self.k_range_max_text, 0, wx.ALL|wx.EXPAND, 5 )
+		
+		
+		bSizer13.Add( gSizer4, 1, wx.EXPAND, 5 )
+		
+		self.k_range_is_relative_check = wx.CheckBox( self.panel14, wx.ID_ANY, u"Относительно дисперионного K", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.k_range_is_relative_check.SetValue(True) 
+		bSizer13.Add( self.k_range_is_relative_check, 0, wx.ALL|wx.ALIGN_RIGHT, 5 )
+		
+		gSizer51 = wx.GridSizer( 0, 3, 0, 0 )
+		
+		self.polar_check = wx.CheckBox( self.panel14, wx.ID_ANY, u"Полярный", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.polar_check.SetValue(True) 
+		gSizer51.Add( self.polar_check, 0, wx.ALL, 5 )
+		
+		self.polar_in_dB_check = wx.CheckBox( self.panel14, wx.ID_ANY, u"дБ", wx.DefaultPosition, wx.DefaultSize, 0 )
+		gSizer51.Add( self.polar_in_dB_check, 0, wx.ALL, 5 )
+		
+		self.polar_norm_check = wx.CheckBox( self.panel14, wx.ID_ANY, u"Нормировка", wx.DefaultPosition, wx.DefaultSize, 0 )
+		gSizer51.Add( self.polar_norm_check, 0, wx.ALL, 5 )
+		
+		
+		bSizer13.Add( gSizer51, 1, wx.EXPAND, 5 )
+		
+		
+		self.panel14.SetSizer( bSizer13 )
+		self.panel14.Layout()
+		bSizer13.Fit( self.panel14 )
+		self.grtype_choice.AddPage( self.panel14, u"Угловая зависимость", False )
 		bSizer5.Add( self.grtype_choice, 0, wx.ALL|wx.EXPAND, 5 )
 		
 		self.m_staticText1 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"Инфо:", wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -350,7 +474,8 @@ class GrapherMainFB ( wx.Frame ):
 		self.status_bar = self.CreateStatusBar( 1, wx.ST_SIZEGRIP, wx.ID_ANY )
 		self.extra_menu = wx.Menu()
 		self.screenshot_menu = wx.MenuItem( self.extra_menu, wx.ID_ANY, u"Сохранить изображение как есть...", wx.EmptyString, wx.ITEM_NORMAL )
-		self.screenshot_menu.SetBitmap(embed_gui_images.get_scrshotBitmap())
+		self.screenshot_menu.SetBitmap( embed_gui_images.get_scrshotBitmap() )
+#		self.screenshot_menu.SetBitmap( wx.ArtProvider.GetBitmap( wx.ART_MISSING_IMAGE, wx.ART_MENU ) )
 		self.extra_menu.AppendItem( self.screenshot_menu )
 		
 		self.gnuplot_save_button = wx.MenuItem( self.extra_menu, wx.ID_ANY, u"Экспорт графика: скрипт + данные...", wx.EmptyString, wx.ITEM_NORMAL )
@@ -381,6 +506,7 @@ class GrapherMainFB ( wx.Frame ):
 		self.grtype_choice.Bind( wx.EVT_CHOICEBOOK_PAGE_CHANGING, self.grtype_choice_func1 )
 		self.freq_choice.Bind( wx.EVT_CHOICE, self.freq_choice_func )
 		self.find_freq_text.Bind( wx.EVT_TEXT_ENTER, self.find_freq_text_func )
+		self.set_that_freq_button.Bind( wx.EVT_BUTTON, self._set_that_freq_button_func )
 		self.do_filtering_button.Bind( wx.EVT_BUTTON, self.do_filtering_button_func )
 		self.Bind( wx.EVT_MENU, self.screenshot_menu_func, id = self.screenshot_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.gnuplot_save_button_func, id = self.gnuplot_save_button.GetId() )
@@ -429,6 +555,9 @@ class GrapherMainFB ( wx.Frame ):
 		event.Skip()
 	
 	def find_freq_text_func( self, event ):
+		event.Skip()
+	
+	def _set_that_freq_button_func( self, event ):
 		event.Skip()
 	
 	def do_filtering_button_func( self, event ):

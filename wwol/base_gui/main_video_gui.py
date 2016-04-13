@@ -1537,7 +1537,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         # расширение файла
         fname1, fname_ext = os.path.splitext(fname)
         if string.lower(fname_ext) != exts[ft]:
-            dlg = wx.MessageDialog(self,
+            dlg = wx.MessageDialog(parent_window,
                                    u"Изменить расширение файла на '%s'?"
                                        % exts[ft],
                                    "",
