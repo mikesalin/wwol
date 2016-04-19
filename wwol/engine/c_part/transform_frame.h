@@ -22,7 +22,7 @@ TransformFrameOutputParam transform_frame(
     const unsigned char *pcImg, // Вход в формате RGB
     int H,                      // Размер входного массива
     int W,
-    int color_depth,            //    not used
+    int color_dim,              // пока поддерживается только color_dim=3 (RGB)
     double A,                   // коэфициенты для проецирования
     double B,
     double C,

@@ -112,12 +112,17 @@ class Preview:
       .b_panel
       .sel_data     -- тип Selection, копия main_video_frame.sel_data
       .raw_img_size -- (width, height), для доступа извне есть get_raw_img_size
-    .first_call_goto_frame
+    .first_call_to_goto_frame
     .frame_num_ofs
     """
     #NB: надо будет отдельно выделить базовый класс для большей наглядности
     
-    def __init__(self, main_video_frame, loader, frame_num_ofs = 0):
+    def __init__(self,
+                 main_video_frame,
+                 loader,
+                 frame_num_ofs = 0,
+                 start_with_frame = 0,
+                 loader_is_hot = False,):
         """
         Аргументы:
             main_video_frame (MainVideoFrame)
@@ -126,6 +131,8 @@ class Preview:
             frame_num_ofs (int): в loader будет передаваться
                                  логический_номер_кадра + frame_num_ofs
                                  ( см. help(loading.frame_numbering) )
+            start_with_frame (int)
+            loader_is_hot (bool): loader уже выдавал какие-то кадры ранее
         """
         self.main_video_frame = main_video_frame
         self.loader = loader
@@ -141,9 +148,10 @@ class Preview:
         self.working_thread.start()
         self.view_param_lock = threading.Lock()
         
-        self.first_call_goto_frame = True
+        self.first_call_to_goto_frame = not loader_is_hot
         self._take_view_param()
-        self.goto_frame(None)
+        if not self.is_processing():
+            self.goto_frame(start_with_frame)
         
     def close(self, keep_loader = False):
         self._stop_working_thread()
@@ -157,6 +165,9 @@ class Preview:
             self.loader.close()
             self.loader = None
         return retruned_loader_obj
+    
+    def is_processing(self):
+        return False
     
     def __del__(self):
         self.close() # двойной close() не ошибка
@@ -232,16 +243,15 @@ class Preview:
         """
         Вызывается из рабочего потока
         Аргументы:
-          num -- int - номер кадра, или None - первый/следующий кадр
+          num -- int - номер кадра
         Возвращает:
           None -- все хорошо
           FAIL_STOP -- при ошибке
         """
         try:                
-            if self.first_call_goto_frame:
+            if self.first_call_to_goto_frame:
                 dummy = self.loader.next()  # пнуть, чтобы заработал
-                self.first_call_goto_frame = False
-
+                self.first_call_to_goto_frame = False
             self.raw_img = self.loader.send(num + self.frame_num_ofs)
         except loading.LoadingError as err:
             # обработка ошибок:

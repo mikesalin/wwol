@@ -8,8 +8,8 @@ from transform_frame import transform_frame
 
 def main():
     app = wx.App()
-    #src_img = wx.EmptyImage(1960, 1080, clear=False)
-    src_img = wx.Image('../../../stuff/gopro42_frame.bmp')
+    src_img = wx.EmptyImage(1960, 1080, clear=False)
+    #src_img = wx.Image('../../../stuff/gopro42_frame.bmp')
     h, w = (src_img.GetHeight(), src_img.GetWidth())
     buf = src_img.GetDataBuffer()        
     src_array = np.frombuffer(buf, np.uint8).reshape((h, w, 3))
@@ -17,7 +17,7 @@ def main():
     dst_w, dst_h = (1024, 512)
     dst_array = np.zeros((dst_h, dst_w))
     
-    rv = transform_frame(dst_array[:,:,1],
+    rv = transform_frame(dst_array,
                          src_array,
                          -0.123717914826,
                          136.41852265,

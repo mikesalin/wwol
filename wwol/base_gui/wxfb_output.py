@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*- 
 
 ###########################################################################
-## Python code generated with wxFormBuilder (version Jun 17 2015)
+## Python code generated with wxFormBuilder (version Sep 17 2014)
 ## http://www.wxformbuilder.org/
 ##
 ## PLEASE DO "NOT" EDIT THIS FILE!
@@ -29,7 +29,7 @@ class MainVideoFrame ( wx.Frame ):
 		
 		self.preview_tool = self.my_toolbar.AddLabelTool( wx.ID_ANY, u"Предпросмотр", wx.ArtProvider.GetBitmap( wx.ART_MISSING_IMAGE, wx.ART_TOOLBAR ), wx.NullBitmap, wx.ITEM_CHECK, wx.EmptyString, wx.EmptyString, None ) 
 		
-		self.live_proc_tool = self.my_toolbar.AddLabelTool( wx.ID_ANY, u"Живая обработка", wx.ArtProvider.GetBitmap( wx.ART_MISSING_IMAGE, wx.ART_TOOLBAR ), wx.NullBitmap, wx.ITEM_CHECK, wx.EmptyString, wx.EmptyString, None ) 
+		self.proc_tool = self.my_toolbar.AddLabelTool( wx.ID_ANY, u"Обработка", wx.ArtProvider.GetBitmap( wx.ART_MISSING_IMAGE, wx.ART_TOOLBAR ), wx.NullBitmap, wx.ITEM_CHECK, wx.EmptyString, wx.EmptyString, None ) 
 		
 		self.view_step_tool = self.my_toolbar.AddLabelTool( wx.ID_ANY, wx.EmptyString, wx.ArtProvider.GetBitmap( wx.ART_MISSING_IMAGE, wx.ART_TOOLBAR ), wx.NullBitmap, wx.ITEM_NORMAL, wx.EmptyString, wx.EmptyString, None ) 
 		
@@ -127,12 +127,12 @@ class MainVideoFrame ( wx.Frame ):
 		
 		bSizer131.Add( self.m_staticText30, 0, wx.ALL, 5 )
 		
-		self.select_area_button = wx.Button( self.m_panel111, wx.ID_ANY, u"Выделить...", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.select_area_button = wx.Button( self.m_panel111, wx.ID_ANY, u"Указать мышью...", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.select_area_button.SetFont( wx.Font( wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString ) )
 		
 		bSizer131.Add( self.select_area_button, 0, wx.ALL|wx.EXPAND, 5 )
 		
-		self.select_multiple_areas_button = wx.Button( self.m_panel111, wx.ID_ANY, u"Выделить несколько зон", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.select_multiple_areas_button = wx.Button( self.m_panel111, wx.ID_ANY, u"Указать несколько зон", wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer131.Add( self.select_multiple_areas_button, 0, wx.ALL|wx.EXPAND, 5 )
 		
 		fgSizer11 = wx.FlexGridSizer( 0, 3, 0, 0 )
@@ -163,19 +163,30 @@ class MainVideoFrame ( wx.Frame ):
 		self.m_panel12 = wx.Panel( self.config_notebook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer15 = wx.BoxSizer( wx.VERTICAL )
 		
-		self.m_staticText31 = wx.StaticText( self.m_panel12, wx.ID_ANY, u"Энергетический спектр", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer15 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer15.SetFlexibleDirection( wx.BOTH )
+		fgSizer15.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+		
+		self.m_staticText31 = wx.StaticText( self.m_panel12, wx.ID_ANY, u"Cпектр", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText31.Wrap( -1 )
 		self.m_staticText31.SetFont( wx.Font( wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString ) )
 		
-		bSizer15.Add( self.m_staticText31, 0, wx.ALL, 5 )
+		fgSizer15.Add( self.m_staticText31, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+		
+		self.spec_mode_hlink = wx.HyperlinkCtrl( self.m_panel12, wx.ID_ANY, u"исходного сигнала", wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.HL_DEFAULT_STYLE )
+		fgSizer15.Add( self.spec_mode_hlink, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+		
+		
+		bSizer15.Add( fgSizer15, 0, 0, 5 )
 		
 		fgSizer12 = wx.FlexGridSizer( 0, 3, 0, 0 )
 		fgSizer12.AddGrowableCol( 0 )
+		fgSizer12.AddGrowableCol( 2 )
 		fgSizer12.SetFlexibleDirection( wx.BOTH )
 		fgSizer12.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 		
-		self.calc_spec_button = wx.Button( self.m_panel12, wx.ID_ANY, u"Вычислить!", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.calc_spec_button.SetFont( wx.Font( wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString ) )
+		self.calc_spec_button = wx.Button( self.m_panel12, wx.ID_ANY, u"По всему видео", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.calc_spec_button.SetFont( wx.Font( wx.NORMAL_FONT.GetPointSize(), 70, 90, 90, False, wx.EmptyString ) )
 		
 		fgSizer12.Add( self.calc_spec_button, 0, wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, 5 )
 		
@@ -184,10 +195,8 @@ class MainVideoFrame ( wx.Frame ):
 		
 		fgSizer12.Add( self.prev_spec_button, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 		
-		self.load_spec_button = wx.BitmapButton( self.m_panel12, wx.ID_ANY, wx.ArtProvider.GetBitmap( wx.ART_FILE_OPEN, wx.ART_MENU ), wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW )
-		self.load_spec_button.SetToolTipString( u"Открыть спектр..." )
-		
-		fgSizer12.Add( self.load_spec_button, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+		self.express_spec_button = wx.Button( self.m_panel12, wx.ID_ANY, u"Экспресс", wx.DefaultPosition, wx.DefaultSize, wx.BU_EXACTFIT )
+		fgSizer12.Add( self.express_spec_button, 0, wx.ALL, 5 )
 		
 		
 		bSizer15.Add( fgSizer12, 1, wx.EXPAND, 5 )
@@ -386,6 +395,7 @@ class MainVideoFrame ( wx.Frame ):
 		self.Bind( wx.EVT_SIZE, self._size_func )
 		self.Bind( wx.EVT_TOOL, self._menu_tool_func, id = self.menu_tool.GetId() )
 		self.Bind( wx.EVT_TOOL, self._preview_tool_func, id = self.preview_tool.GetId() )
+		self.Bind( wx.EVT_TOOL, self._proc_tool_func, id = self.proc_tool.GetId() )
 		self.Bind( wx.EVT_TOOL, self._view_step_tool_func, id = self.view_step_tool.GetId() )
 		self.Bind( wx.EVT_TOOL, self._prev_tool_func, id = self.prev_tool.GetId() )
 		self.Bind( wx.EVT_TOOL, self._next_tool_func, id = self.next_tool.GetId() )
@@ -403,7 +413,7 @@ class MainVideoFrame ( wx.Frame ):
 		self.select_multiple_areas_button.Bind( wx.EVT_BUTTON, self._select_multiple_areas_button_func )
 		self.calc_spec_button.Bind( wx.EVT_BUTTON, self._calc_spec_button_func )
 		self.prev_spec_button.Bind( wx.EVT_BUTTON, self._prev_spec_button_func )
-		self.load_spec_button.Bind( wx.EVT_BUTTON, self._load_spec_button_func )
+		self.express_spec_button.Bind( wx.EVT_BUTTON, self._express_spec_button_func )
 		self.scrshot_button.Bind( wx.EVT_BUTTON, self._scrshot_button_func )
 		self.left_scrshot_check.Bind( wx.EVT_CHECKBOX, self._checkbox_like_radio )
 		self.right_scrshot_check.Bind( wx.EVT_CHECKBOX, self._checkbox_like_radio )
@@ -438,6 +448,9 @@ class MainVideoFrame ( wx.Frame ):
 		event.Skip()
 	
 	def _preview_tool_func( self, event ):
+		event.Skip()
+	
+	def _proc_tool_func( self, event ):
 		event.Skip()
 	
 	def _view_step_tool_func( self, event ):
@@ -491,7 +504,7 @@ class MainVideoFrame ( wx.Frame ):
 	def _prev_spec_button_func( self, event ):
 		event.Skip()
 	
-	def _load_spec_button_func( self, event ):
+	def _express_spec_button_func( self, event ):
 		event.Skip()
 	
 	
@@ -522,6 +535,8 @@ class MainVideoFrame ( wx.Frame ):
 	def _open_video_menu_func( self, event ):
 		event.Skip()
 	
+	def _load_spec_button_func( self, event ):
+		event.Skip()
 	
 	def _save_menu_func( self, event ):
 		event.Skip()

@@ -6,6 +6,7 @@
 import numpy as np
 import os.path
 import logging
+from ..common.my_encoding_tools import U
 
 class PowerSpec:
   """
@@ -58,6 +59,7 @@ def load_text_spec(dir_name):
   DESCR2.TXT:
      dkx dkxy df Nf 0|-3 [ A Kmin Fmin gamma ]
   """
+  dir_name = U(dir_name)
   desc2_file = os.path.join(dir_name, _DESC2_FNAME)
   with open(desc2_file, 'rt') as f:
     s = f.readline()
@@ -88,7 +90,7 @@ def load_text_spec(dir_name):
     for n_attempt in range(0, 3):
         f100 = df*(nf+1)*100 + modif_freq[n_attempt]
         fname = "Skxy_%03.0f.txt" % f100
-        fname = os.path.join(dir_name,fname)
+        fname = os.path.join(dir_name, fname)
         try:
             Skxy = np.loadtxt(fname)
         except IOError:
@@ -128,7 +130,7 @@ def save_text_spec(dir_name, spec):
       extras = " %d %0.3f %0.6f %0.6f %0.6f" % tuple(spec.calibr_details)
   else:
       extras = " 0"
-  with open(desc2_file, 'wt') as f:
+  with open(U(desc2_file), 'wt') as f:
     f.write("%0.6f %0.6f %0.10f %d %s\n" % \
         (spec.dkx, spec.dky, spec.df, Nf, extras))
   for nf in range(0, Nf):

@@ -7,7 +7,6 @@ transform_frame.transform_frame(*arg)
     Аргументы:
         pdFrame (np.ndarray, 2d, dtype=np.float64): Выход [высота, ширина]
         pcImg (np.ndarray, 3d, dtype=np.uint8): Вход RGB [высота, ширина, цвет]
-        color_depth (int): пока игнорируется
         A (float):  коэфициенты для проецирования, см. geom.py
         B (float)
         C (float)

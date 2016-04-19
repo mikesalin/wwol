@@ -1,12 +1,23 @@
 # -*- coding: utf-8 -*-
-"Разные функции для работы с кодировкой и тому подобное"
-
-import json
+"""
+Разные функции для работы с кодировкой и тому подобное.
+Внутри программы все текстовые данные передаются в типе str и кодировке UTF8.
+GUI и функции I/O работают с типом unicode.
+Запуска внешний программ работает через local_encoding.
+"""
 
 def U(s):
     "run-time utf-8 -> unicode"
-    return unicode(s, 'utf-8')
+    if isinstance(s, unicode):
+        return s
+    else:
+        return unicode(s, 'utf-8')
 
+_local_encoding = 'utf-8'  # задается в start.py  init_essentials
+
+def local_encoding(s):
+    return U(s).encode(_local_encoding)
+        
 def clean_input_string(s):
     """
     Обработка текстовых значений, введеных через гуи: 

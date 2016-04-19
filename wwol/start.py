@@ -13,7 +13,7 @@ WWOL наподобие библиотеки, то вам необходимо �
 import sys
 import os
 import logging
-from . import wwol_globals
+import locale
 
 
 if not hasattr(sys, 'frozen'):
@@ -24,17 +24,16 @@ if not hasattr(sys, 'frozen'):
         logging.warning("You'd better import start module first")
 import wx
 
-
-from .base_gui import main_video_gui
 from . import wwol_globals
+from .base_gui import main_video_gui
+from .common import my_encoding_tools
 
 
 def init_essentials():
     "см. описание модуля"
     wwol_globals.app = wx.App()
     wx.Log_EnableLogging(False)
-    # wx.Image.AddHandler(wx.PNGHandler())
-    # wx.Image.AddHandler(wx.JPEGHandler())
+    my_encoding_tools._local_encoding = locale.getpreferredencoding()
    
 
 def main():

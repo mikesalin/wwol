@@ -115,7 +115,6 @@ def draw_angular_spec(input_spec,
             created_files,
             file_prefix,
             'angular_%02d_f%03f.dat' % (j, freq * 100))
-        data_fobj.delete = False
         data_fobj.close()
         
         data = calc_angular_spec(input_spec, nfreq, k_range_is_relative, k_range)

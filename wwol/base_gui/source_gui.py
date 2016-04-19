@@ -18,7 +18,7 @@ class SourceDlg(wxfb_output.SourceDlg):
     Parent должен быть MainVideoFrame
     При создании поля диалога инициализируются из parent.config.
     Результатом нажатия ОК (или Отмены после Применить) является изменение
-    GetParent().config и вызов GetParent().enter_preview
+    GetParent().config и вызов GetParent()._enter_preview_or_processing
     """
 
     SYSTEM_TEMP_PATH_CHOICE = 0
@@ -130,13 +130,17 @@ class SourceDlg(wxfb_output.SourceDlg):
     def ok_button_func(self, event):
         rv = self.apply_button_func_act()
         if not rv: return
-        self.GetParent().enter_preview()
+        self.GetParent()._enter_preview_or_processing(
+            mode = 0,
+            must_restart_loader = True)
         self.Destroy()
     
     def close_func(self, event):
         event.Skip()
         if self.parent_config_changed:
-            self.GetParent().enter_preview()
+            self.GetParent()._enter_preview_or_processing(
+                mode = 0,
+                must_restart_loader = True)
             self.parent_config_changed = False
     
     def form2config(self):
@@ -259,7 +263,7 @@ class SourceDlg(wxfb_output.SourceDlg):
         fname = clean_input_string(dlg.GetPath())
         dlg.Destroy()
         if rv == wx.ID_CANCEL: return
-        self.video_filename_text.SetValue(fname)
+        self.video_filename_text.SetValue(U(fname))
     
     def _pic_path_browse_button_func(self, event):
         if self.source_type_choice.GetSelection() == 0:

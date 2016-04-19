@@ -85,15 +85,21 @@ class Config:
       .active_area_num [RT]: может принимать значение -1, когда не выбрано
       .areas_list (list of ProcessingArea-s):  может содержать [RT] элементы
       .auto_set_fft_sizes (bool)
-    processing:
+    processing_critical :  изменение требует перезапуск обработки
       .max_freq_of_output_spec (float): макс частота для сохранения спектра,
                                     <=0 -- использовать умолчательное значение,
                                     см. также valid_max_freq
       .force_time_wnd_if_no_overlap (bool): Если True, то оконная функция
                       по времени будет применяться всегда. Если False, то
-                      действует стандартное поведение: окно включено только
-                      тогда, когда включено перекрытие.
+                      действует стандартное поведение: окно включено,
+                      когда включено перекрытие.
       .space_wnd (bool): применять окно по пространсву и обрезать выход.
+      .output_spec_mode(int): выходной спектр получается из сигнала:
+                         0 исходного
+                         1 обработанного набором фильтров 1
+                         2 обработанного набором фильтров 2
+    processing_light :  измененяется без перезапуска
+      ...
     """
     def __init__(self):
         # source:
@@ -127,10 +133,14 @@ class Config:
         self.active_area_num = -1
         self.areas_list = []
         self.auto_set_fft_sizes = True
-        # processing
+        # processing_critical :  изменение требует перезапуск обработки
         self.max_freq_of_output_spec = 0
         self.force_time_wnd_if_no_overlap = False
         self.space_wnd = True
+        self.output_spec_mode = 0
+        # processing_light :  измененяется без перезапуска
+        #...
+        
     
     def need_user_pic_path(self):
         return (not self.source_type == FFMPEG_AUTO_SOURCE) or \
@@ -158,7 +168,7 @@ class Config:
                        'view':self._post_config_view,
                        'geom':self._post_config_geom,
                        'areas':self._post_config_areas,
-                       'processing':self._post_config_processing}
+                       'processing_critical':self._post_config_processing_critical}
 
         if isinstance(modified_sections, str):
             modified_sections = [modified_sections]
@@ -323,7 +333,7 @@ class Config:
         
         return warn_txt
     
-    def _post_config_processing(self):
+    def _post_config_processing_critical(self):
         "См. post_config. Здесь идет работа в части параметров обработки"
         return ''
     
@@ -379,8 +389,12 @@ class Config:
             self.active_area = self.areas_list[self.active_area_num].name
     
     def power_spec_check_list(self):
+        "Синоним processing_check_list"
+        return self.processing_check_list()
+    
+    def processing_check_list(self):
         """
-        Проверяет все ли готово для вычисления спектра.
+        Проверяет все ли готово для обработки.
         Возвращает: (ready_flag, issues_text) : (bool, str)
         """
         ready_flag = True
@@ -391,16 +405,12 @@ class Config:
             issues_text += "- Выберите источник кадров\n"
 
         geom_is_dummy = True
-#        for comp in ["a", "b", "c"]:
-#            if abs(self.proj_coef.__dict__[comp] 
-#              - geom.IDENTICATL_PROJECTION.__dict__[comp]) > 1e-6:
-#                geom_is_dummy = False
         u = self.proj_coef
         v = geom.IDENTICATL_PROJECTION
-        cmp = lambda x,y: abs(x - y) < 1e-6
-        geom_is_dummy = cmp(u.a, v.a) and cmp(u.b, v.b) and cmp(u.c, v.c)
+        cmp_ = lambda x,y: abs(x - y) < 1e-6
+        geom_is_dummy = cmp_(u.a, v.a) and cmp_(u.b, v.b) and cmp_(u.c, v.c)
         if geom_is_dummy:
-            issues_text += "- Задайте параметры геометрии\n"
+            issues_text += "- Задайте параметры геометрии (камера, угол)\n"
         
         if self.active_area_num < 0:
             ready_flag = False
@@ -485,15 +495,20 @@ SCHEMA = {
                 "auto_set_fft_sizes":{"type":"boolean"}
             } #end of areas["properties"]
         }, #end of areas
-        "processing": {
+        "processing_critical": {
             "type":"object",
             "additionalProperties":False,
             "properties":{
-                "max_freq_of_output_spec":"number",
-                "force_time_wnd_if_no_overlap":"boolean",
-                "space_wnd":"boolean"
-            } #end of processing["properties"]
-        } #end of processing
+                "max_freq_of_output_spec":{"type":"number"},
+                "force_time_wnd_if_no_overlap":{"type":"boolean"},
+                "space_wnd":{"type":"boolean"},
+                "output_spec_mode":{"type":"integer",
+                                    "maximum":2,
+                                    "exclusiveMaximum":False,
+                                    "minimum":0,
+                                    "exclusiveMinimum":False}
+            } #end of processing_critical["properties"]
+        } #end of processing_critical
     }
 }
 #NB: диапазоны большинства числовых значений проверяются в post_config,
@@ -559,7 +574,7 @@ def _load_config_more_options(text,
     try:
         if fname_is_given:
             fname = text
-            with open(fname, 'rt') as f:
+            with open(U(fname), 'rt') as f:
                 data = json.load(f)
         else:
             data = json.loads(text)
@@ -644,10 +659,10 @@ def _unique_name(existing_names, prefix):
     
     
 def _round_log2(x):
-    if x <= 1:
+    if abs(x) <= 1:
         return 4
     else:
-        return 2**int(round( log(abs(x) * 1.0 + 1e-6) / log(2.0) ))
+        return 2**int(round( log(abs(x) * 1.0) / log(2.0) ))
 
     
 def set_default_fft_size_to(d):
@@ -661,6 +676,6 @@ def set_default_fft_size_to(d):
     coord = d['coord']
     nx = _round_log2(coord[2] - coord[0])
     ny = _round_log2(coord[3] - coord[1])
-    d['input_fft_size'] = (nx, ny)
-    d['output_fft_size'] = (nx / 2, ny / 2)
+    d['input_fft_size'] = (nx / 2, ny / 2)
+    d['output_fft_size'] = (nx / 4, ny / 4)
     

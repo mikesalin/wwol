@@ -12,7 +12,8 @@ from collections import namedtuple
 from datetime import datetime
 import wx
 
-from ..common.my_encoding_tools import fname2quotes, U, double_backslash
+from ..common.my_encoding_tools import \
+    fname2quotes, U, double_backslash, local_encoding
 
 __all__ = ["image_loader", "ffmpeg_loader", "find_last_image",
            "LoadingError", "FrameLoaddingFailed", "BadFormatString", "NoData",
@@ -111,7 +112,7 @@ class AsyncImageLoader(threading.Thread):
             except BadFormatString as e:
                 self.result_queue.put( (frame_num, e) )
                 continue
-            img = wx.Image(filename)
+            img = wx.Image(U(filename))
             if not img.IsOk():
                 logging.debug(U("Can't load '%s'!" % filename))
                 img = FrameLoaddingFailed()
@@ -193,10 +194,10 @@ def find_last_image(fname, start):
                      start, если нет ни одного файла
     """
     for step in (100, 10, 1):
-        while os.access(subs_frame_num(fname, start + step), os.F_OK):
+        while os.access(U(subs_frame_num(fname, start + step)), os.F_OK):
             start += step
     
-    if os.access(fname % start, os.F_OK):
+    if os.access(U(fname % start), os.F_OK):
         return start + 1
     else:
         return start
@@ -211,7 +212,7 @@ def cleanup_files(pic_path, numbers_range):
     """
     warn_count = 0
     for j in range(numbers_range[0], numbers_range[1]):
-        fname = subs_frame_num(pic_path, j)
+        fname = U(subs_frame_num(pic_path, j))
         if os.access(fname, os.F_OK):
             try:
                 os.remove(fname)
@@ -321,8 +322,8 @@ def ffmpeg_loader(loader_cmd, pic_path, pack_len, frames_range, fps,
                         cleanup_files(pic_path,
                                       (pack_len + 1, 2 * pack_len + 1))
                         for j in range(1, pack_len + 1):
-                            os.rename(subs_frame_num(pic_path, j),
-                                      subs_frame_num(pic_path, j + pack_len))
+                            os.rename(U(subs_frame_num(pic_path, j)),
+                                      U(subs_frame_num(pic_path, j + pack_len)))
                         start2 = start1
                         start1 = -1
                     else:
@@ -349,6 +350,7 @@ def ffmpeg_loader(loader_cmd, pic_path, pack_len, frames_range, fps,
                       start1 + 1,
                       start1 + pack_len,
                       U(s))
+                    s = local_encoding(s)
                                         
                     # - поехали                    
                     if use_shell:
@@ -360,8 +362,8 @@ def ffmpeg_loader(loader_cmd, pic_path, pack_len, frames_range, fps,
                     on_finish_lap()
                         
                     # - проверяем, появились ли файлы в папке
-                    if not (os.access(subs_frame_num(pic_path, 1), os.F_OK) and
-                      os.access(subs_frame_num(pic_path, pack_len), os.F_OK)):
+                    if not (os.access(U(subs_frame_num(pic_path, 1)), os.F_OK) and
+                      os.access(U(subs_frame_num(pic_path, pack_len)), os.F_OK)):
                         logging.debug("No files were created!")
                         raise FrameLoaddingFailed()
                 except (OSError, subprocess.CalledProcessError) as e:
@@ -470,7 +472,8 @@ def video_probe(filename):
 #        txt = subprocess.check_output(shlex.split(cmd),
 #                                      stderr=subprocess.STDOUT)
         # Python 2.6:
-        pp = subprocess.Popen(shlex.split(double_backslash(cmd)),
+        cmd_ = local_encoding(cmd)
+        pp = subprocess.Popen(shlex.split(double_backslash(cmd_)),
                               stdin=subprocess.PIPE,
                               stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE)

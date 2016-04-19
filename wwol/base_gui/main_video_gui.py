@@ -21,11 +21,11 @@ from .mvf_aux_classes import Selection, _PseudoEvent
 
 from . import zoom_gui
 from ..engine import loading
+from ..engine import loading2
 from ..engine import view
 from ..engine import configuration
 ConfigError = configuration.ConfigError
 from . import source_gui
-from ..engine import assembling
 from ..common import embed_gui_images
 from . import sel_gui
 from ..engine import geom
@@ -33,6 +33,7 @@ from ..common.my_encoding_tools import *
 from ..grapher.grapher_gui import GrapherMain
 from .. import __version__ as ABOUT_VERSION
 from .. import year as ABOUT_YEAR
+from ..engine.processing import Processing
 
 class MainVideoFrame(wxfb_output.MainVideoFrame):
     """
@@ -75,6 +76,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
     .default_scrshot_dir (str)
     .default_scrshot_jpeg_quality (int)
     .scrshot_tooltip_head (unicode)
+    .express_spec_wnd
     
     .HOURGLASS (wx.Bitmap)
     .SOLID_WHITE_PEN (wx.Pen)
@@ -114,6 +116,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         self.scrshot_tooltip_head = self.my_toolbar.GetToolShortHelp(
             self.scrshot_tool.GetId())
         self._update_scrshot_tooltip()
+        self.express_spec_wnd = None
         
         self.HOURGLASS = embed_gui_images.get_hourglassBitmap()
         self.SOLID_WHITE_PEN = wx.Pen('white', view.LINE_WIDTH, wx.SOLID)
@@ -127,7 +130,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         self.my_toolbar.SetToolNormalBitmap(self.preview_tool.GetId(),
                                             embed_gui_images.get_playBitmap())
         self.my_toolbar.SetToolNormalBitmap(
-            self.live_proc_tool.GetId(),
+            self.proc_tool.GetId(),
             embed_gui_images.get_double_playBitmap())
         self.my_toolbar.SetToolNormalBitmap(
             self.scrshot_tool.GetId(),
@@ -213,6 +216,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         self.is_first_frame_shown = False
         self.sel_dlg_to_be_shown = False
         self.my_toolbar.ToggleTool(self.preview_tool.GetId(), False)
+        self.my_toolbar.ToggleTool(self.proc_tool.GetId(), False)        
         self.a_footer_static_text.SetLabel('')
         wx.CallAfter(lambda: self._clear_screen())
     
@@ -557,25 +561,91 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         wx.CallAfter(self._viewer_update_view)
         event.Skip()
     
-    def enter_preview(self):
+    def _enter_preview_or_processing(self, mode, must_restart_loader):
         """
-        Переход в режим Preview.
-        Инициализирует loader и viewer на основе self.config
+        Переход в режим обработки (если mode==2) или в предпросмотр
+        (если mode==1) на основе self.config
+        Если уже запущен какой-то режим и must_restart_loader==False,
+        то сохраняется имеющийся loader
+        Аргументы:
+          mode (int): 0 -- сохранить, что есть;
+                      1 -- предпросмотр;
+                      2 -- обработка
+          must_restart_loader(bool)
         Возвращает: ничего
         """
-        sel_dlg_to_be_shown = self.sel_dlg_to_be_shown
-        self._close_viewer()
-        self.sel_dlg_to_be_shown = sel_dlg_to_be_shown
-
-        loader = assembling.make_loader(self.config, self)
-        if loader is None:
-            return # assembling.make_loader уже вывел сообщение
-        self.viewer = view.Preview(self, loader, self.config.frames_range[0])
+        logging.debug("_enter_preview_or_processing, begin with mode=%d", mode)
         
+        sel_dlg_to_be_shown = self.sel_dlg_to_be_shown
+        start_frame = 0
         if self.cur_frame_num < self.config.frames_count \
            and self.cur_frame_num > 0:
-            self.viewer.goto_frame(self.cur_frame_num)
+            start_frame = self.cur_frame_num
+        if (mode == 0):
+            if isinstance(self.viewer, Processing):
+                mode = 2
+            else:
+                mode = 1
+        
+        if mode == 2:
+            if not self._check_if_can_launch_processing():
+                self.my_toolbar.ToggleTool(self.proc_tool.GetId(), False)
+                return
+        
+        if must_restart_loader or (self.viewer is None):
+            self._close_viewer()
+            loader = loading2.make_loader(self.config, self)
+            if loader is None: return # make_loader уже вывел сообщение
+            loader_is_hot = False
+        else:
+            loader = self.viewer.close(keep_loader = True)
+            self.viewer = None
+            loader_is_hot = True
+
+        logging.debug("_enter_preview_or_processing, creating object with mode=%d", mode)
+        if mode == 1:
+            what = view.Preview
+        else:
+            what = Processing
+        self.sel_dlg_to_be_shown = sel_dlg_to_be_shown
+
+        self.viewer = what(main_video_frame = self,
+                           loader = loader,
+                           frame_num_ofs = self.config.frames_range[0],
+                           start_with_frame = start_frame,
+                           loader_is_hot = loader_is_hot)
+
         self.my_toolbar.ToggleTool(self.preview_tool.GetId(), True)
+        self.my_toolbar.ToggleTool(self.proc_tool.GetId(), (mode == 2))
+    
+    def _check_if_can_launch_processing(self):
+        """
+        Возвращает True, если можно включить обработку, и False иначе.
+        Выводит окошко в случае ошибки или замечания.
+        """
+        ok, text = self.config.processing_check_list()
+        if ok:
+            if len(text) > 0:
+                dlg = wx.MessageDialog(self,
+                                       U(text + "\nЗапустить обработку?"),
+                                       "",
+                                       wx.YES_NO)
+                rv = dlg.ShowModal()
+                dlg.Destroy()
+                ok = (rv == wx.ID_YES)
+        else:
+                dlg = wx.MessageDialog(self, U(text), "", wx.ICON_ERROR)
+                dlg.ShowModal()
+                dlg.Destroy()
+        return ok
+    
+    def enter_preview(self):
+        "Переход в режим предпросмотра. Вызывает _enter_preview_or_processing."
+        self._enter_preview_or_processing(mode = 1, must_restart_loader=False)
+        
+    def enter_processing(self):
+        "Переход в режим обработки. Вызывает _enter_preview_or_processing."
+        self._enter_preview_or_processing(mode = 2, must_restart_loader=False)
 
     def hourglass(self):
         "Рисует песочные часы на левой картинке поверх всего, что там есть"
@@ -1057,7 +1127,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         if len(self.project_filename) == 0:
             return self._save_as_menu_func_act()
         try:
-            with open(self.project_filename, 'wt') as f:
+            with open(U(self.project_filename), 'wt') as f:
                 json.dump(self.config._save_to_dict(),
                           f,
                           ensure_ascii = False,
@@ -1273,16 +1343,6 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
             rv = dlg.ShowModal()
             dlg.Destroy()
             if rv == wx.ID_NO: return
-        #if self.viewer is not None:
-        #    n_rects = 4
-        #    self.sel_data.rects_a = []
-        #    w, h = self.viewer.get_raw_img_size()
-        #    for nx in range(0, n_rects):
-        #        for ny in range(0, n_rects):
-        #            self.sel_data.rects_a.append(
-        #               (w * nx / n_rects, h * ny / n_rects,
-        #                w * (nx + 1) / n_rects, h * (ny + 1) / n_rects))
-        # --> на вкадку 'Вид'
         self.start_selecting(Selection.SINGLE_POINT_A,
                              self._pick_horizont_finish_func)
     
@@ -1378,26 +1438,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
     
     def _calc_spec_button_func(self, event):
         "Нажали на кнопку Вычислить (спектр)"
-        # спросим max_freq_of_output_spec
-        dlg = wx.TextEntryDialog(self,
-                                 u"Максимальная частота:",
-                                 "",
-                                 repr(self.config.valid_max_freq()))
-        rv = dlg.ShowModal()
-        str_val = dlg.GetValue()
-        dlg.Destroy()
-        if rv != wx.ID_OK:
-            return
-        try:
-            self.config.max_freq_of_output_spec = float(str_val)
-        except ValueError:
-            self._notify_bad_input_simply()
-            return
-        
-        rv = assembling.legacy_spectrum(self)
-        self._decorate_image_for_tab(True)
-        if rv and sys.platform == 'win32':
-            self._prev_spec_button_func(None)
+        pass
     
     def _prev_spec_button_func(self, event):
         "Нажали на кнопку 'Открыть предыдущий спектр'"
@@ -1408,7 +1449,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
             grapher.Destroy()
         
     def _load_spec_button_func(self, event):
-        "Нажали на кнопку 'Открыть спектр'"
+        "Нажали на кнопку/меню 'Открыть спектр'"
         grapher = GrapherMain(self)
         grapher.Show()
         wx.Yield()
@@ -1638,6 +1679,43 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
                                wx.OK)
         dlg.ShowModal()
         dlg.Destroy()
-        
+
+    def _in_processing_mode(self):
+        if self.viewer is not None:
+            return self.viewer.is_processing()
+        else:
+            return False
+
+    def _proc_tool_func(self, event):
+        "Включили/выключили кнопку обработки"
+        if self.proc_tool.IsToggled():
+            self.enter_processing()
+        else:
+            self.enter_preview()
+    
+    def _express_spec_button_func(self, event):
+        """
+        Нажали на кнопку экпресс-спектр.
+        Берет спектр по одной пачке кадров из Processing и запускает графер.
+        """
+        if not self._in_processing_mode():
+            return # поидее, если не выполнено это условие, то кнопка вообще
+                   # должна быть неактивна
+        power_spec = self.viewer.express_spectrum()
+        if power_spec is None:
+            dlg = wx.MessageDialog(self,
+                                   u"Дождитесь, пока обработаем хотя бы одну "
+                                   u"пачку данных, и нажмите снова на эту кнопку.")
+            dlg.ShowModal()
+            dlg.Destroy()
+            return
+        if (self.express_spec_wnd is None) or \
+          (not self.express_spec_wnd.alive):
+            self.express_spec_wnd = GrapherMain(self)
+            self.express_spec_wnd.Show()
+        else:
+            self.express_spec_wnd.Raise()
+        self.express_spec_wnd.set_spec(power_spec)
+        self.express_spec_wnd.plot_button_func_act()
 
 

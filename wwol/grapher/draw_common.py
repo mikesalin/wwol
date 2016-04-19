@@ -9,7 +9,7 @@ import logging
 import sys
 import numpy as np
 
-from ..common.my_encoding_tools import fname2quotes
+from ..common.my_encoding_tools import fname2quotes, U, local_encoding
 from .. wwol_globals import VERBOSE
 
 def draw_conventions():
@@ -42,7 +42,7 @@ def file4draw(created_files, file_prefix, file_suffix, mode="b"):
   """
   if file_prefix is not None:
     fname = file_prefix + file_suffix
-    fobj = open(fname,"w"+mode)
+    fobj = open(U(fname), "w" + mode)
   else:
     mode_ = mode
     fobj = tempfile.NamedTemporaryFile(suffix=file_suffix, mode="w"+mode_)
@@ -100,7 +100,7 @@ def launch_gnu_plot(created_files, script_body, mode, file_prefix=None,
     fobj, fname = file4draw(created_files, file_prefix, ".txt", mode="t")
     fobj.close()  # почему-то под виндой работает только так: октр-закр-откр
     fobj = open(fname, "wt")
-    fobj.write(s)
+    fobj.write(local_encoding(s))
     fobj.write(
       "print '  -----===== Welcome to the console of GNUPLOT ! =====-----'\n")
     fobj.write("print \"  Type ' exit ' to exit\"\n")
@@ -121,7 +121,7 @@ def launch_gnu_plot(created_files, script_body, mode, file_prefix=None,
     
     # проверяем fname
     logging.debug('checking file: ' + fname)
-    with open(fname, 'rt') as f_dbg:
+    with open(U(fname), 'rt') as f_dbg:
         pass
     logging.debug('ok')
     
@@ -142,7 +142,8 @@ def launch_gnu_plot(created_files, script_body, mode, file_prefix=None,
                         raise
             ret_tup = (0, None)
     else:
-      rv = subprocess.call(("gnuplot", fname2quotes(fname), "-"))
+      fname_ = local_encoding(fname)
+      rv = subprocess.call(("gnuplot", fname_, "-"))
       ret_tup = (rv,None)
     
     if (cleanup):
@@ -163,8 +164,8 @@ def launch_gnu_plot(created_files, script_body, mode, file_prefix=None,
     #запуск
     PIPE=subprocess.PIPE
     p = subprocess.Popen("gnuplot", stdin=PIPE, stdout=PIPE, stderr=PIPE)
-    (out1,out2) = p.communicate(s)
-    ret_tup = (p.returncode, out1+out2)
+    (out1,out2) = p.communicate(local_encoding(s))
+    ret_tup = (p.returncode, out1 + out2)
     if (cleanup):
       for fname in created_files[0:-1]:
         os.remove(fname)
@@ -172,7 +173,7 @@ def launch_gnu_plot(created_files, script_body, mode, file_prefix=None,
   #just_save_script
   if (mode=="just_save_script"):
     fobj, fname = file4draw(created_files, file_prefix, "gnuplot.txt", "t")
-    fobj.write(s)
+    fobj.write(local_encoding(s))
     fobj.close()
     ret_tup = (0, None)
   #common

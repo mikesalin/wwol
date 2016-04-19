@@ -45,6 +45,8 @@ class GrapherMain(grapher_fb.GrapherMainFB):
     .transf_result_frame
     .base_title
     .last_plotted_2d
+    .alive
+    .fresh
     
     .AFTER_RESIZE_TIMER_INTERVAL
     """
@@ -75,6 +77,8 @@ class GrapherMain(grapher_fb.GrapherMainFB):
         self.AFTER_RESIZE_TIMER_INTERVAL = 500
         self.base_title = self.GetTitle()
         self.last_plotted_2d = cross_section.LastPlotted2D()
+        self.alive = True
+        self.fresh = True
         #Допиливаем интрефейс:
         self.extra_menu_button.SetBitmap(embed_gui_images.get_menu3Bitmap())
         self.angle_tip_bitmap.SetBitmap(embed_gui_images.get_phi_hintBitmap())
@@ -134,6 +138,11 @@ class GrapherMain(grapher_fb.GrapherMainFB):
           default_freq - float, частоты которую включить во freq_choice
         Возвращает: ничего
         """
+        if not self.fresh:
+            default_freq = self.my_spec.df * \
+                           (self.freq_choice.GetSelection() + 1)
+        else:
+            self.fresh = False
         self.my_spec = new_spec
         self.fill_freq_choice()
         sel = int(round(default_freq/self.my_spec.df - 1))
@@ -625,6 +634,7 @@ class GrapherMain(grapher_fb.GrapherMainFB):
         "При зактрытии"
         self.SetStatusText(u"Закрываемся...")
         self.cleanup_files_func()
+        self.alive = False
         event.Skip()
     
     def cleanup_files_func(self):
@@ -828,7 +838,8 @@ class GrapherMain(grapher_fb.GrapherMainFB):
         new_spec = self.do_filtering_with_basic()
         
         if self.transf_overwrite_check.GetValue() and \
-          (self.transf_result_frame is not None):
+          (self.transf_result_frame is not None) and \
+          self.transf_result_frame.alive:
             self.transf_result_frame.set_spec(new_spec)
             self.transf_result_frame.plot_button_func_act()
             self.transf_result_frame.Raise()
