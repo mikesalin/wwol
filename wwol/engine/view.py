@@ -14,6 +14,7 @@ from . import loading
 from ..base_gui.mvf_aux_classes import Selection
 
 __all__ = ["Preview", "PanelParam",
+           "display_image", "panels_are_equal",
            "MARKER_SIZE", "LINE_WIDTH", "ACTIVE_COLOR", "BACKGROUND_COLOR"]
 
 
@@ -60,6 +61,7 @@ class ViewerWorkingThread(threading.Thread):
     NORMAL_STOP = 1
     FAIL_STOP = 2
 
+
 class PanelParam:
     """
     Парамтеры для отрисовки картинки в окне
@@ -72,7 +74,12 @@ class PanelParam:
         self.zoom = 1
         self.pos = (0,0)
 
+def panels_are_equal(x, y):
+    return (x.pos == y.pos) and (x.zoom == y.zoom) and (x.pos == y.pos)
+
+
 _UNKN_ERR_MSG = "Неизвестная ошибка в рабочем потоке"
+
 
 class Preview:
     """
@@ -109,7 +116,6 @@ class Preview:
     .zoom_cache     -- см. одноименный параметр _resize_image
     .view_param_lock - следующие объектызащищены этим мьютексом:
       .a_panel      -- тип PanelParam
-      .b_panel
       .sel_data     -- тип Selection, копия main_video_frame.sel_data
       .raw_img_size -- (width, height), для доступа извне есть get_raw_img_size
     .first_call_to_goto_frame
@@ -139,7 +145,6 @@ class Preview:
         self.frame_num_ofs = frame_num_ofs
 
         self.a_panel = PanelParam()
-        self.b_panel = PanelParam()
         self.sel_data = Selection()
         self.raw_img_size = (0, 0)
         
@@ -221,8 +226,6 @@ class Preview:
         self.view_param_lock.acquire()
         self.a_panel = copy.deepcopy(self.main_video_frame.a_panel)
         self.a_panel.size = self.main_video_frame.a_bmp.GetSizeTuple()
-        self.b_panel = copy.deepcopy(self.main_video_frame.b_panel)
-        self.b_panel.size = self.main_video_frame.b_bmp.GetSizeTuple()
         self.sel_data = copy.deepcopy(self.main_video_frame.sel_data)
         self.view_param_lock.release()
     
@@ -235,9 +238,9 @@ class Preview:
             err_subtype = "BadFormatString"
         if isinstance(err, loading.NoData):
             err_subtype = "NoData"
-            more_err_info = " (или слишком мало кадров для обработки)"
+            more_err_info = "Нет данных для обработки."
         logging.debug("_goto_frame_act caught " + err_subtype)
-        self._report_error("Ошибка при загрузке кадров%s." % more_err_info)
+        self._report_error("Ошибка при загрузке кадров. %s" % more_err_info)
     
     def _goto_frame_act(self, num):
         """
@@ -515,9 +518,9 @@ class Preview:
           Если force == True:
             (x,y) -- всегда, даже если это нереальные координаты
         """
+        self.view_param_lock.acquire()        
         x = (X + self.a_panel.pos[0]) / self.a_panel.zoom
         y = (Y + self.a_panel.pos[1]) / self.a_panel.zoom
-        self.view_param_lock.acquire()
         raw_img_size = self.raw_img_size
         self.view_param_lock.release()
         visible = (x >= 0) and (y >= 0) and (x < raw_img_size[0]) and \
@@ -609,7 +612,9 @@ def translate_color(color_str):
         res = 'black'
     return res
 
-def display_image(dest_top, dest, img, sel_points = [], sel_lines = []):
+def display_image(dest_top, dest, img,
+                  sel_points = [], sel_lines = [],
+                  lock = None):
     """
     Последняя стадия отрисовки изображения, которая вызывается в ГУИ потоке.
     Выполняются операции с wx.Bitmap и wx.DC, которое не работают
@@ -629,12 +634,16 @@ def display_image(dest_top, dest, img, sel_points = [], sel_lines = []):
             означает начало новой линии. Значение color -- см. tanslate_color
             + окончание определяет тип линии: "-" или ничего -- сплошная,
             ":" -- пунктир (как в Матлабе, но не до конца запилено)
+        lock (Lock or None): опционально, мютекс который надо заблокировать,
+            пока работаем со входными аргументами
     Возвращает: ничего
     """
+    if lock is not None: lock.acquire()
     bmp = img.ConvertToBitmap()
     decorate_bitmap(bmp, sel_points, sel_lines)
+    if lock is not None: lock.release()    
+
     dest.SetBitmap(bmp)
-    
     if dest_top is not None:
         dest_top.image_updated()
 
@@ -698,6 +707,5 @@ def decorate_bitmap(bmp, sel_points, sel_lines):
                     line.append((line[-1][2], line[-1][3], pt[0], pt[1]))
     
     dc.SelectObject(wx.NullBitmap)
-    
 
 

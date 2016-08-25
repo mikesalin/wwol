@@ -1,6 +1,15 @@
 # -*- coding: utf-8 -*-
 "Дополнительные, небольшие классы для нужд main_video_gui.MainVideoFrame"
 
+import os.path
+import threading
+import wx
+from ..grapher.grapher_gui import GrapherMain
+
+__all__ = ["Selection", "_PseudoEvent", "AverSpecFinish",
+           "TempImagesMonitoringParam"]
+
+
 class Selection:
     """
     Содержит данные по выделенным на изображении точкам и площадям.
@@ -11,6 +20,8 @@ class Selection:
             .MULTIPLE_POINTS_A
             .SINGLE_RECT_A
             .MULTIPLE_RECTS_A
+            .SINGLE_POINT_B
+            .MULTIPLE_POINTS_B
     .points_a ( list of tuples (int,int) ~ [ (x, y), ... ] ):
         координаты точек, выделенных на изображении 'a'.
         В режиме mode = MULTIPLE_POINTS_A:
@@ -18,6 +29,7 @@ class Selection:
           в конце работы  -- результат выбора пользователя.
         В других режимах:
           просто точки для отображения.
+    .points_b аналогично для изображения 'b', но координаты дробные, в метрах
     .rects_a ( list of tuples (4 * int) ~ [ (x1, y1, x2, y1), ... ] ):
         координаты верхнего-левого (x1,y1) и нижнего-правого (x2,y2) углов
         прямоугольника на изображении 'a'.
@@ -46,10 +58,13 @@ class Selection:
     MULTIPLE_POINTS_A = 2
     SINGLE_RECT_A = 3
     MULTIPLE_RECTS_A = 4
+    SINGLE_POINT_B = 5
+    MULTIPLE_POINTS_B = 6
     
     def __init__(self):
         self.mode = self.OFF
         self.points_a = []
+        self.points_b = []
         self.rects_a = []
         self.sel_item = None
         self.trpz = []
@@ -68,3 +83,45 @@ class _PseudoEvent:
         self.skipped = True
     def Veto(self):
         self.vetoed = True
+
+
+class AverSpecFinish:
+    def __init__(self, mvf, pd):
+        """
+        mvf (MainVideoFrame)
+        pd (ProgressDialog)
+        """
+        self.mvf_ = mvf
+        self.pd_ = pd
+    def __call__(self, power_spec):
+        self.pd_.Update(100)
+        self.pd_.Destroy()
+        if power_spec is None: return
+        wx.Yield()
+        grapher_wnd = GrapherMain(self.mvf_)
+        grapher_wnd.Show()
+        grapher_wnd.set_spec(power_spec)
+        grapher_wnd.proj_name = os.path.splitext(
+            os.path.basename(self.mvf_.project_filename))[0]
+        grapher_wnd.update_title()
+        grapher_wnd.plot_button_func_act()
+
+class TempImagesMonitoringParam:
+    """
+    .lock
+    .filename_pattern
+    .first
+    .last
+    .current
+    .enabled
+    """
+    def __init__(self):
+        self.lock = threading.Lock()
+        self.filename_pattern = "%d"
+        self.fisrt = 0
+        self.last = 100
+        self.current = 0
+        self.enabled = False
+
+
+

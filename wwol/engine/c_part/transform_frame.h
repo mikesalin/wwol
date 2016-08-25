@@ -4,6 +4,9 @@
 #ifndef TRANSFORM_FRAME_H
 #define TRANSFORM_FRAME_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct TransformFrameOutputParam {
   unsigned int flags;    // 0 - ок, 1 - вышел за пределы
@@ -30,5 +33,9 @@ TransformFrameOutputParam transform_frame(
     int Y1,
     int X2,                     // ...правый нижний угол трапеции
     int Y2);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

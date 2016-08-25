@@ -171,4 +171,45 @@ def pixels_to_angle(coord, config, img_size, mode):
     angle = atan(d * config.angle_per_pixel * pi / 180.0) * 180.0 / pi
     return angle
 
+
+def a2b(coord, config, img_size):
+    """
+    Пересчет из координат на изображении (пикселы) в координаты на
+    спроецированной области (метры).
+    Центр реальных кординат находится в центре активной области
+    """
+    x, y = a2b_scr_center(coord, config, img_size)
+    aa = config.areas_list[config.active_area_num].coord
+    xlb, ylb = a2b_scr_center((aa[0], aa[3]) , config, img_size)
+    xrb, yrb = a2b_scr_center((aa[2], aa[3]) , config, img_size)
+    xct, yct = a2b_scr_center((0.5*(aa[0]+aa[2]), aa[1]) , config, img_size)
+    x = x - 0.5 * (xlb + xrb)
+    y = y - 0.5 * (ylb + yct)
+    return (x, y)
+
+
+def a2b_scr_center(coord, config, img_size):
+    "Аналогично a2b, но центр реальных кординат находится в центре экрана."
+    a, b, c = config.proj_coef
+    x_ = coord[0] - img_size[0]/2
+    y_ = img_size[1]/2 - coord[1]
+    x = (1.0 * x_) / (a * y_ + b)
+    y = y_ / c / (a * y_ + b)
+    return (x, y)
+    
+
+def b2a(coord, config, img_size):
+    """
+    Пересчет из координат спроецированной области (метры)
+    в изображение (пикселы)
+    """
+    # TODO
+    a, b, c = config.proj_coef
+    x = coord[0]
+    y = coord[1]
+    x_ = b * x / (1.0 - a * c * y)
+    y_ = b * c * y / (1.0 - a * c * y)
+    return (int(round(x_ + img_size[0]/2)),
+            int(round(img_size[1]/2 - y_)))
+    
     

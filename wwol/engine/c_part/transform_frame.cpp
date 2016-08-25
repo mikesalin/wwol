@@ -1,19 +1,27 @@
-// TRANSFORM_FRAME_C : оберкта над частью старой программы -- функция коррекции
-// перспективы
+// TRANSFORM_FRAME_CPP : функция коррекции перспективы (часть старой программы)
 
 #include <math.h>
 #include <malloc.h>
 
+#ifndef NO_OPENMP_WORKAROUND
+#ifdef _MSC_VER
+#define _OPENMP_NOFORCE_MANIFEST
+#endif
+#include <omp.h>
+#endif
+
 #include "transform_frame.h"
 
-#define true 1
-#define false 0
+#ifdef NO_OPENMP_WORKAROUND
+int omp_get_thread_num(void) {return 0;}
+int omp_get_num_threads(void) {return 1;}
+#endif
 
 /* TRANSFORM_FRAME: коррекция перспектривы
 Эта функция имеет Питоновскую обертку, сделанную SWIG-ом.
 Обертка описана (будет описана) в __init__.py */
 
-TransformFrameOutputParam transform_frame(
+extern "C" TransformFrameOutputParam transform_frame(
     double* pdFrame,            // Выход
     int Ny_in,                  // Размер выходного массива
     int Nx_in,                  // ( _in потому что он вход для Фурье)
@@ -54,14 +62,13 @@ rv.Lx = Lx;
 rv.Ly = Ly;
 //left-top corner of area in meters 
 double xm1=(X1-W2c)/(A* (H2c-Y1) + B ) , ym1=(H2c-Y1)/(C*(A* (H2c-Y1) + B ));
-double dnorm=1.0/sqrt(3.0);
 
 //веса, размер массивов с запасом
 int NThr;
 #pragma omp parallel
  {
   #pragma omp master
-    {NThr=omp_get_num_threads();   }
+    {NThr=omp_get_num_threads();}
  }
 double *pdWX_buf=(double*)malloc(Nx_in*8*NThr),
    *pdWY_buf=(double*)malloc(Ny_in*8*NThr);
@@ -72,8 +79,8 @@ int nOutOfBounds_glob=0;
 int nx,ny; 
 #pragma omp parallel default(shared) private(nx,ny,pdWX,pdWY)
 {
-pdWX=pdWX_buf+ omp_get_thread_num()*Nx_in;
-pdWY=pdWY_buf+ omp_get_thread_num()*Ny_in;
+pdWX=pdWX_buf + omp_get_thread_num()*Nx_in;
+pdWY=pdWY_buf + omp_get_thread_num()*Ny_in;
 #pragma omp for
 for (ny=0; ny<Ny_in; ny++) 
   {
@@ -149,9 +156,10 @@ for (ny=0; ny<Ny_in; ny++)
       for (X=Xsrc[0]; X<=Xsrc[1]; X++) 
         {                       
          int ofs_=3*(ofs+X);
-         int rr=pcImg[ofs_], gg=pcImg[ofs_+1], bb=pcImg[ofs_+2];
-         double W = pdWX[X-Xsrc[0]]*pdWY[Y-Ysrc[1]]; //*...
-         U += ( (int)(rr+gg+bb) )*W;
+         int bb=pcImg[ofs_], gg=pcImg[ofs_+1], rr=pcImg[ofs_+2];
+         double W = pdWX[X-Xsrc[0]]*pdWY[Y-Ysrc[1]]; 
+         U += ( 0.2126 * rr + 0.7152 * gg + 0.0722 * bb )*W;
+           // NB: потом можно сделать выбор цвета
          S+=W;
         }
      }        

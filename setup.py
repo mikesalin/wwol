@@ -1,35 +1,51 @@
 # -*- coding: utf-8 -*-
-"""
-Данный модуль предназначен для 'компиляции' под виндой.
-Не предназначен и ни разу не пробовался для создания пакетов и прочего.
-"""
 
+from distutils.core import setup, Extension
 import sys
-from distutils.core import setup
-import shutil
-import py2exe
-from wwol.setup_.jsonschema_py2exe_workaround import JsonSchemaCollector
-            
-sys.path.append("C:\\Program Files (x86)\\Microsoft Visual Studio 9.0\\VC\\"
-                "Redist\\X86\\Microsoft.VC90.CRT")
+import os.path
+import numpy as np
 
-setup(windows = ['start_wwol.py'],
-      options = {'py2exe' : {'excludes' : ['Tkinter',
-                                           'Tkconstants',
-                                           'scipy.sparse'
-                                          ]
-                             }
-                },
-       cmdclass={"py2exe": JsonSchemaCollector},
-       zipfile=None
+ON_WINDOWS = (sys.platform == 'win32')
+WITH_PY2EXE = ON_WINDOWS
+if (WITH_PY2EXE):
+    import py2exe
+    import wwol.setup_.py2exe_stuff
+    py2exe_setup_kwargs = wwol.setup_.py2exe_stuff.setup_kwargs()
+else:
+    py2exe_setup_kwargs = { }
+
+import wwol
+
+C_PART_DIR = 'wwol/engine/c_part/'
+numpy_include_dir = os.path.join(os.path.dirname(np.__file__), 'core\\include')
+
+setup(name = 'WWOL',
+      version = wwol.__version__,
+      description = 'Wind-Wave Optical Lab',
+      author = 'Mike Salin',
+      author_email = 'msalin@gmail.com',
+      
+      ext_package = 'wwol.engine.c_part',
+      ext_modules = [
+          Extension('_transform_frame',
+                    [ C_PART_DIR + 'transform_frame.cpp',
+                      C_PART_DIR + 'transform_frame.i' ],
+                    include_dirs = [ [],
+                                     [numpy_include_dir]]
+                                   [ON_WINDOWS],
+                    extra_compile_args = [ ['-fopenmp', '-O3'],
+                                           ['/MT', '/openmp']]
+                                         [ON_WINDOWS],
+# если под виндой возникают проблемы с загрузкой собраной библиотеки (особенно в VS2008),
+#  то можно попробовать заменить '/openmp' на '/DNO_OPENMP_WORKAROUND'
+                    libraries = [ ],
+                    library_dirs = [ ],
+                    extra_link_args = [ ['-fopenmp'],
+                                        ['/SUBSYSTEM:WINDOWS,5.01', '/MANIFEST']]
+                                      [ON_WINDOWS]
+          )
+      ],
+      
+      **py2exe_setup_kwargs
 )
 
-more_files = ['swimmer_.exe', 'libfftw3-3.dll']
-for fname in more_files:
-    shutil.copyfile(fname, 'dist\\' + fname)
-
-# Для комплиляции с py2exe требуется модификация исходников библиотек Питона:
-# Lib\site-packages\repoze.lru-0.6-py2.6.egg\repoze\__init__.py :
-# import sys
-# if not hasattr(sys, 'frozen'):
-#     __import__('pkg_resources').declare_namespace(__name__)

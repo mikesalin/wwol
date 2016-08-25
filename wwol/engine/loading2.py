@@ -42,12 +42,21 @@ def _make_image_loader(config, gui_binding = None):
     return loading.image_loader(config.pic_path, config.valid_frames_range())
 
 
+def _ffmpeg_wait_func(gui_binding, pic_path, pack_len):
+    wx.CallAfter(gui_binding.hourglass)
+    gui_binding.start_temp_images_monitoring(pic_path, 1, pack_len)
+
+
 def _make_ffmpeg_loader(config, gui_binding = None):
     "Входные аргументы и возвращаемые значения как у make_loader"
     if gui_binding is not None:
-        splash_func = lambda: wx.CallAfter(gui_binding.hourglass)
+        splash_func = lambda: _ffmpeg_wait_func(gui_binding,
+                                                config.pic_path,
+                                                config.pack_len)
+        unsplash_func = gui_binding.stop_temp_images_monitoring
     else:
         splash_func = None
+        unsplash_func = None
     
     if config.source_type == FFMPEG_AUTO_SOURCE:
         loader_cmd = loading.make_ffmpeg_cmd(config.video_filename,
@@ -75,7 +84,8 @@ def _make_ffmpeg_loader(config, gui_binding = None):
                                    config.valid_frames_range(),
                                    config.fps,
                                    use_shell,
-                                   on_start_lap = splash_func)
+                                   on_start_lap = splash_func,
+                                   on_finish_lap = unsplash_func)
     return loader
 
 

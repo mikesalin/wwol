@@ -16,12 +16,14 @@ import logging
 import locale
 
 
-if not hasattr(sys, 'frozen'):
-    import wxversion
-    try:
-        wxversion.ensureMinimal('3')
-    except wxversion.AlreadyImportedError:
-        logging.warning("You'd better import start module first")
+#if not hasattr(sys, 'frozen'):
+#    import wxversion
+#    try:
+#        wxversion.ensureMinimal('3')
+#    except wxversion.AlreadyImportedError:
+#        logging.warning("You'd better import start module first")
+# TODO попробовать запустить снова с 2.8
+
 import wx
 
 from . import wwol_globals

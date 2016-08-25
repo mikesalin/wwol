@@ -1,0 +1,69 @@
+{
+  "source": {
+    "frames_range": [
+      1, 
+      -1
+    ], 
+    "user_pic_path_in_auto_mode": false, 
+    "user_pic_path": "stuff/Out/pic%04d.bmp", 
+    "overlap": true, 
+    "source_type": 2, 
+    "pack_len": 128, 
+    "fps": 25.0, 
+    "user_loader_cmd": "", 
+    "user_use_shell": false, 
+    "video_filename": ""
+  }, 
+  "misc_spectral_param": {
+    "max_freq_of_output_spec": 0, 
+    "equalize_in_space": false, 
+    "space_wnd": true, 
+    "equalize_in_space_for_freqs": [
+      0.5, 
+      2
+    ], 
+    "force_time_wnd_if_no_overlap": false
+  }, 
+  "geom": {
+    "angle_to_vert": 0, 
+    "angle_per_pixel": 1, 
+    "camera_height": 0.5729577951308232, 
+    "distortion_k1": 0, 
+    "distortion_k2": 0
+  }, 
+  "filters": {
+    "output_spec_mode": 0
+  }, 
+  "view": {
+    "filter1_color_lim": [
+      -1.0, 
+      1.0
+    ], 
+    "button_step": 1, 
+    "auto_color_lim": true, 
+    "render_mode": "filter1"
+  }, 
+  "areas": {
+    "areas_list": [
+      {
+        "name": "area1", 
+        "coord": [
+          7, 
+          5, 
+          293, 
+          192
+        ], 
+        "input_fft_size": [
+          256, 
+          128
+        ], 
+        "output_fft_size": [
+          128, 
+          128
+        ]
+      }
+    ], 
+    "auto_set_fft_sizes": false, 
+    "active_area": "last"
+  }
+}

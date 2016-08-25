@@ -166,7 +166,7 @@ def image_loader(pic_path, numbers_range):
             if do_preload:
                 async_loader.task_queue.put(preload_num)
             fresh = False
-            # и, наконец, выдем кадр:            
+            # и, наконец, выдаем кадр:            
             next_frame_num = yield(data)
             # готовимся к следующей итерации
             if next_frame_num is None:
@@ -421,6 +421,9 @@ FFMPEG_CMD_TEMPLATE = "$FFMPEG -ss $PRESTART -i $VIDEO_FILENAME " \
 FFMPEG_BIN_PATH = ""
 FFMPEG_NAME = "ffmpeg"
 FFPROBE_NAME = "ffprobe"
+#FFMPEG_NAME = "avconv"
+#FFPROBE_NAME = "avprobe"
+#TODO: менять это через гуй или файлы настроек
 
 
 def make_ffmpeg_cmd(video_filename, pack_len, pic_path, force_out_fps):
@@ -486,6 +489,7 @@ def video_probe(filename):
     except OSError:
         logging.debug(u"OSError occured while executing: '%s'" % U(cmd))
         logging.debug("Can't launch FFPROBE!")
+        raise FrameLoaddingFailed()
 #    except subprocess.CalledProcessError as e:
 #        logging.debug(u"FFPROBE returned %d (non-zero), details are below.\n"
 #                      u"Command:\n  %s\nOutput:\n%s",

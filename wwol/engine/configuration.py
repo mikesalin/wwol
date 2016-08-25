@@ -78,14 +78,12 @@ class Config:
       .angle_to_vert:    угол оси камеры к вертикали в градусах
       .distortion_k1
       .distortion_k2
-    view:
-      .button_step
-    areas
-      .active_area (string): или имя секции из areas_list или 'last'
+    areas:
+      .active_area (str): или имя секции из areas_list или 'last'
       .active_area_num [RT]: может принимать значение -1, когда не выбрано
       .areas_list (list of ProcessingArea-s):  может содержать [RT] элементы
       .auto_set_fft_sizes (bool)
-    processing_critical :  изменение требует перезапуск обработки
+    misc_spectral_param:  изменение требует перезапуск обработки
       .max_freq_of_output_spec (float): макс частота для сохранения спектра,
                                     <=0 -- использовать умолчательное значение,
                                     см. также valid_max_freq
@@ -93,12 +91,31 @@ class Config:
                       по времени будет применяться всегда. Если False, то
                       действует стандартное поведение: окно включено,
                       когда включено перекрытие.
-      .space_wnd (bool): применять окно по пространсву и обрезать выход.
+      .space_wnd (bool): применить окно по координатам x и y
+      .equalize_in_space(bool) : выровнять дисперсию яркости внутри кадра,
+                                 дисперсию измерять в полосе
+                                 equalize_in_space_for_freqs
+      .equalize_in_space_for_freqs( sequence (float, float) )
+    moving_window:   движущееся окно
+      .moving_window_enabled (True/False)
+      .moving_window_ref_rect (sequence):  x1, y1, x2, y2 в реальных координатах
+      .moving_window_velocity (sequence):  vx, vy         в м/с
+      .moving_window_ref_time (float) :    момент времени, когда окно занивает ref_rect
+      .moving_window_hold (True / False):  компенсировать движение
+          если True, то на обработанном изображении эта область будет неподвижна
+          если False, то на обработанном изображении будет виден движущийся
+                   ограничивающий прямоугольник
+    filters:
       .output_spec_mode(int): выходной спектр получается из сигнала:
                          0 исходного
                          1 обработанного набором фильтров 1
                          2 обработанного набором фильтров 2
-    processing_light :  измененяется без перезапуска
+    view:       измененяется без перезапуска processing
+      .button_step
+      .render_mode (str):  'filter1', ....
+      .filter1_color_lim (tuple (float, float))
+      .auto_color_lim (bool)
+
       ...
     """
     def __init__(self):
@@ -111,7 +128,7 @@ class Config:
         self.frames_count = 0
         self.frames_range = (0,-1)
         self.fps = 25
-        self.pack_len = 128
+        self.pack_len = 256
         self.overlap = True
         self.user_loader_cmd = ""
         self.user_use_shell = False
@@ -126,21 +143,30 @@ class Config:
         self.distortion_k1 = 0
         self.distortion_k2 = 0
         geom.set_simple_projection(1.0, self)
-        # view
-        self.button_step = 1
         # areas
         self.active_area = 'last'
         self.active_area_num = -1
         self.areas_list = []
         self.auto_set_fft_sizes = True
-        # processing_critical :  изменение требует перезапуск обработки
+        # misc_spectral_param:
         self.max_freq_of_output_spec = 0
         self.force_time_wnd_if_no_overlap = False
         self.space_wnd = True
+        self.equalize_in_space = False
+        self.equalize_in_space_for_freqs = [1, 2]
+        # filters
         self.output_spec_mode = 0
-        # processing_light :  измененяется без перезапуска
-        #...
-        
+        # view
+        self.button_step = 1
+        self.render_mode = 'filter1'
+        self.filter1_color_lim = (-1.0, 1.0)
+        self.auto_color_lim = True
+        # moving_window
+        self.moving_window_enabled = False
+        self.moving_window_ref_rect = (1., 1., 2., 2.)
+        self.moving_window_velocity = (0., 0.)
+        self.moving_window_ref_time = 0.
+        self.moving_window_hold = False
     
     def need_user_pic_path(self):
         return (not self.source_type == FFMPEG_AUTO_SOURCE) or \
@@ -168,7 +194,9 @@ class Config:
                        'view':self._post_config_view,
                        'geom':self._post_config_geom,
                        'areas':self._post_config_areas,
-                       'processing_critical':self._post_config_processing_critical}
+                       'misc_spectral_param':self._post_config_misc_spectral_param,
+                       'filters':self._post_config_filters,
+                       'moving_window':self._post_config_moving_window}
 
         if isinstance(modified_sections, str):
             modified_sections = [modified_sections]
@@ -266,6 +294,8 @@ class Config:
             self.pack_len = int(self.pack_len)
             self.frames_count = (self.frames_count / self.pack_len) \
                                 * self.pack_len
+        if self.overlap:
+            self.pack_len = (int(self.pack_len) / 2) * 2
         
         self.source_set = True
         return warn_txt
@@ -333,8 +363,18 @@ class Config:
         
         return warn_txt
     
-    def _post_config_processing_critical(self):
-        "См. post_config. Здесь идет работа в части параметров обработки"
+    def _post_config_misc_spectral_param(self):
+        "Проверяем секцию конфига 'misc_spectral_param', см. также 'post_config'"
+        if self.equalize_in_space_for_freqs[0] >= self.equalize_in_space_for_freqs[1]:
+            raise ConfigError('equalize_in_space_for_freqs')
+        return ''
+
+    def _post_config_filters(self):
+        "Проверяем секцию конфига 'misc_spectral_param', см. также 'post_config'"
+        return ''
+
+    def _post_config_moving_window(self):
+        "Проверяем секцию конфига 'moving_window', см. также 'post_config'"
         return ''
     
     def valid_frames_range(self):
@@ -388,10 +428,6 @@ class Config:
         else:
             self.active_area = self.areas_list[self.active_area_num].name
     
-    def power_spec_check_list(self):
-        "Синоним processing_check_list"
-        return self.processing_check_list()
-    
     def processing_check_list(self):
         """
         Проверяет все ли готово для обработки.
@@ -426,12 +462,12 @@ class Config:
 
 
 
-def _schema_for_int_tuple(size):
+def _schema_for_tuple(type_, size):
     "Возвращает json-схему (dict) для массива int-ов строго заданного размера"
     return {"type":"array",
             "minItems": size,
             "maxItems": size,
-            "items": {"type":"integer"} }
+            "items": {"type":type_} }
 
 
 SCHEMA = {
@@ -447,7 +483,7 @@ SCHEMA = {
                 "source_type":{"type":"integer"},
                 "user_pic_path":{"type":"string"},
                 "user_pic_path_in_auto_mode":{"type":"boolean"},
-                "frames_range":_schema_for_int_tuple(2),
+                "frames_range":_schema_for_tuple("integer", 2),
                 "fps":{"type":"number"},
                 "pack_len":{"type":"integer"},
                 "overlap":{"type":"boolean"},
@@ -467,13 +503,6 @@ SCHEMA = {
                 "distortion_k2":{"type":"number"}
             } #end of geom["properties"]
         }, #end of geom
-        "view": {
-            "type":"object",
-            "additionalProperties":False,
-            "properties":{
-                "button_step":{"type":"integer"}
-            } #end of view["properties"]
-        }, #end of view
         "areas": {
             "type":"object",
             "additionalProperties":False,
@@ -486,29 +515,58 @@ SCHEMA = {
                         "additionalProperties":False,
                         "properties":{
                             "name":{"type":"string"},
-                            "coord":_schema_for_int_tuple(4),
-                            "input_fft_size":_schema_for_int_tuple(2),
-                            "output_fft_size":_schema_for_int_tuple(2)
+                            "coord":_schema_for_tuple("integer", 4),
+                            "input_fft_size":_schema_for_tuple("integer", 2),
+                            "output_fft_size":_schema_for_tuple("integer", 2)
                         }
                     } #end of areas["properties"]["areas_list"]["items"]
                 }, #end of areas["properties"]["areas_list"]
                 "auto_set_fft_sizes":{"type":"boolean"}
             } #end of areas["properties"]
         }, #end of areas
-        "processing_critical": {
+        "misc_spectral_param": {
             "type":"object",
             "additionalProperties":False,
             "properties":{
                 "max_freq_of_output_spec":{"type":"number"},
                 "force_time_wnd_if_no_overlap":{"type":"boolean"},
                 "space_wnd":{"type":"boolean"},
+                "equalize_in_space":{"type":"boolean"},
+                "equalize_in_space_for_freqs":_schema_for_tuple("number", 2)
+            }
+        },
+        "filters": {
+            "type":"object",
+            "additionalProperties":False,
+            "properties":{
                 "output_spec_mode":{"type":"integer",
                                     "maximum":2,
                                     "exclusiveMaximum":False,
                                     "minimum":0,
                                     "exclusiveMinimum":False}
-            } #end of processing_critical["properties"]
-        } #end of processing_critical
+             }
+        },
+        "view": {
+            "type":"object",
+            "additionalProperties":False,
+            "properties":{
+                "button_step":{"type":"integer"},
+                "render_mode":{"type":"string"},
+                "filter1_color_lim":_schema_for_tuple("number", 2),
+                "auto_color_lim":{"type":"boolean"}
+            }
+        },
+        "moving_window": {
+            "type":"object",
+            "additionalProperties":False,
+            "properties":{
+                "moving_window_enabled":{"type":"boolean"},
+                "moving_window_ref_rect":_schema_for_tuple("number", 4),
+                "moving_window_velocity":_schema_for_tuple("number", 2),
+                "moving_window_ref_time":{"type":"number"},
+                "moving_window_hold":{"type":"boolean"}
+            }
+        }
     }
 }
 #NB: диапазоны большинства числовых значений проверяются в post_config,
@@ -535,10 +593,11 @@ def _load_config_more_options(text,
         text (string) : имя файла (если fname_is_given==True)
                         или текст в формате json (если fname_is_given==False).
         fname_is_given (bool) : см. выше
-        update_existing_config (Config / None) : если не None, то параметры,
-            незаполненные на входе, будут браться из данного конфига.
+        update_existing_config (Config / None) : параметры, данные в text будут
+            дополнять (изменять на месте) конфиг, переданный аргументом 
+            update_existing_config (если он не None).
             Переданный класс изменяется на месте и он же возвращается.
-            Стандартное повередние: update_existing_config==None и
+            Стандартное поведение: update_existing_config==None и
             для незаполненных параметров берутся стандартные значения.
         one_section (bool) : если True, то: а) выдает ошибку, если в text
                              более одной или ни одной секции и
@@ -584,8 +643,8 @@ def _load_config_more_options(text,
     except ValueError as err:
         logging.debug(U('Json parser failed. SEE DETAILS:\n' + str(err) +
                       '\nSEE FAILED JSON CODE:\n' + text))
-        raise ConfigError(U("Параметры проекта должны быть записаны в JSON-"
-                          "формате. Подробности: " + str(err)))
+        raise ConfigError("Параметры проекта должны быть записаны в JSON-"
+                          "формате. Подробности: " + str(err))
     data = my_encoding_tools.unicode2str_recursively(data)
     
     # Вторичная проверка входа:

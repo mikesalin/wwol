@@ -14,10 +14,11 @@ import copy
 import sys
 import string
 import json
+import numpy as np
 import wx
 
 from . import wxfb_output
-from .mvf_aux_classes import Selection, _PseudoEvent
+from .mvf_aux_classes import *
 
 from . import zoom_gui
 from ..engine import loading
@@ -34,6 +35,7 @@ from ..grapher.grapher_gui import GrapherMain
 from .. import __version__ as ABOUT_VERSION
 from .. import year as ABOUT_YEAR
 from ..engine.processing import Processing
+from . import points_gui
 
 class MainVideoFrame(wxfb_output.MainVideoFrame):
     """
@@ -45,8 +47,8 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
                                       и пр.; при ошибке сбрасывется в None
     .config
     .cur_frame_num -- номер кадра, здесь нумерация всегда с 0
-    .prev_mouse_x
-    .prev_mouse_y
+    .prev_mouse_x, _y, _x_b, _y_b
+    .zomming_a
     .a_panel (view.PanelParam, параметр size игнорируется)
     .b_panel
     .sel_ok (bool)
@@ -77,6 +79,9 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
     .default_scrshot_jpeg_quality (int)
     .scrshot_tooltip_head (unicode)
     .express_spec_wnd
+    .points_dlg (PointsDlg / None)
+    .user_points (np.ndarray)  многоцелевой массив точек Nx2 или Nx4: x, y на A, x, y на B
+    .temp_img_monitor (TempImagesMonitoringParam)
     
     .HOURGLASS (wx.Bitmap)
     .SOLID_WHITE_PEN (wx.Pen)
@@ -93,6 +98,9 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         self.cur_frame_num = 0
         self.prev_mouse_x = 0
         self.prev_mouse_y = 0
+        self.prev_mouse_x_b = 0
+        self.prev_mouse_y_b = 0
+        self.zooming_a = True
         self.a_panel = view.PanelParam()
         self.b_panel = view.PanelParam()
         self.sel_ok = False
@@ -117,6 +125,9 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
             self.scrshot_tool.GetId())
         self._update_scrshot_tooltip()
         self.express_spec_wnd = None
+        self.points_dlg = None
+        self.user_points = np.array([ ])
+        self.temp_img_monitor = TempImagesMonitoringParam()
         
         self.HOURGLASS = embed_gui_images.get_hourglassBitmap()
         self.SOLID_WHITE_PEN = wx.Pen('white', view.LINE_WIDTH, wx.SOLID)
@@ -137,13 +148,17 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
             embed_gui_images.get_scrshotBitmap())
         self.my_toolbar.SetToolNormalBitmap(self.view_step_tool.GetId(),
                                             embed_gui_images.get_stepBitmap())
+        self.my_toolbar.SetToolNormalBitmap(self.points_tool.GetId(),
+                                            embed_gui_images.get_pointsBitmap())
 
         # картинки на табах:
         tab_bmps = [embed_gui_images.get_videoBitmap(),
                       embed_gui_images.get_eyeBitmap(),
                       embed_gui_images.get_area2Bitmap(),
                       embed_gui_images.get_power_spec_buttonBitmap(),
-                      embed_gui_images.get_scrshotBitmap()]
+                      embed_gui_images.get_scrshotBitmap(),
+                      embed_gui_images.get_colorbarBitmap(),
+                      embed_gui_images.get_filterBitmap()]
         self.config_notebook_image_list = wx.ImageList(20, 20)
         for bmp in tab_bmps:
            self.config_notebook_image_list.Add(bmp)
@@ -170,6 +185,8 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         if self.sel_dlg is not None:
             self.sel_ok = False
             self._finish_selecting()
+        if self.points_dlg is not None:
+            self.points_dlg.close_func(None)
     
     def _close_func(self, event):
         "Нажали на кнопку закрыть (крестик)."
@@ -216,7 +233,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         self.is_first_frame_shown = False
         self.sel_dlg_to_be_shown = False
         self.my_toolbar.ToggleTool(self.preview_tool.GetId(), False)
-        self.my_toolbar.ToggleTool(self.proc_tool.GetId(), False)        
+        self.my_toolbar.ToggleTool(self.proc_tool.GetId(), False)
         self.a_footer_static_text.SetLabel('')
         wx.CallAfter(lambda: self._clear_screen())
     
@@ -292,7 +309,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
             
         if self.viewer is not None:
             wh = self.viewer.get_raw_img_size()
-            a_footer_text = "Вход: %dx%d, %0.3f кадров/сек" \
+            a_footer_text = "Вход: %dx%d | %0.3f кадров/сек" \
                 % ((self.viewer.get_raw_img_size()) + (self.config.fps,))
             self.a_footer_static_text.SetLabel(U(a_footer_text))
 
@@ -443,52 +460,85 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
             self.zoom_dlg.ShowWithoutActivating()
             px, py = self.b_bmp.GetScreenPositionTuple()
             self.zoom_dlg.Move(wx.Point(px - 180, py))
-        self._rebind_mouse_events("a")
-        self._rebind_mouse_events("b")
+        self._rebind_mouse_events()
         self._rebind_mouse_wheel_event()
         if self.sel_dlg is not None: self.sel_dlg.adjust()
         self.SetStatusText("")
+    
+    def _mouse_drag(self, event, side):
+        """
+        Обработчик событий мыши для картинок в режиме манипуляций мышью.
+        """
+        if self.viewer is None: return
+
+        side_is_a = (side == "a")
+        if side_is_a:
+            prev_mouse_x = self.prev_mouse_x
+            prev_mouse_y = self.prev_mouse_y
+            panel = self.a_panel
+        else:
+            prev_mouse_x = self.prev_mouse_x_b
+            prev_mouse_y = self.prev_mouse_y_b
+            panel = self.b_panel
+
+        if event.LeftDown():
+            prev_mouse_x = event.GetX()
+            prev_mouse_y = event.GetY()
+            event.Skip()
+        if event.Dragging() and event.LeftIsDown():
+            dx = event.GetX() - prev_mouse_x
+            dy = event.GetY() - prev_mouse_y
+            panel.pos = (panel.pos[0] - dx,
+                         panel.pos[1] - dy)
+            self._viewer_update_view()
+            prev_mouse_x = event.GetX()
+            prev_mouse_y = event.GetY()
+        self.zooming_a = side_is_a
+
+        if side_is_a:
+            self.prev_mouse_x = prev_mouse_x
+            self.prev_mouse_y = prev_mouse_y
+        else:
+            self.prev_mouse_x_b = prev_mouse_x
+            self.prev_mouse_y_b = prev_mouse_y
+
     
     def _mouse_drag_a(self, event):
         """
         Обработчик событий мыши (EVT_MOUSE_EVENTS) для картинки A (a_bmp)
         в режиме манипуляций мышью.
         """
-        if self.viewer is None: return
-        if event.LeftDown():
-            self.prev_mouse_x = event.GetX()
-            self.prev_mouse_y = event.GetY()
-            event.Skip()
-        if event.Dragging() and event.LeftIsDown():
-            dx = event.GetX() - self.prev_mouse_x
-            dy = event.GetY() - self.prev_mouse_y
-            self.a_panel.pos = (self.a_panel.pos[0] - dx,
-                                self.a_panel.pos[1] - dy)
-            self._viewer_update_view()
-            self.prev_mouse_x = event.GetX()
-            self.prev_mouse_y = event.GetY()
+        self._mouse_drag(event, "a")
 
-    def _mouse_zoom_a(self, event):
+    def _mouse_drag_b(self, event):
+        self._mouse_drag(event, "b")
+    
+    def _mouse_zoom(self, event):
         """
         Обработчик событий колесика мыши (EVT_MOUSEWHEEL)
         в режиме манипуляций мышью.
         """
         ZOOM_STEP = 0.4142
-        prev_zoom = self.a_panel.zoom
+
+        if self.zooming_a:
+            panel = self.a_panel
+        else:
+            panel = self.b_panel
+        mpos = event.GetPositionTuple()
+        
+        prev_zoom = panel.zoom
         new_zoom = prev_zoom * (1.0 + ZOOM_STEP)** \
           (1.0 * event.GetWheelRotation() / event.GetWheelDelta() )
-        self.a_panel.zoom = new_zoom
-        self.zoom_dlg.set_zoom_choice("a", new_zoom)
+        panel.zoom = new_zoom
+        self.zoom_dlg.set_zoom_choice(["a", "b"][not self.zooming_a], new_zoom)
 
-        mpos = event.GetPositionTuple()
         new_pos = [0, 0]
         for n in range(0,2):
-            new_pos[n] = -mpos[n] + (self.a_panel.pos[n] + mpos[n]) * \
-                                  new_zoom  / prev_zoom
-        self.a_panel.pos = (new_pos[0], new_pos[1])
+            new_pos[n] = int(round(-mpos[n] + (panel.pos[n] + mpos[n]) * 
+                         new_zoom  / prev_zoom))
+        panel.pos = (new_pos[0], new_pos[1])
         
         self._viewer_update_view()
-        # NB: потом надо как-то разобраться с левой-правой картинкой
     
     def select_ab_side(self, side, choices, *arg):
         """
@@ -507,36 +557,30 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
             return choices[1]
         raise ValueError("side must be \"a\" or \"b\"")
     
-    def _rebind_mouse_events(self, side = None, func = None):
+    def _rebind_mouse_events(self):
         """
-        Изменить обработчик всех событий мыши, кроме кручения колесика, для 
-        картинок (a_bmp или b_bmp).
-        Аргументы:
-          side - string, "a" или "b";  если None, то последовательно "a" и "b"
-          func - callable(event). Будет вызываться для всех событий
-                 мыши, кроме кручения колесика. Если None, то включается
-                 стандартный обработчик для текущего состояния окна.
-        Возвращает: ничего
-        Исключения: ValueError, если side неправильный
+        Изменить обработчик событий мыши (кроме кручения колесика), для 
+        картинок (a_bmp и b_bmp).
         """
-        if side is None :
-            self._rebind_mouse_events("a", func)
-            self._rebind_mouse_events("b", func)
-            return
-        (control, side_is_a) = self.select_ab_side(
-            side, ((self.a_bmp, True), (self.b_bmp, False)))
-        control.Unbind(wx.EVT_MOUSE_EVENTS)
-        if side_is_a:
+        for side_is_a in [True, False]:
+            control = [self.b_bmp, self.a_bmp] [side_is_a]
+            control.Unbind(wx.EVT_MOUSE_EVENTS)
+            func = None
             if func is None and self.zoom_tool.IsToggled():
-                func = self._mouse_drag_a
+                if side_is_a:
+                    func = self._mouse_drag_a
+                else:
+                    func = self._mouse_drag_b
             if func is None and self.sel_data.mode != Selection.OFF:
-                SEL_FUNCS = {Selection.SINGLE_POINT_A: self._select_point_a,
-                             Selection.MULTIPLE_POINTS_A: self._select_point_a,
-                             Selection.SINGLE_RECT_A: self._select_rect_a,
-                             Selection.MULTIPLE_RECTS_A: self._select_rect_a }
-                func = SEL_FUNCS[self.sel_data.mode]
-        if func is not None:
-            control.Bind(wx.EVT_MOUSE_EVENTS, func)
+                SEL_FUNCS = {Selection.SINGLE_POINT_A: (self._select_point_a, None),
+                             Selection.MULTIPLE_POINTS_A: (self._select_point_a, None),
+                             Selection.SINGLE_RECT_A: (self._select_rect_a, None),
+                             Selection.MULTIPLE_RECTS_A: (self._select_rect_a, None),
+                             Selection.SINGLE_POINT_B: (None, self._select_point_b),
+                             Selection.MULTIPLE_POINTS_B: (None, self._select_point_b) }
+                func = SEL_FUNCS[self.sel_data.mode][not side_is_a]
+            if func is not None:
+                control.Bind(wx.EVT_MOUSE_EVENTS, func)
     
     def _rebind_mouse_wheel_event(self, func = None):
         """
@@ -551,7 +595,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         self.Unbind(wx.EVT_MOUSEWHEEL)
         if func is None:
             if self.zoom_tool.IsToggled():
-                func = self._mouse_zoom_a
+                func = self._mouse_zoom
         if func is not None:
             self.Bind(wx.EVT_MOUSEWHEEL, func)
 
@@ -574,10 +618,18 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
           must_restart_loader(bool)
         Возвращает: ничего
         """
-        logging.debug("_enter_preview_or_processing, begin with mode=%d", mode)
+        logging.debug("_enter_preview_or_processing, begin with mode=%d, "
+                      "must_restart_loader=%d, (self.viewer is not None)=%d,"
+                      "isinstance(self.viewer, Processing)=%d",
+                      mode,
+                      int(must_restart_loader),
+                      int(self.viewer is not None),
+                      int(isinstance(self.viewer, Processing)))
         
         sel_dlg_to_be_shown = self.sel_dlg_to_be_shown
         start_frame = 0
+        if (mode == 2) and self.config.overlap:
+            start_frame = self.config.pack_len / 2 + 1
         if self.cur_frame_num < self.config.frames_count \
            and self.cur_frame_num > 0:
             start_frame = self.cur_frame_num
@@ -647,17 +699,19 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         "Переход в режим обработки. Вызывает _enter_preview_or_processing."
         self._enter_preview_or_processing(mode = 2, must_restart_loader=False)
 
-    def hourglass(self):
-        "Рисует песочные часы на левой картинке поверх всего, что там есть"
-        #dc = wx.ClientDC(self.a_bmp)
+    def hourglass(self, side = 'a'):
+        "Рисует песочные часы на картинке поверх всего, что там есть"
+        if side == 'a':
+            dest = self.a_bmp
+        else:
+            dest = self.b_bmp
+        #dc = wx.ClientDC(dest)
         #dc.DrawBitmap(self.HOURGLASS, 10, 10, True)
-        dest = self.a_bmp
         bmp = dest.GetBitmap()
         dc = wx.MemoryDC(bmp)
         dc.DrawBitmap(self.HOURGLASS, 10, 10, True)
         dc.SelectObject(wx.NullBitmap)
         dest.SetBitmap(bmp)
-
 
     def _select_point_a(self, event):
         """
@@ -676,6 +730,26 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
             self.sel_data.sel_item = rv
         else:
             self.sel_data.points_a.append(rv)
+        self.sel_dlg.adjust()
+        self._viewer_update_view()
+
+    def _select_point_b(self, event):
+        """
+        Обработка событий мыши в режиме выбора одной точки / нескольких точек
+        на изображении 'b'.
+        """
+        event.Skip()
+        if self.viewer is None: return
+        if event.Moving():
+            self.SetStatusText("%0.3f, %0.3f" %
+                self.viewer.backtrace_b(event.GetX(), event.GetY(), True))
+        if not event.LeftDown(): return
+        rv = self.viewer.backtrace_b(event.GetX(), event.GetY())
+        if rv is None: return
+        if self.sel_data.mode == Selection.SINGLE_POINT_B:
+            self.sel_data.sel_item = rv
+        else:
+            self.sel_data.points_b.append(rv)
         self.sel_dlg.adjust()
         self._viewer_update_view()
     
@@ -784,6 +858,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
             if rv == wx.ID_OK:
                 self.enter_preview()
             if self.viewer is None: # или нажали Отмена, или Ок, но не пошло
+                self.sel_ok = False
                 if callback is not None: callback()
                 return
         self.sel_data.mode = mode
@@ -946,23 +1021,23 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
                 self.active_area_rename_button.Hide()
             else:
                 self._hide_areas(call_update = True)
-        
-        if self.config_notebook.GetSelection() == 3: # рисование спектров
-            ready_flag, issues_text = self.config.power_spec_check_list()
-            self.calc_spec_button.Enabled = ready_flag
-            self.prev_spec_button.Enabled = (len(self.prev_power_spec_path) > 0)
-            self.json_text.SetValue(U(issues_text))
-            self.apply_json_button.Enabled = False
-            self.reset_json_button.Enabled = False
            
     def _config_notebook_changed_func(self, event):
         "Переключили вкладку настроек -- заполняем текстовое поле"
-        SECT_NAMES = ["", "geom", "areas", ""]
+        SECT_NAMES = ["",
+                      "geom",
+                      "areas",
+                      "misc_spectral_param",
+                      "",
+                      "view",
+                      "filters",
+                      "moving_window"]
         num = self.config_notebook.GetSelection()
         if len(SECT_NAMES) > num:
-            self._enable_json_editing(SECT_NAMES[num])
+            sect_name = SECT_NAMES[num]
         else:
-            self._enable_json_editing("")
+            sect_name = ""
+        self._enable_json_editing(sect_name)
         self._decorate_image_for_tab(True)
     
     def _config_notebook_changing_func(self, event):
@@ -1042,9 +1117,38 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
 
         self.config = new_config
         self.project_changed |= self.apply_json_button.Enabled
+        
+        if self.apply_json_button.Enabled and self._in_processing_mode():
+            sect_name = self.json_header_static_text.GetLabel().encode('utf-8')
+            sect_name = sect_name[(sect_name.find('"') + 1) :
+                                  sect_name.rfind('"')]
+            if self._check_restart_processing(sect_name):
+                warn_txt += self._RESTART_PROCESSING_MSG
+
         self.apply_json_button.Enabled = False
         self.reset_json_button.Enabled = False
         return (True, warn_txt)
+
+    _RESTART_PROCESSING_MSG = "Вынуждены перезапустить обработку"
+    
+    def _check_restart_processing(self, sect_name):
+        """
+        Вызывается при изменении раздела 'sect_name' в конфиге.
+        В зависимости от раздела обработка: а) перезапускается,
+        б) минимально перерисовывается, в) не меняется.
+        Возвражает True, если обработка была перезапущена.
+        """
+        if not self._in_processing_mode():
+            return False
+        RUINS_PROCESSING = ['geom', 'areas', 'misc_spectral_param', 'moving_window']
+        if sect_name in RUINS_PROCESSING:
+            self.enter_processing()
+            return True
+        if sect_name == 'filters':
+            self.viewer.update_filters()
+        if sect_name == 'view':
+            self._viewer_update_view()
+        return False
 
     def _reset_json_button_func(self, event):
         "Восстановить предыдущие значения в json-тексте настроек"
@@ -1360,6 +1464,9 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         self.config.angle_to_vert = 90 - geom.pixels_to_angle(
             coord, self.config, self.viewer.get_raw_img_size(), 'v')
         self._config_notebook_changed_func(None)
+        self.config.post_config("geom")
+        if self._check_restart_processing("geom"):
+            self.display_warn(self._RESTART_PROCESSING_MSG)
     
     _DISPLAY_AREAS_DONT_CLEAN_RECTS = 1
     _DISPLAY_AREAS_DONT_CALL_UPDATE = 2
@@ -1405,6 +1512,8 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
                                            self.sel_data.sel_item)
             self._config_notebook_changed_func(None)
             self.project_changed = True
+            if self._check_restart_processing("areas"):
+                self.display_warn(self._RESTART_PROCESSING_MSG)
         self._display_areas()
 
     def _select_multiple_areas_button_func(self, event):
@@ -1436,18 +1545,6 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
             self.project_changed = True
         self._display_areas()
     
-    def _calc_spec_button_func(self, event):
-        "Нажали на кнопку Вычислить (спектр)"
-        pass
-    
-    def _prev_spec_button_func(self, event):
-        "Нажали на кнопку 'Открыть предыдущий спектр'"
-        grapher = GrapherMain(self)
-        grapher.Show()
-        grapher.open_button_func_act(self.prev_power_spec_path)
-        if grapher.my_spec.is_empty():
-            grapher.Destroy()
-        
     def _load_spec_button_func(self, event):
         "Нажали на кнопку/меню 'Открыть спектр'"
         grapher = GrapherMain(self)
@@ -1695,27 +1792,143 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
     
     def _express_spec_button_func(self, event):
         """
-        Нажали на кнопку экпресс-спектр.
+        Нажали на кнопку 'Экспрес (спектр) в текущем окне'
         Берет спектр по одной пачке кадров из Processing и запускает графер.
         """
         if not self._in_processing_mode():
-            return # поидее, если не выполнено это условие, то кнопка вообще
-                   # должна быть неактивна
-        power_spec = self.viewer.express_spectrum()
-        if power_spec is None:
-            dlg = wx.MessageDialog(self,
-                                   u"Дождитесь, пока обработаем хотя бы одну "
-                                   u"пачку данных, и нажмите снова на эту кнопку.")
+            dlg = wx.MessageDialog(self, u"Включите режим обработки", "", wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
             return
-        if (self.express_spec_wnd is None) or \
-          (not self.express_spec_wnd.alive):
+        interval = []
+        power_spec = self.viewer.express_spectrum(interval)
+        if power_spec is None:
+            dlg = wx.MessageDialog(self,
+                                   u"Дождитесь, пока обработаем хотя бы одну "
+                                   u"пачку данных, и нажмите снова на эту кнопку.",
+                                   "",
+                                   wx.OK)
+            dlg.ShowModal()
+            dlg.Destroy()
+            return
+##        if (self.express_spec_wnd is None) or \
+##          (not self.express_spec_wnd.alive):
+##               TODO баг
+        if True:
             self.express_spec_wnd = GrapherMain(self)
             self.express_spec_wnd.Show()
         else:
             self.express_spec_wnd.Raise()
         self.express_spec_wnd.set_spec(power_spec)
+        self.express_spec_wnd.proj_name = "Express spectrum %0.1f-%0.1f" \
+            % (interval[0], interval[1])
+        self.express_spec_wnd.update_title()
         self.express_spec_wnd.plot_button_func_act()
 
+
+    def _aver_spec_button_func(self, event):
+        "Нажали на кнопку 'Накопленный спектр'"
+        dlg = wx.MessageDialog(self,
+                              u"Вычисление накопленного спектра по всему "
+                              u"видеоряду -- это длительная операция.\n"
+                              u"Нажмите 'OK', чтобы начать.",
+                              "",
+                              wx.OK | wx.CANCEL)
+        rv = dlg.ShowModal()
+        dlg.Destroy()
+        if rv != wx.ID_OK: return
+        
+        if not self._in_processing_mode():
+            self._enter_preview_or_processing(2, False)
+        if not self._in_processing_mode():
+            return
+
+        pd = wx.ProgressDialog(
+            'WWOL',
+            u"Вычисление накопленного спектра по всему видеоряду",
+            100,
+            self,
+            wx.PD_CAN_ABORT | wx.PD_ELAPSED_TIME | wx.PD_ESTIMATED_TIME
+              | wx.PD_AUTO_HIDE)
+        pd.Show()
+        self.viewer.calc_average_spectrum(
+            AverSpecFinish(self, pd),
+            pd.Update)
+    
+    def _points_tool_func(self, event):
+        "Нажали на кнопку 'точки' в тулбаре"
+        if self.points_tool.IsToggled():
+            if self.points_dlg is not None:
+                logging.debug('Strange behavior in _points_tool_func (1)')
+            self.points_dlg = points_gui.PointsDlg(self)
+            self.points_dlg.Show()
+        else:
+            if self.points_dlg is not None:
+                self.points_dlg.close_func()
+            else:
+                logging.debug('Strange behavior in _points_tool_func (2)')
+    
+    def _temp_images_monitoring_timer_func(self, func):
+        "Срабатывание таймера. Считаем, сколько файлов уже создал ffmpeg"
+        self.temp_img_monitor.lock.acquire()
+        if self.temp_img_monitor.enabled:
+            while os.access(U(self.temp_img_monitor.filename_pattern
+                              % (self.temp_img_monitor.current + 10)), os.F_OK):
+                self.temp_img_monitor.current += 10
+            self.a_footer_static_text.SetLabel(
+                u"%d / %d" %
+                (self.temp_img_monitor.current - self.temp_img_monitor.first + 1,
+                self.temp_img_monitor.last - self.temp_img_monitor.first))
+        else:
+            lbl = self.a_footer_static_text.GetLabel()
+            if (len(lbl) == 0) or (lbl[0] != u"В"):
+                self.a_footer_static_text.SetLabel(u"")
+            self.temp_images_monitoring_timer.Stop()
+        self.temp_img_monitor.lock.release()
+    
+    def start_temp_images_monitoring(self, filename_pattern, first, last):
+        """
+        Запускает таймер, который будет считать число файлов во временной папке
+        и выводить на экран. Это потокобезопасная функция.
+        """
+        self.temp_img_monitor.lock.acquire()
+        self.temp_img_monitor.filename_pattern = filename_pattern
+        self.temp_img_monitor.first = first
+        self.temp_img_monitor.last = last
+        self.temp_img_monitor.current = first - 1
+        self.temp_img_monitor.enabled = True
+        self.temp_img_monitor.lock.release()
+        wx.CallAfter(self.temp_images_monitoring_timer.Start, 500)
+
+    def stop_temp_images_monitoring(self):
+        "Это потокобезопасная функция."
+        self.temp_img_monitor.lock.acquire()
+        self.temp_img_monitor.enabled = False
+        self.temp_img_monitor.lock.release()
+    
+    def _footer_static_text_dclick_act(self, obj):
+        "выводит диалог с подписью этого контрола"
+        dlg = wx.TextEntryDialog(self, "", "Подпись", obj.GetLabel())
+        dlg.ShowModal()
+        dlg.Destroy()
+    
+    def _a_footer_static_text_dclick(self, event):
+        "При двойном щелчке выводит диалог со своим содержанием"
+        self._footer_static_text_dclick_act(self.a_footer_static_text)
+        
+    def _b_footer_static_text_dclick(self, event):
+        "При двойном щелчке выводит диалог со своим содержанием"
+        self._footer_static_text_dclick_act(self.b_footer_static_text)
+            
+
+def print_hint():
+    "Имена методов и MainVideoFrame, включая с \'_\'"
+    lst = MainVideoFrame.__dict__.keys()
+    lst.sort()
+    for s in lst:
+        print s
+    #Call in iterpreter:
+    #  from wwol.base_gui import main_video_gui
+    #  main_video_gui.print_hint()
+    
 

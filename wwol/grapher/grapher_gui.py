@@ -107,7 +107,8 @@ class GrapherMain(grapher_fb.GrapherMainFB):
           fr.proj_name = "transformed " + self.proj_name
         else:
           fr.proj_name = new_proj_name
-        fr.SetTitle(U(fr.proj_name) + u" - " + fr.GetTitle())
+#        fr.SetTitle(U(fr.proj_name) + u" - " + fr.GetTitle())
+        fr.update_title()
         self.grtype_choice_func1(None) # обновили self.view_ctrl ...
         fr.view_ctrl = self.view_ctrl        
         fr.last_swh_freq_str = self.last_swh_freq_str
@@ -262,8 +263,8 @@ class GrapherMain(grapher_fb.GrapherMainFB):
                 proj_name = os.path.basename(path)
         if len(proj_name) == 0: proj_name = path
         self.proj_name = proj_name
-        self.SetTitle(U(proj_name) + u" - " + self.base_title)
-        
+#        self.SetTitle(U(proj_name) + u" - " + self.base_title)
+        self.update_title()
         
         #заполнение остальный полей управления
         self.xlim_check.SetValue(False)
@@ -277,6 +278,9 @@ class GrapherMain(grapher_fb.GrapherMainFB):
         self.enable_controls(True) #(1ая загрузка переводит все в раб. сост.)
         
         self.plot_button_func_act()
+    
+    def update_title(self):
+        self.SetTitle(U(self.proj_name) + u" - " + self.base_title)
     
     def plot_button_func(self, event):
         """

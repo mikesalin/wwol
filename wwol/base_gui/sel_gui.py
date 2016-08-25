@@ -35,7 +35,11 @@ class SelDlg(wxfb_output.SelDlg):
                  "и нажмите 'ГОТОВО'",
                Selection.MULTIPLE_RECTS_A:
                  "Выберите прямоугольные области на левом изображении "\
-                 "и нажмите 'ГОТОВО'"
+                 "и нажмите 'ГОТОВО'",
+               Selection.SINGLE_POINT_B:
+                 "Выберите точку на правом изображении и нажмите 'ГОТОВО'",
+               Selection.MULTIPLE_POINTS_B:
+                 "Выберите точки на правом изображении и нажмите 'ГОТОВО'",
                }
             self.basic_info = DEFAULT_INFOS[parent.sel_data.mode]
         else:
@@ -49,11 +53,18 @@ class SelDlg(wxfb_output.SelDlg):
         """
         sel_data = self.GetParent().sel_data
         LISTS_BY_MODES = {Selection.MULTIPLE_POINTS_A: sel_data.points_a,
-                          Selection.MULTIPLE_RECTS_A: sel_data.rects_a}
+                          Selection.MULTIPLE_RECTS_A: sel_data.rects_a,
+                          Selection.MULTIPLE_POINTS_B: sel_data.points_b}
         if LISTS_BY_MODES.has_key(sel_data.mode):
             return LISTS_BY_MODES[sel_data.mode]
         else:
             return None
+    
+    def working_with_a(self):
+        mode = self.GetParent().sel_data.mode
+        return (mode == Selection.MULTIPLE_POINTS_A) or \
+            (mode == Selection.MULTIPLE_RECTS_A) or \
+            (mode == Selection.SINGLE_POINT_A)
     
     def adjust(self):
         """
@@ -68,8 +79,8 @@ class SelDlg(wxfb_output.SelDlg):
             self.info_static_text.SetLabel(U(INFO_IF_BLOCKED))
         else:
             self.info_static_text.SetLabel(U(self.basic_info))
-            parent.a_bmp.SetCursor(wx.StockCursor(wx.CURSOR_CROSS))
-            # NB: потом будет не только 'a'
+            bmp = [parent.b_bmp, parent.a_bmp] [self.working_with_a()]
+            bmp.SetCursor(wx.StockCursor(wx.CURSOR_CROSS))
         sel_data = parent.sel_data
         al = self._active_list()
         if al is None:

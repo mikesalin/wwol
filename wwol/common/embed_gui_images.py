@@ -473,3 +473,34 @@ _step = PyEmbeddedImage(
 get_stepBitmap = _make_my_getter(_step)
 
 
+#----------------------------------------------------------------------
+_filter = PyEmbeddedImage(
+    "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAIAAAAC64paAAAAA3NCSVQICAjb4U/gAAAAcklE"
+    "QVQ4jdWTwRKAIAhE2Yb//+Xt0GREQqR1iJOjPFxWBEkZjWWYnIW1rQBUANumRgfdcBeEsgHc"
+    "asl6JpnzH7gNoPL+KqnPm3JbqCWTVNlNjko43hbqyL5qjpx71bDIqu6mhx99stN4Fsf7yP/n"
+    "f56CVwjANiifzvAcAAAAAElFTkSuQmCC")
+get_filterBitmap = _make_my_getter(_filter)
+
+#----------------------------------------------------------------------
+_colorbar = PyEmbeddedImage(
+    "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAIAAAAC64paAAAAA3NCSVQICAjb4U/gAAABI0lE"
+    "QVQ4jZ3Uz0pCQRTH8e+Mei0VkdIo6A/uahW07B/VC7TqMXqb3qJ3KJJaBomQuYq6IBIIdr1d"
+    "Mm1uq7xShyP4W83AfDhzOMOYOI6ZNelkZcyOtaNppx+dC3/rJfgULpzrq7gMi2LlMqzkWFab"
+    "MIbzSMJ4sIuZdu9BTcQbcAKfKp6DFxGvwR58qDhP+lrEq3AA7you0Qol3J2nbbb6pW/FLpBq"
+    "Bk0B+/HSLfsRXwrO4VWPugJ+YvOSs6HadIZ8Y9gScGDXaxw6AgVbikGmKmB6hbdeln5FwZSg"
+    "7kv41XEDkUCSFOGhI2Ef7mCg4ixUjkVsuAJtUpCC5+QBT2BG3IM6KvBAxm1oQPhfTKQA7fHG"
+    "jH8SY6y121Pv7Vw9jt1fPEN+AAjVWyKwmDDvAAAAAElFTkSuQmCC")
+get_colorbarBitmap = _make_my_getter(_colorbar)
+
+
+#----------------------------------------------------------------------
+_points = PyEmbeddedImage(
+    "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAIAAAAC64paAAAAA3NCSVQICAjb4U/gAAAAlUlE"
+    "QVQ4jaVUQQ7AIAiji///cncwIgoKy3pihGILOpCUDYD4ZISnUlQmA3Vyizn6edXfliLbomB7"
+    "lT0IRenOMykiJAEg9G+S8bQBkOwtvpwsi9udv/ZqkoHkaRc5eWpxu4g9x27Vzgiy62lawN35"
+    "kuyuwj+hKxmQsbaZNPFRNl3gEZ3sR9UzJdladOAortPOHtavP8kLTxo/Mw7EkLMAAAAASUVO"
+    "RK5CYII=")
+get_pointsBitmap = _make_my_getter(_points)
+
+#----------------------------------------------------------------------
+

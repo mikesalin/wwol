@@ -18,6 +18,7 @@ class ZoomDlg(wxfb_output.ZoomDlg):
     def __init__(self, parent):        
         wxfb_output.ZoomDlg.__init__(self, parent)
         self.set_zoom_choice("a", parent.a_panel.zoom)
+        self.set_zoom_choice("b", parent.b_panel.zoom)
         self.reset_parents_cursor(wx.StockCursor(wx.CURSOR_SIZING))
         self.a_to_corner_button.SetBitmapLabel(
             embed_gui_images.get_to_cornerBitmap())
@@ -46,7 +47,7 @@ class ZoomDlg(wxfb_output.ZoomDlg):
           side (string): "a" или "b"
           value (float)
         """
-        values = [0.5, 1.0, 1.5, 2.0] # стандартные значения зума
+        values = [0.25, 0.5, 1.0, 1.5, 2.0, 3.0] # стандартные значения зума
         special_value = True
         for v in values:
             if abs(v - value) < 0.01:
@@ -71,31 +72,74 @@ class ZoomDlg(wxfb_output.ZoomDlg):
         for v in values:
             ctrl.Append("%0.0f%%" % (v*100.0))
         ctrl.SetSelection(pos)
-        
     
-    def reset_a_button_func(self, event):
-        "Левая кнопка сброс"
+    def main_video_frame_panel(self, side):
         main_video_frame = self.GetParent()
-        main_video_frame.a_panel.zoom = 1.0
-        main_video_frame.a_panel.pos = (0, 0)
-        self.set_zoom_choice("a", 1.0)
+        rv = main_video_frame.select_ab_side(side,
+                                             [main_video_frame.a_panel,
+                                              main_video_frame.b_panel])
+        return rv
+    
+    def reset_button(self, side):
+        """
+        Нажатие на кнопку сброс: левую (side=="a") или правую (side=="b")
+        Вызывается из обработчика события.
+        """
+        panel = self.main_video_frame_panel(side)
+        panel.zoom = 1.0
+        panel.pos = (0, 0)
+        self.set_zoom_choice(side, 1.0)
+        main_video_frame = self.GetParent()
         if main_video_frame.viewer is not None:
             main_video_frame.viewer.update_view()
     
-    def zoom_a_choice_func(self, event):
-        "Переключили зум А"
+    def reset_a_button_func(self, event):
+        "Левая кнопка сброс"
+        self.reset_button("a")
+
+    def reset_b_button_func(self, event):
+        "Правая кнопка сброс"
+        self.reset_button("b")
+
+    def zoom_choice(self, side):
+        """
+        Переключили зум левый (side=="a") или правый (side=="b")
+        Вызывается из обработчика события.
+        """
         mvf = self.GetParent() # MainVideoFrame
         if mvf.viewer is None: return
-        s = self.zoom_a_choice.GetString(self.zoom_a_choice.GetSelection())
-        mvf.a_panel.zoom = float(s[:-1]) * 0.01
+        if side == "a":
+            choice = self.zoom_a_choice
+        else:
+            choice = self.zoom_b_choice
+        s = choice.GetString(choice.GetSelection())
+        self.main_video_frame_panel(side).zoom = float(s[:-1]) * 0.01
         mvf.viewer.update_view()
+    
+    def zoom_a_choice_func(self, event):
+        "Переключили зум А"
+        self.zoom_choice("a")
+
+    def zoom_b_choice_func(self, event):
+        "Переключили зум Б"
+        self.zoom_choice("b")
    
-    def a_to_corner_button_func(self, ev):
-        "Левая кнопка 'в угол'"
+    def to_corner_button(self, side):
+        """
+        Кнопка в угол: левая (side=="a") или правая (side=="b")
+        Вызывается из обработчика события.
+        """
+        self.main_video_frame_panel(side).pos = (0, 0)
         mvf = self.GetParent()  #MainVideoFrame
-        mvf.a_panel.pos = (0, 0)
         if mvf.viewer is not None:
              mvf.viewer.update_view()
+    
+    def a_to_corner_button_func(self, event):
+        "Левая кнопка 'в угол'"
+        self.to_corner_button("a")
 
+    def b_to_corner_button_func(self, event):
+        "Левая кнопка 'в угол'"
+        self.to_corner_button("b")
 
 

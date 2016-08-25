@@ -1,0 +1,64 @@
+{
+  "source": {
+    "frames_range": [
+      2, 
+      -1
+    ], 
+    "user_pic_path_in_auto_mode": false, 
+    "user_pic_path": "/mnt/common/aaa/Копия (%d) a1.bmp", 
+    "overlap": true, 
+    "source_type": 2, 
+    "pack_len": 8, 
+    "fps": 8.0, 
+    "user_loader_cmd": "", 
+    "user_use_shell": false, 
+    "video_filename": ""
+  }, 
+  "misc_spectral_param": {
+    "space_wnd": false, 
+    "max_freq_of_output_spec": 0, 
+    "force_time_wnd_if_no_overlap": false
+  }, 
+  "geom": {
+    "angle_to_vert": 0, 
+    "angle_per_pixel": 1, 
+    "camera_height": 57.29577951308232, 
+    "distortion_k1": 0, 
+    "distortion_k2": 0
+  }, 
+  "filters": {
+    "output_spec_mode": 0
+  }, 
+  "view": {
+    "filter1_color_lim": [
+      -1.0, 
+      1.0
+    ], 
+    "button_step": 1, 
+    "auto_color_lim": true, 
+    "render_mode": "filter1"
+  }, 
+  "areas": {
+    "areas_list": [
+      {
+        "name": "area1", 
+        "coord": [
+          2, 
+          2, 
+          498, 
+          498
+        ], 
+        "input_fft_size": [
+          256, 
+          256
+        ], 
+        "output_fft_size": [
+          128, 
+          128
+        ]
+      }
+    ], 
+    "auto_set_fft_sizes": true, 
+    "active_area": "last"
+  }
+}
