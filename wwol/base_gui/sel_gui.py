@@ -27,19 +27,17 @@ class SelDlg(wxfb_output.SelDlg):
         if len(info) == 0:
             DEFAULT_INFOS = \
               {Selection.SINGLE_POINT_A:
-                 "Выберите точку на левом изображении и нажмите 'ГОТОВО'",
+                 "Select a point on the left image and press DONE",
                Selection.MULTIPLE_POINTS_A:
-                 "Выберите точки на левом изображении и нажмите 'ГОТОВО'",
+                 "Select points on the left image and press DONE",
                Selection.SINGLE_RECT_A:
-                 "Выберите прямоугольную область на левом изображении "\
-                 "и нажмите 'ГОТОВО'",
+                 "Select a rectangle on the left image and press DONE",
                Selection.MULTIPLE_RECTS_A:
-                 "Выберите прямоугольные области на левом изображении "\
-                 "и нажмите 'ГОТОВО'",
+                 "Select one or more rectangles on the left image and press DONE",
                Selection.SINGLE_POINT_B:
-                 "Выберите точку на правом изображении и нажмите 'ГОТОВО'",
+                 "Select a point on the right image and press DONE",
                Selection.MULTIPLE_POINTS_B:
-                 "Выберите точки на правом изображении и нажмите 'ГОТОВО'",
+                 "Select points on the right image and press DONE",
                }
             self.basic_info = DEFAULT_INFOS[parent.sel_data.mode]
         else:
@@ -74,8 +72,8 @@ class SelDlg(wxfb_output.SelDlg):
         parent = self.GetParent()
         if parent.zoom_dlg is not None:
             # мышь передана в управлении зуму
-            INFO_IF_BLOCKED = "Закройте окно масштабирования, чтобы " \
-                              "продолжить работу"
+            INFO_IF_BLOCKED = "Close the 'Zoom and movement' window before " \
+                              "you can proceed here"
             self.info_static_text.SetLabel(U(INFO_IF_BLOCKED))
         else:
             self.info_static_text.SetLabel(U(self.basic_info))

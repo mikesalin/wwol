@@ -220,19 +220,19 @@ class Config:
                               FFMPEG_MANUAL_SOURCE,
                               IMG_SOURCE]
         if not self.source_type in known_source_types:
-            raise ConfigError("Неизвестный тип загрузчика кадров")
+            raise ConfigError("Unknown type of loader")
         if not ( (self.frames_range[0] >= 0) and \
                  (self.frames_range[1] == -1 or
                   self.frames_range[1] > self.frames_range[0]) and \
                  (self.fps > 0) and (self.pack_len > 0) ):
-            raise ConfigError("Диапазон числовых значений.")
+            raise ConfigError("Numerical values limits")
         
         # заполнение run_time - значений:
         if self.need_user_pic_path():
             try:
                 dummy = self.user_pic_path % 11
             except TypeError, ValueError:
-                warn_txt += "'Путь к картинкам' должен содержать '%d'.\n"
+                warn_txt += "'Path to images' should contatin '%d'.\n"
             self.pic_path = self.user_pic_path
         else:
             #временная папка
@@ -257,11 +257,11 @@ class Config:
                 video_probe_frames_count = \
                     int(param.dur * param.fps) - self.frames_range[0]
             except loading.FrameLoaddingFailed:
-                warn_txt += "Не могу открыть видеофайл: " \
+                warn_txt += "Can't open video file: " \
                             + self.video_filename + "\n"
                 any_except = True
             except _ZeroFileNameLen:
-                warn_txt += "В проекте не указан видеофайл"
+                warn_txt += "No video file is set"
                 any_except = True
             if any_except:
                 self.fps = 25.0
@@ -273,7 +273,8 @@ class Config:
                 self.frames_count = video_probe_frames_count
             if self.source_type == FFMPEG_MANUAL_SOURCE:
                 raise ConfigError(
-                    "Требуется явно указать число кадров в файле.")
+                    "In custom mode you should explicitly set the total number "
+                    "of frames in the file.")
             if self.source_type == IMG_SOURCE:
                 try:
                     self.frames_count = loading.find_last_image(
@@ -282,7 +283,7 @@ class Config:
                 except loading.BadFormatString:
                     pass
                 if self.frames_count == 0:
-                    warn_txt += "Не могу открыть файл: %s \n" % \
+                    warn_txt += "Can't open file: %s \n" % \
                         loading.subs_frame_num(self.pic_path,
                                                self.frames_range[0])
         else:
@@ -339,8 +340,7 @@ class Config:
                 self.areas_list[j] = ProcessingArea(**ad)
             existing_names.append(a_name)
         if b_warn:
-            warn_txt += 'Имена зон обработки (areas_list) изменены, '\
-                        'чтобы избежать совпадений\n'
+            warn_txt += 'Areas names were changed and made unique.\n'
         
         #находим active
         if self.active_area == 'last':
@@ -351,8 +351,7 @@ class Config:
             except ValueError:
                 self.active_area = 'last'
                 self.active_area_num = len(self.areas_list) - 1
-                warn_txt += 'Указатель акивной зоны обработки изменен, ранее '\
-                            'указывал на несуществующую зону\n'
+                warn_txt += 'Active area is changed. It used to be an nonexistent name\n'
                 
         if self.auto_set_fft_sizes:
             for j in range(0, len(self.areas_list)):
@@ -438,7 +437,7 @@ class Config:
 
         if not self.source_set:
             ready_flag = False
-            issues_text += "- Выберите источник кадров\n"
+            issues_text += "- Configure a video data source\n"
 
         geom_is_dummy = True
         u = self.proj_coef
@@ -446,11 +445,11 @@ class Config:
         cmp_ = lambda x,y: abs(x - y) < 1e-6
         geom_is_dummy = cmp_(u.a, v.a) and cmp_(u.b, v.b) and cmp_(u.c, v.c)
         if geom_is_dummy:
-            issues_text += "- Задайте параметры геометрии (камера, угол)\n"
+            issues_text += "- Define the geometry (camera and angle)\n"
         
         if self.active_area_num < 0:
             ready_flag = False
-            issues_text += "- Выберите область обработки\n"
+            issues_text += "- Select the area to be processed\n"
         
         return (ready_flag, issues_text)
     
@@ -643,8 +642,7 @@ def _load_config_more_options(text,
     except ValueError as err:
         logging.debug(U('Json parser failed. SEE DETAILS:\n' + str(err) +
                       '\nSEE FAILED JSON CODE:\n' + text))
-        raise ConfigError("Параметры проекта должны быть записаны в JSON-"
-                          "формате. Подробности: " + str(err))
+        raise ConfigError("Project has to be coded in the JSON format. Details: " + str(err))
     data = my_encoding_tools.unicode2str_recursively(data)
     
     # Вторичная проверка входа:
@@ -655,11 +653,11 @@ def _load_config_more_options(text,
             str(err), max_len = 150, allow_multiline = True)
         logging.debug('Jsonschema validator failed. SEE DETAILS:\n' + str(err)
                       + '\nSEE FAILED JSON CODE:\n' + text)
-        raise ConfigError("Неверная структра параметров проекта. Подробности: "
+        raise ConfigError("Invalid structure of the project. Details: "
                           + err_txt)
     if one_section and (len(data.keys()) != 1):
         logging.error('allow_only_one_section check failed')
-        raise ConfigError("Нечестное использование редактора параметров")
+        raise ConfigError("You are using our editor in a wrong way!")
     
     # Записываем в структуру:
     if update_existing_config is None:
@@ -670,7 +668,7 @@ def _load_config_more_options(text,
     for s in data.iterkeys():
         if s in SKIP_SECT: continue
         if not isinstance(data[s], dict):
-            raise ConfigError("Внутренняя ошибка при загрузке параметров")
+            raise ConfigError("Internal error while loading project")
         config.__dict__.update(data[s])
     
     # Последняя проверка и "причесывание":

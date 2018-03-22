@@ -24,9 +24,7 @@ class PointsDlg(wxfb_output.PointsDlg):
             self.coords_text.SetValue(self._COORDS_TEXT_WELCOME)
 
     
-    _COORDS_TEXT_WELCOME =u"Сюда можете вводить координаты\n" \
-                          u"рабочих точек для того, чтобы\n"  \
-                          u"временно отметить их на изображении."
+    _COORDS_TEXT_WELCOME = ""
     
     
     def _update_buttons(self):
@@ -37,7 +35,7 @@ class PointsDlg(wxfb_output.PointsDlg):
         if proc:
             self.a2b_button.SetLabel("A -> В")
         else:
-            self.a2b_button.SetLabel(u"Применить")
+            self.a2b_button.SetLabel(u"Apply")
 
     
     def _data2text(self, data):
@@ -79,7 +77,7 @@ class PointsDlg(wxfb_output.PointsDlg):
             if not quiet:
                 dlg = wx.MessageDialog(self,
                                        et.U(str(err)),
-                                       "Ошибка ввода",
+                                       "Invalid input values",
                                        wx.ICON_EXCLAMATION | wx.OK)
                 dlg.ShowModal()
                 dlg.Destroy()
@@ -91,7 +89,7 @@ class PointsDlg(wxfb_output.PointsDlg):
             if not quiet:
                 dlg = wx.MessageDialog(
                     self,
-                    u"Предполагается ввод таблицы, содеражщей 2 или 4 колонки",
+                    u"A table with 2 or 4 columns is expected",
                     "",
                     wx.ICON_EXCLAMATION | wx.OK)
                 dlg.ShowModal()
@@ -178,8 +176,8 @@ class PointsDlg(wxfb_output.PointsDlg):
         if data is None:
             if self.coords_text.GetValue() != self._COORDS_TEXT_WELCOME:
                 dlg = wx.MessageDialog(self,
-                                       u"Не прочитать текущую введенную таблицу." 
-                                       u"Сбросить ввод?",
+                                       u"Can't parse the existing table." 
+                                       u"Reset input?",
                                        "",
                                        wx.ICON_EXCLAMATION | wx.YES_NO)
                 rv = dlg.ShowModal()                

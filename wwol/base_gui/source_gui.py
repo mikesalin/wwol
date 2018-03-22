@@ -101,18 +101,19 @@ class SourceDlg(wxfb_output.SourceDlg):
             config = self.form2config()
             warn_txt = config.post_config('source')
         except ConfigError as err:
-            msg_dlg = wx.MessageDialog(self,
-                                       U("Неправильный ввод настроек! %s" % err),
-                                       "",
-                                       wx.ICON_ERROR)
+            msg_dlg = wx.MessageDialog(
+                self,
+                U("Can't read data with the given parameter values! %s" % err),
+                "",
+                wx.ICON_ERROR)
             msg_dlg.ShowModal()
             msg_dlg.Destroy()
             return False
         if warn_txt != "":
             msg_dlg = wx.MessageDialog(
                 self,
-                U("Замечание по введенным параметрам:\n\n%s"
-                "\nПрименить новые параметры?"
+                U("There are following issues, concerning the given values:\n\n%s"
+                "\nApply these values for parameters?"
                     % warn_txt),
                 "",
                 wx.ICON_EXCLAMATION | wx.YES_NO)
@@ -175,7 +176,7 @@ class SourceDlg(wxfb_output.SourceDlg):
                 config.fps = float(self.fps_text.GetValue())
             config.pack_len = int(self.pack_len_text.GetValue())
         except ValueError:
-            raise ConfigError("Проверьте числовые значения.")
+            raise ConfigError("Check the numerical values.")
         config.overlap = self.overlap_check.GetValue()        
         
         #если требуется, то предупредить о начальном пропуске кадров
@@ -186,8 +187,9 @@ class SourceDlg(wxfb_output.SourceDlg):
                  if config.frames_range[0] < true_start:
                      msg_dlg = wx.MessageDialog(
                        self,
-                       u"Рекомендуется начинать обработку с кадра № %d, поскольку "
-                       u"в начале записи содержатся пустые кадры." % true_start,
+                       u"It seems like the video file contains empty frames "\
+                       u"before the frame No. %d. Press OK to adjust the "\
+                       u"processing limits." % true_start,
                        "",
                        wx.ICON_EXCLAMATION | wx.OK | wx.CANCEL)
                      res = msg_dlg.ShowModal()
@@ -202,21 +204,17 @@ class SourceDlg(wxfb_output.SourceDlg):
         "Нажали на знак вопроса около поля 'команда' -- отобразить подсказку"
         msg_dlg = wx.MessageDialog(
             self,
-            u"В данном режиме WWOL будет время от времени запускать FFMPEG "
-            u"(или в общем случае любую другую программу) с помощью указанной "
-            u"Вами команды, чтобы получить фрагмент видеозаписи в виде пачки "
-            u"файлов графического формата, которая "
-            u"может содержать параметры подстановки:\n"
-            u"$START -- время начала очередного запрашиваемого фрагмента (сек),"
-            u"\n$PRESTART -- грубое значение времени начала.\n"
-            u"$SOFT_START -- добавка: START = PRESTART + SOFT_START "
-            u"(грубый-точный поиск начала).\n"
-            u"Эта команда должна сгенерировать файлы с именем, соответствующим "
-            u"полю 'Путь к картинкам', в количестве 'Число кадров для БПФ'. "
-            u"Если стоит галка 'shell', то команда будет вызываться через "
-            u"shell. \n"
-            u"Кнопка 'A' выдаст Вам стандартный вид команды, которую бы "
-            u"использовал WWOL в режиме 'ffmpeg (авто)'.",
+            u"Within this mode WWOL will call FFMPEG from time to time "
+            u"(or any other defined program). "
+            u"These calls are made, using the command, that is entered here. "
+            u"After each call we expect to get a pack of frames within the "
+            u"required time interval. \n"
+            u"Thus the command contains the substitution parameters: \n"
+            u"$START -- start of the interval in seconds\n"
+            u"$PRESTART -- rough value of start, not greater than a true start\n"
+            u"$SOFT_START -- offset so that START = PRESTART + SOFT_START\n"
+            u"These call should generate a series of image files that satisfy "
+            u"the template 'Path to images'",
             "",
             wx.ICON_INFORMATION)
         msg_dlg.ShowModal()
@@ -254,7 +252,7 @@ class SourceDlg(wxfb_output.SourceDlg):
     def _browse_video_file_func(self, event):
         "Нажали на кнопку '...' около имени файла"
         dlg = wx.FileDialog(self,
-                    u'Выбрите видеофайл',
+                    u'Choose a video file',
                     '',
                     self.video_filename_text.GetValue(),
                     u'*.*|*.*',
@@ -267,9 +265,9 @@ class SourceDlg(wxfb_output.SourceDlg):
     
     def _pic_path_browse_button_func(self, event):
         if self.source_type_choice.GetSelection() == 0:
-            msg_u = u"Выберите папку для временных картинок"
+            msg_u = u"Choose the path to temporary images"
         else:
-            msg_u = u"Выберите папку с картинками"
+            msg_u = u"Choose the path to images"
         dlg = wx.DirDialog(self,
                            msg_u,
                            os.path.dirname(self.pic_path_text.GetValue()))

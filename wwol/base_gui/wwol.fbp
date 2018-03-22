@@ -176,7 +176,7 @@
                     <property name="name">menu_tool</property>
                     <property name="permission">protected</property>
                     <property name="statusbar"></property>
-                    <property name="tooltip">Меню</property>
+                    <property name="tooltip">Menu</property>
                     <event name="OnAuiToolBarBeginDrag"></event>
                     <event name="OnAuiToolBarMiddleClick"></event>
                     <event name="OnAuiToolBarOverflowClick"></event>
@@ -193,7 +193,7 @@
                     <property name="context_menu">0</property>
                     <property name="id">wxID_ANY</property>
                     <property name="kind">wxITEM_CHECK</property>
-                    <property name="label">Предпросмотр</property>
+                    <property name="label">Preview</property>
                     <property name="name">preview_tool</property>
                     <property name="permission">protected</property>
                     <property name="statusbar"></property>
@@ -214,7 +214,7 @@
                     <property name="context_menu">0</property>
                     <property name="id">wxID_ANY</property>
                     <property name="kind">wxITEM_CHECK</property>
-                    <property name="label">Обработка</property>
+                    <property name="label">Process</property>
                     <property name="name">proc_tool</property>
                     <property name="permission">protected</property>
                     <property name="statusbar"></property>
@@ -239,7 +239,7 @@
                     <property name="name">view_step_tool</property>
                     <property name="permission">protected</property>
                     <property name="statusbar"></property>
-                    <property name="tooltip"></property>
+                    <property name="tooltip">Frame change step</property>
                     <event name="OnAuiToolBarBeginDrag"></event>
                     <event name="OnAuiToolBarMiddleClick"></event>
                     <event name="OnAuiToolBarOverflowClick"></event>
@@ -281,7 +281,7 @@
                     <property name="name">next_tool</property>
                     <property name="permission">protected</property>
                     <property name="statusbar"></property>
-                    <property name="tooltip">Вперед</property>
+                    <property name="tooltip">Next</property>
                     <event name="OnAuiToolBarBeginDrag"></event>
                     <event name="OnAuiToolBarMiddleClick"></event>
                     <event name="OnAuiToolBarOverflowClick"></event>
@@ -298,11 +298,11 @@
                     <property name="context_menu">0</property>
                     <property name="id">ID_JUMP_FRAME_TOOL</property>
                     <property name="kind">wxITEM_NORMAL</property>
-                    <property name="label">кадр | кадров</property>
+                    <property name="label">frame | total</property>
                     <property name="name">jump_frame_tool</property>
                     <property name="permission">protected</property>
                     <property name="statusbar"></property>
-                    <property name="tooltip">Переход на кадр номер...</property>
+                    <property name="tooltip">Jump to frame...</property>
                     <event name="OnAuiToolBarBeginDrag"></event>
                     <event name="OnAuiToolBarMiddleClick"></event>
                     <event name="OnAuiToolBarOverflowClick"></event>
@@ -319,11 +319,11 @@
                     <property name="context_menu">0</property>
                     <property name="id">ID_JUMP_TIME_TOOL</property>
                     <property name="kind">wxITEM_NORMAL</property>
-                    <property name="label">мм:cc.мс | мм:сс.мс</property>
+                    <property name="label">mm:ss.ms |mm:ss.ms</property>
                     <property name="name">jump_time_tool</property>
                     <property name="permission">protected</property>
                     <property name="statusbar"></property>
-                    <property name="tooltip">Переход на указанное время...</property>
+                    <property name="tooltip">Jump to time...</property>
                     <event name="OnAuiToolBarBeginDrag"></event>
                     <event name="OnAuiToolBarMiddleClick"></event>
                     <event name="OnAuiToolBarOverflowClick"></event>
@@ -344,7 +344,7 @@
                     <property name="name">zoom_tool</property>
                     <property name="permission">protected</property>
                     <property name="statusbar"></property>
-                    <property name="tooltip">Масштабирание / перемещение</property>
+                    <property name="tooltip">Zoom / move image</property>
                     <event name="OnAuiToolBarBeginDrag"></event>
                     <event name="OnAuiToolBarMiddleClick"></event>
                     <event name="OnAuiToolBarOverflowClick"></event>
@@ -365,7 +365,7 @@
                     <property name="name">scrshot_tool</property>
                     <property name="permission">protected</property>
                     <property name="statusbar"></property>
-                    <property name="tooltip">Сделать снимок экрана</property>
+                    <property name="tooltip">Screenshot</property>
                     <event name="OnAuiToolBarBeginDrag"></event>
                     <event name="OnAuiToolBarMiddleClick"></event>
                     <event name="OnAuiToolBarOverflowClick"></event>
@@ -377,7 +377,7 @@
                     <event name="OnToolRClicked"></event>
                     <event name="OnUpdateUI"></event>
                 </object>
-                <object class="tool" expanded="1">
+                <object class="tool" expanded="0">
                     <property name="bitmap">Load From Art Provider; wxART_MISSING_IMAGE; wxART_TOOLBAR</property>
                     <property name="context_menu">0</property>
                     <property name="id">wxID_ANY</property>
@@ -386,7 +386,7 @@
                     <property name="name">points_tool</property>
                     <property name="permission">protected</property>
                     <property name="statusbar"></property>
-                    <property name="tooltip"></property>
+                    <property name="tooltip">Measure points coordinates</property>
                     <event name="OnAuiToolBarBeginDrag"></event>
                     <event name="OnAuiToolBarMiddleClick"></event>
                     <event name="OnAuiToolBarOverflowClick"></event>
@@ -399,7 +399,7 @@
                     <event name="OnUpdateUI"></event>
                 </object>
             </object>
-            <object class="wxBoxSizer" expanded="0">
+            <object class="wxBoxSizer" expanded="1">
                 <property name="minimum_size"></property>
                 <property name="name">bSizer1</property>
                 <property name="orient">wxVERTICAL</property>
@@ -487,11 +487,11 @@
                         <event name="OnUpdateUI"></event>
                     </object>
                 </object>
-                <object class="sizeritem" expanded="0">
+                <object class="sizeritem" expanded="1">
                     <property name="border">5</property>
                     <property name="flag">wxEXPAND</property>
                     <property name="proportion">1</property>
-                    <object class="wxSplitterWindow" expanded="0">
+                    <object class="wxSplitterWindow" expanded="1">
                         <property name="BottomDockable">1</property>
                         <property name="LeftDockable">1</property>
                         <property name="RightDockable">1</property>
@@ -575,8 +575,8 @@
                         <event name="OnSplitterSashPosChanging"></event>
                         <event name="OnSplitterUnsplit"></event>
                         <event name="OnUpdateUI"></event>
-                        <object class="splitteritem" expanded="0">
-                            <object class="wxPanel" expanded="0">
+                        <object class="splitteritem" expanded="1">
+                            <object class="wxPanel" expanded="1">
                                 <property name="BottomDockable">1</property>
                                 <property name="LeftDockable">1</property>
                                 <property name="RightDockable">1</property>
@@ -650,7 +650,7 @@
                                 <event name="OnSetFocus"></event>
                                 <event name="OnSize"></event>
                                 <event name="OnUpdateUI"></event>
-                                <object class="wxFlexGridSizer" expanded="0">
+                                <object class="wxFlexGridSizer" expanded="1">
                                     <property name="cols">1</property>
                                     <property name="flexible_direction">wxBOTH</property>
                                     <property name="growablecols">0</property>
@@ -662,11 +662,11 @@
                                     <property name="permission">none</property>
                                     <property name="rows">4</property>
                                     <property name="vgap">0</property>
-                                    <object class="sizeritem" expanded="0">
+                                    <object class="sizeritem" expanded="1">
                                         <property name="border">2</property>
                                         <property name="flag">wxEXPAND | wxALL</property>
                                         <property name="proportion">1</property>
-                                        <object class="wxNotebook" expanded="0">
+                                        <object class="wxNotebook" expanded="1">
                                             <property name="BottomDockable">1</property>
                                             <property name="LeftDockable">1</property>
                                             <property name="RightDockable">1</property>
@@ -746,7 +746,7 @@
                                             <event name="OnUpdateUI"></event>
                                             <object class="notebookpage" expanded="0">
                                                 <property name="bitmap">Load From File; </property>
-                                                <property name="label">И</property>
+                                                <property name="label">Src</property>
                                                 <property name="select">1</property>
                                                 <object class="wxPanel" expanded="0">
                                                     <property name="BottomDockable">1</property>
@@ -859,7 +859,7 @@
                                                                 <property name="gripper">0</property>
                                                                 <property name="hidden">0</property>
                                                                 <property name="id">wxID_ANY</property>
-                                                                <property name="label">Источник кадров</property>
+                                                                <property name="label">Video data source</property>
                                                                 <property name="max_size"></property>
                                                                 <property name="maximize_button">0</property>
                                                                 <property name="maximum_size"></property>
@@ -943,7 +943,7 @@
                                                                 <property name="gripper">0</property>
                                                                 <property name="hidden">0</property>
                                                                 <property name="id">wxID_ANY</property>
-                                                                <property name="label">Настроить...</property>
+                                                                <property name="label">Configure...</property>
                                                                 <property name="max_size"></property>
                                                                 <property name="maximize_button">0</property>
                                                                 <property name="maximum_size"></property>
@@ -1001,11 +1001,11 @@
                                                     </object>
                                                 </object>
                                             </object>
-                                            <object class="notebookpage" expanded="0">
+                                            <object class="notebookpage" expanded="1">
                                                 <property name="bitmap"></property>
-                                                <property name="label">П</property>
+                                                <property name="label">P</property>
                                                 <property name="select">0</property>
-                                                <object class="wxPanel" expanded="0">
+                                                <object class="wxPanel" expanded="1">
                                                     <property name="BottomDockable">1</property>
                                                     <property name="LeftDockable">1</property>
                                                     <property name="RightDockable">1</property>
@@ -1079,7 +1079,7 @@
                                                     <event name="OnSetFocus"></event>
                                                     <event name="OnSize"></event>
                                                     <event name="OnUpdateUI"></event>
-                                                    <object class="wxBoxSizer" expanded="0">
+                                                    <object class="wxBoxSizer" expanded="1">
                                                         <property name="minimum_size"></property>
                                                         <property name="name">bSizer13</property>
                                                         <property name="orient">wxVERTICAL</property>
@@ -1116,7 +1116,7 @@
                                                                 <property name="gripper">0</property>
                                                                 <property name="hidden">0</property>
                                                                 <property name="id">wxID_ANY</property>
-                                                                <property name="label">Проецирование</property>
+                                                                <property name="label">Projection</property>
                                                                 <property name="max_size"></property>
                                                                 <property name="maximize_button">0</property>
                                                                 <property name="maximum_size"></property>
@@ -1200,7 +1200,7 @@
                                                                 <property name="gripper">0</property>
                                                                 <property name="hidden">0</property>
                                                                 <property name="id">wxID_ANY</property>
-                                                                <property name="label">Выбрать камеру</property>
+                                                                <property name="label">Select camera...</property>
                                                                 <property name="max_size"></property>
                                                                 <property name="maximize_button">0</property>
                                                                 <property name="maximum_size"></property>
@@ -1288,7 +1288,7 @@
                                                                 <property name="gripper">0</property>
                                                                 <property name="hidden">0</property>
                                                                 <property name="id">wxID_ANY</property>
-                                                                <property name="label">Указать горизонт в кадре</property>
+                                                                <property name="label">Pick horizont</property>
                                                                 <property name="max_size"></property>
                                                                 <property name="maximize_button">0</property>
                                                                 <property name="maximum_size"></property>
@@ -1388,7 +1388,7 @@
                                                                         <property name="gripper">0</property>
                                                                         <property name="hidden">0</property>
                                                                         <property name="id">wxID_ANY</property>
-                                                                        <property name="label">простая проекц</property>
+                                                                        <property name="label">simple projection</property>
                                                                         <property name="max_size"></property>
                                                                         <property name="maximize_button">0</property>
                                                                         <property name="maximum_size"></property>
@@ -1448,11 +1448,11 @@
                                                     </object>
                                                 </object>
                                             </object>
-                                            <object class="notebookpage" expanded="0">
+                                            <object class="notebookpage" expanded="1">
                                                 <property name="bitmap"></property>
-                                                <property name="label">З</property>
+                                                <property name="label">A</property>
                                                 <property name="select">0</property>
-                                                <object class="wxPanel" expanded="0">
+                                                <object class="wxPanel" expanded="1">
                                                     <property name="BottomDockable">1</property>
                                                     <property name="LeftDockable">1</property>
                                                     <property name="RightDockable">1</property>
@@ -1526,7 +1526,7 @@
                                                     <event name="OnSetFocus"></event>
                                                     <event name="OnSize"></event>
                                                     <event name="OnUpdateUI"></event>
-                                                    <object class="wxBoxSizer" expanded="0">
+                                                    <object class="wxBoxSizer" expanded="1">
                                                         <property name="minimum_size"></property>
                                                         <property name="name">bSizer131</property>
                                                         <property name="orient">wxVERTICAL</property>
@@ -1563,7 +1563,7 @@
                                                                 <property name="gripper">0</property>
                                                                 <property name="hidden">0</property>
                                                                 <property name="id">wxID_ANY</property>
-                                                                <property name="label">Зона обработки</property>
+                                                                <property name="label">Processing areas</property>
                                                                 <property name="max_size"></property>
                                                                 <property name="maximize_button">0</property>
                                                                 <property name="maximum_size"></property>
@@ -1647,7 +1647,7 @@
                                                                 <property name="gripper">0</property>
                                                                 <property name="hidden">0</property>
                                                                 <property name="id">wxID_ANY</property>
-                                                                <property name="label">Указать мышью...</property>
+                                                                <property name="label">Select</property>
                                                                 <property name="max_size"></property>
                                                                 <property name="maximize_button">0</property>
                                                                 <property name="maximum_size"></property>
@@ -1735,7 +1735,7 @@
                                                                 <property name="gripper">0</property>
                                                                 <property name="hidden">0</property>
                                                                 <property name="id">wxID_ANY</property>
-                                                                <property name="label">Указать несколько зон</property>
+                                                                <property name="label">Select several</property>
                                                                 <property name="max_size"></property>
                                                                 <property name="maximize_button">0</property>
                                                                 <property name="maximum_size"></property>
@@ -1790,11 +1790,11 @@
                                                                 <event name="OnUpdateUI"></event>
                                                             </object>
                                                         </object>
-                                                        <object class="sizeritem" expanded="0">
+                                                        <object class="sizeritem" expanded="1">
                                                             <property name="border">5</property>
                                                             <property name="flag">wxEXPAND</property>
                                                             <property name="proportion">1</property>
-                                                            <object class="wxFlexGridSizer" expanded="0">
+                                                            <object class="wxFlexGridSizer" expanded="1">
                                                                 <property name="cols">3</property>
                                                                 <property name="flexible_direction">wxBOTH</property>
                                                                 <property name="growablecols">1</property>
@@ -1838,7 +1838,7 @@
                                                                         <property name="gripper">0</property>
                                                                         <property name="hidden">0</property>
                                                                         <property name="id">wxID_ANY</property>
-                                                                        <property name="label">Активная:</property>
+                                                                        <property name="label">Active:</property>
                                                                         <property name="max_size"></property>
                                                                         <property name="maximize_button">0</property>
                                                                         <property name="maximum_size"></property>
@@ -2077,7 +2077,7 @@
                                             </object>
                                             <object class="notebookpage" expanded="0">
                                                 <property name="bitmap"></property>
-                                                <property name="label">С</property>
+                                                <property name="label">S</property>
                                                 <property name="select">0</property>
                                                 <object class="wxPanel" expanded="0">
                                                     <property name="BottomDockable">1</property>
@@ -2190,7 +2190,7 @@
                                                                 <property name="gripper">0</property>
                                                                 <property name="hidden">0</property>
                                                                 <property name="id">wxID_ANY</property>
-                                                                <property name="label">Cпектр</property>
+                                                                <property name="label">Spectrum</property>
                                                                 <property name="max_size"></property>
                                                                 <property name="maximize_button">0</property>
                                                                 <property name="maximum_size"></property>
@@ -2274,7 +2274,7 @@
                                                                 <property name="gripper">0</property>
                                                                 <property name="hidden">0</property>
                                                                 <property name="id">wxID_ANY</property>
-                                                                <property name="label">Экспресс в текущем окне</property>
+                                                                <property name="label">Express spec for frame pack</property>
                                                                 <property name="max_size"></property>
                                                                 <property name="maximize_button">0</property>
                                                                 <property name="maximum_size"></property>
@@ -2362,7 +2362,7 @@
                                                                 <property name="gripper">0</property>
                                                                 <property name="hidden">0</property>
                                                                 <property name="id">wxID_ANY</property>
-                                                                <property name="label">Накопленный спектр...</property>
+                                                                <property name="label">Time averaged spectrum...</property>
                                                                 <property name="max_size"></property>
                                                                 <property name="maximize_button">0</property>
                                                                 <property name="maximum_size"></property>
@@ -2422,7 +2422,7 @@
                                             </object>
                                             <object class="notebookpage" expanded="0">
                                                 <property name="bitmap"></property>
-                                                <property name="label">Ск</property>
+                                                <property name="label">Sc</property>
                                                 <property name="select">0</property>
                                                 <object class="wxPanel" expanded="0">
                                                     <property name="BottomDockable">1</property>
@@ -2551,7 +2551,7 @@
                                                                         <property name="gripper">0</property>
                                                                         <property name="hidden">0</property>
                                                                         <property name="id">wxID_ANY</property>
-                                                                        <property name="label">Снимок экрана</property>
+                                                                        <property name="label">Screenshot options</property>
                                                                         <property name="max_size"></property>
                                                                         <property name="maximize_button">0</property>
                                                                         <property name="maximum_size"></property>
@@ -2635,7 +2635,7 @@
                                                                         <property name="gripper">0</property>
                                                                         <property name="hidden">0</property>
                                                                         <property name="id">wxID_ANY</property>
-                                                                        <property name="label">ОК</property>
+                                                                        <property name="label">do it</property>
                                                                         <property name="max_size"></property>
                                                                         <property name="maximize_button">0</property>
                                                                         <property name="maximum_size"></property>
@@ -2741,7 +2741,7 @@
                                                                         <property name="gripper">0</property>
                                                                         <property name="hidden">0</property>
                                                                         <property name="id">wxID_ANY</property>
-                                                                        <property name="label">Левый</property>
+                                                                        <property name="label">Left</property>
                                                                         <property name="max_size"></property>
                                                                         <property name="maximize_button">0</property>
                                                                         <property name="maximum_size"></property>
@@ -2829,7 +2829,7 @@
                                                                         <property name="gripper">0</property>
                                                                         <property name="hidden">0</property>
                                                                         <property name="id">wxID_ANY</property>
-                                                                        <property name="label">Правый</property>
+                                                                        <property name="label">Right</property>
                                                                         <property name="max_size"></property>
                                                                         <property name="maximize_button">0</property>
                                                                         <property name="maximum_size"></property>
@@ -2917,7 +2917,7 @@
                                                                         <property name="gripper">0</property>
                                                                         <property name="hidden">0</property>
                                                                         <property name="id">wxID_ANY</property>
-                                                                        <property name="label">Исходный</property>
+                                                                        <property name="label">Raw image</property>
                                                                         <property name="max_size"></property>
                                                                         <property name="maximize_button">0</property>
                                                                         <property name="maximum_size"></property>
@@ -3005,7 +3005,7 @@
                                                                         <property name="gripper">0</property>
                                                                         <property name="hidden">0</property>
                                                                         <property name="id">wxID_ANY</property>
-                                                                        <property name="label">Текущий вид</property>
+                                                                        <property name="label">View</property>
                                                                         <property name="max_size"></property>
                                                                         <property name="maximize_button">0</property>
                                                                         <property name="maximum_size"></property>
@@ -3093,7 +3093,7 @@
                                                                         <property name="gripper">0</property>
                                                                         <property name="hidden">0</property>
                                                                         <property name="id">wxID_ANY</property>
-                                                                        <property name="label">Один</property>
+                                                                        <property name="label">Single</property>
                                                                         <property name="max_size"></property>
                                                                         <property name="maximize_button">0</property>
                                                                         <property name="maximum_size"></property>
@@ -3181,7 +3181,7 @@
                                                                         <property name="gripper">0</property>
                                                                         <property name="hidden">0</property>
                                                                         <property name="id">wxID_ANY</property>
-                                                                        <property name="label">Все</property>
+                                                                        <property name="label">Time series</property>
                                                                         <property name="max_size"></property>
                                                                         <property name="maximize_button">0</property>
                                                                         <property name="maximum_size"></property>
@@ -3243,7 +3243,7 @@
                                             </object>
                                             <object class="notebookpage" expanded="0">
                                                 <property name="bitmap"></property>
-                                                <property name="label">В</property>
+                                                <property name="label">V</property>
                                                 <property name="select">0</property>
                                                 <object class="wxPanel" expanded="0">
                                                     <property name="BottomDockable">1</property>
@@ -3356,7 +3356,7 @@
                                                                 <property name="gripper">0</property>
                                                                 <property name="hidden">0</property>
                                                                 <property name="id">wxID_ANY</property>
-                                                                <property name="label">Вид</property>
+                                                                <property name="label">View</property>
                                                                 <property name="max_size"></property>
                                                                 <property name="maximize_button">0</property>
                                                                 <property name="maximum_size"></property>
@@ -3412,7 +3412,7 @@
                                             </object>
                                             <object class="notebookpage" expanded="0">
                                                 <property name="bitmap"></property>
-                                                <property name="label">Ф</property>
+                                                <property name="label">F</property>
                                                 <property name="select">0</property>
                                                 <object class="wxPanel" expanded="0">
                                                     <property name="BottomDockable">1</property>
@@ -3525,7 +3525,7 @@
                                                                 <property name="gripper">0</property>
                                                                 <property name="hidden">0</property>
                                                                 <property name="id">wxID_ANY</property>
-                                                                <property name="label">Фильтры</property>
+                                                                <property name="label">Filter</property>
                                                                 <property name="max_size"></property>
                                                                 <property name="maximize_button">0</property>
                                                                 <property name="maximum_size"></property>
@@ -3534,6 +3534,89 @@
                                                                 <property name="minimum_size"></property>
                                                                 <property name="moveable">1</property>
                                                                 <property name="name">m_staticText35</property>
+                                                                <property name="pane_border">1</property>
+                                                                <property name="pane_position"></property>
+                                                                <property name="pane_size"></property>
+                                                                <property name="permission">protected</property>
+                                                                <property name="pin_button">1</property>
+                                                                <property name="pos"></property>
+                                                                <property name="resize">Resizable</property>
+                                                                <property name="show">1</property>
+                                                                <property name="size"></property>
+                                                                <property name="style"></property>
+                                                                <property name="subclass"></property>
+                                                                <property name="toolbar_pane">0</property>
+                                                                <property name="tooltip"></property>
+                                                                <property name="window_extra_style"></property>
+                                                                <property name="window_name"></property>
+                                                                <property name="window_style"></property>
+                                                                <property name="wrap">-1</property>
+                                                                <event name="OnChar"></event>
+                                                                <event name="OnEnterWindow"></event>
+                                                                <event name="OnEraseBackground"></event>
+                                                                <event name="OnKeyDown"></event>
+                                                                <event name="OnKeyUp"></event>
+                                                                <event name="OnKillFocus"></event>
+                                                                <event name="OnLeaveWindow"></event>
+                                                                <event name="OnLeftDClick"></event>
+                                                                <event name="OnLeftDown"></event>
+                                                                <event name="OnLeftUp"></event>
+                                                                <event name="OnMiddleDClick"></event>
+                                                                <event name="OnMiddleDown"></event>
+                                                                <event name="OnMiddleUp"></event>
+                                                                <event name="OnMotion"></event>
+                                                                <event name="OnMouseEvents"></event>
+                                                                <event name="OnMouseWheel"></event>
+                                                                <event name="OnPaint"></event>
+                                                                <event name="OnRightDClick"></event>
+                                                                <event name="OnRightDown"></event>
+                                                                <event name="OnRightUp"></event>
+                                                                <event name="OnSetFocus"></event>
+                                                                <event name="OnSize"></event>
+                                                                <event name="OnUpdateUI"></event>
+                                                            </object>
+                                                        </object>
+                                                        <object class="sizeritem" expanded="1">
+                                                            <property name="border">5</property>
+                                                            <property name="flag">wxALL</property>
+                                                            <property name="proportion">0</property>
+                                                            <object class="wxStaticText" expanded="1">
+                                                                <property name="BottomDockable">1</property>
+                                                                <property name="LeftDockable">1</property>
+                                                                <property name="RightDockable">1</property>
+                                                                <property name="TopDockable">1</property>
+                                                                <property name="aui_layer"></property>
+                                                                <property name="aui_name"></property>
+                                                                <property name="aui_position"></property>
+                                                                <property name="aui_row"></property>
+                                                                <property name="best_size"></property>
+                                                                <property name="bg"></property>
+                                                                <property name="caption"></property>
+                                                                <property name="caption_visible">1</property>
+                                                                <property name="center_pane">0</property>
+                                                                <property name="close_button">1</property>
+                                                                <property name="context_help"></property>
+                                                                <property name="context_menu">1</property>
+                                                                <property name="default_pane">0</property>
+                                                                <property name="dock">Dock</property>
+                                                                <property name="dock_fixed">0</property>
+                                                                <property name="docking">Left</property>
+                                                                <property name="enabled">1</property>
+                                                                <property name="fg"></property>
+                                                                <property name="floatable">1</property>
+                                                                <property name="font"></property>
+                                                                <property name="gripper">0</property>
+                                                                <property name="hidden">0</property>
+                                                                <property name="id">wxID_ANY</property>
+                                                                <property name="label">Under construction...</property>
+                                                                <property name="max_size"></property>
+                                                                <property name="maximize_button">0</property>
+                                                                <property name="maximum_size"></property>
+                                                                <property name="min_size"></property>
+                                                                <property name="minimize_button">0</property>
+                                                                <property name="minimum_size"></property>
+                                                                <property name="moveable">1</property>
+                                                                <property name="name">m_staticText28</property>
                                                                 <property name="pane_border">1</property>
                                                                 <property name="pane_position"></property>
                                                                 <property name="pane_size"></property>
@@ -3694,7 +3777,7 @@
                                                                 <property name="gripper">0</property>
                                                                 <property name="hidden">0</property>
                                                                 <property name="id">wxID_ANY</property>
-                                                                <property name="label">Движущееся окно</property>
+                                                                <property name="label">Moving processing area</property>
                                                                 <property name="max_size"></property>
                                                                 <property name="maximize_button">0</property>
                                                                 <property name="maximum_size"></property>
@@ -3703,6 +3786,89 @@
                                                                 <property name="minimum_size"></property>
                                                                 <property name="moveable">1</property>
                                                                 <property name="name">m_staticText27</property>
+                                                                <property name="pane_border">1</property>
+                                                                <property name="pane_position"></property>
+                                                                <property name="pane_size"></property>
+                                                                <property name="permission">protected</property>
+                                                                <property name="pin_button">1</property>
+                                                                <property name="pos"></property>
+                                                                <property name="resize">Resizable</property>
+                                                                <property name="show">1</property>
+                                                                <property name="size"></property>
+                                                                <property name="style"></property>
+                                                                <property name="subclass"></property>
+                                                                <property name="toolbar_pane">0</property>
+                                                                <property name="tooltip"></property>
+                                                                <property name="window_extra_style"></property>
+                                                                <property name="window_name"></property>
+                                                                <property name="window_style"></property>
+                                                                <property name="wrap">-1</property>
+                                                                <event name="OnChar"></event>
+                                                                <event name="OnEnterWindow"></event>
+                                                                <event name="OnEraseBackground"></event>
+                                                                <event name="OnKeyDown"></event>
+                                                                <event name="OnKeyUp"></event>
+                                                                <event name="OnKillFocus"></event>
+                                                                <event name="OnLeaveWindow"></event>
+                                                                <event name="OnLeftDClick"></event>
+                                                                <event name="OnLeftDown"></event>
+                                                                <event name="OnLeftUp"></event>
+                                                                <event name="OnMiddleDClick"></event>
+                                                                <event name="OnMiddleDown"></event>
+                                                                <event name="OnMiddleUp"></event>
+                                                                <event name="OnMotion"></event>
+                                                                <event name="OnMouseEvents"></event>
+                                                                <event name="OnMouseWheel"></event>
+                                                                <event name="OnPaint"></event>
+                                                                <event name="OnRightDClick"></event>
+                                                                <event name="OnRightDown"></event>
+                                                                <event name="OnRightUp"></event>
+                                                                <event name="OnSetFocus"></event>
+                                                                <event name="OnSize"></event>
+                                                                <event name="OnUpdateUI"></event>
+                                                            </object>
+                                                        </object>
+                                                        <object class="sizeritem" expanded="1">
+                                                            <property name="border">5</property>
+                                                            <property name="flag">wxALL</property>
+                                                            <property name="proportion">0</property>
+                                                            <object class="wxStaticText" expanded="1">
+                                                                <property name="BottomDockable">1</property>
+                                                                <property name="LeftDockable">1</property>
+                                                                <property name="RightDockable">1</property>
+                                                                <property name="TopDockable">1</property>
+                                                                <property name="aui_layer"></property>
+                                                                <property name="aui_name"></property>
+                                                                <property name="aui_position"></property>
+                                                                <property name="aui_row"></property>
+                                                                <property name="best_size"></property>
+                                                                <property name="bg"></property>
+                                                                <property name="caption"></property>
+                                                                <property name="caption_visible">1</property>
+                                                                <property name="center_pane">0</property>
+                                                                <property name="close_button">1</property>
+                                                                <property name="context_help"></property>
+                                                                <property name="context_menu">1</property>
+                                                                <property name="default_pane">0</property>
+                                                                <property name="dock">Dock</property>
+                                                                <property name="dock_fixed">0</property>
+                                                                <property name="docking">Left</property>
+                                                                <property name="enabled">1</property>
+                                                                <property name="fg"></property>
+                                                                <property name="floatable">1</property>
+                                                                <property name="font"></property>
+                                                                <property name="gripper">0</property>
+                                                                <property name="hidden">0</property>
+                                                                <property name="id">wxID_ANY</property>
+                                                                <property name="label">under construction...</property>
+                                                                <property name="max_size"></property>
+                                                                <property name="maximize_button">0</property>
+                                                                <property name="maximum_size"></property>
+                                                                <property name="min_size"></property>
+                                                                <property name="minimize_button">0</property>
+                                                                <property name="minimum_size"></property>
+                                                                <property name="moveable">1</property>
+                                                                <property name="name">m_staticText29</property>
                                                                 <property name="pane_border">1</property>
                                                                 <property name="pane_position"></property>
                                                                 <property name="pane_size"></property>
@@ -4082,7 +4248,7 @@
                                                     <property name="style">wxBU_AUTODRAW</property>
                                                     <property name="subclass"></property>
                                                     <property name="toolbar_pane">0</property>
-                                                    <property name="tooltip">Применить</property>
+                                                    <property name="tooltip">Apply</property>
                                                     <property name="validator_data_type"></property>
                                                     <property name="validator_style">wxFILTER_NONE</property>
                                                     <property name="validator_type">wxDefaultValidator</property>
@@ -4175,7 +4341,7 @@
                                                     <property name="style">wxBU_AUTODRAW</property>
                                                     <property name="subclass"></property>
                                                     <property name="toolbar_pane">0</property>
-                                                    <property name="tooltip">Сброс (восстановить предыдущие значения)</property>
+                                                    <property name="tooltip">Undo</property>
                                                     <property name="validator_data_type"></property>
                                                     <property name="validator_style">wxFILTER_NONE</property>
                                                     <property name="validator_type">wxDefaultValidator</property>
@@ -4268,7 +4434,7 @@
                                                     <property name="style">wxBU_AUTODRAW</property>
                                                     <property name="subclass"></property>
                                                     <property name="toolbar_pane">0</property>
-                                                    <property name="tooltip">Восстановить стандартные значения</property>
+                                                    <property name="tooltip">Reset defaults</property>
                                                     <property name="validator_data_type"></property>
                                                     <property name="validator_style">wxFILTER_NONE</property>
                                                     <property name="validator_type">wxDefaultValidator</property>
@@ -4307,8 +4473,8 @@
                                 </object>
                             </object>
                         </object>
-                        <object class="splitteritem" expanded="0">
-                            <object class="wxPanel" expanded="0">
+                        <object class="splitteritem" expanded="1">
+                            <object class="wxPanel" expanded="1">
                                 <property name="BottomDockable">1</property>
                                 <property name="LeftDockable">1</property>
                                 <property name="RightDockable">1</property>
@@ -4382,16 +4548,16 @@
                                 <event name="OnSetFocus"></event>
                                 <event name="OnSize"></event>
                                 <event name="OnUpdateUI"></event>
-                                <object class="wxBoxSizer" expanded="0">
+                                <object class="wxBoxSizer" expanded="1">
                                     <property name="minimum_size"></property>
                                     <property name="name">bSizer9</property>
                                     <property name="orient">wxVERTICAL</property>
                                     <property name="permission">none</property>
-                                    <object class="sizeritem" expanded="0">
+                                    <object class="sizeritem" expanded="1">
                                         <property name="border">5</property>
                                         <property name="flag">wxEXPAND</property>
                                         <property name="proportion">1</property>
-                                        <object class="wxSplitterWindow" expanded="0">
+                                        <object class="wxSplitterWindow" expanded="1">
                                             <property name="BottomDockable">1</property>
                                             <property name="LeftDockable">1</property>
                                             <property name="RightDockable">1</property>
@@ -4475,8 +4641,8 @@
                                             <event name="OnSplitterSashPosChanging"></event>
                                             <event name="OnSplitterUnsplit"></event>
                                             <event name="OnUpdateUI"></event>
-                                            <object class="splitteritem" expanded="0">
-                                                <object class="wxPanel" expanded="0">
+                                            <object class="splitteritem" expanded="1">
+                                                <object class="wxPanel" expanded="1">
                                                     <property name="BottomDockable">1</property>
                                                     <property name="LeftDockable">1</property>
                                                     <property name="RightDockable">1</property>
@@ -4550,7 +4716,7 @@
                                                     <event name="OnSetFocus"></event>
                                                     <event name="OnSize"></event>
                                                     <event name="OnUpdateUI"></event>
-                                                    <object class="wxBoxSizer" expanded="0">
+                                                    <object class="wxBoxSizer" expanded="1">
                                                         <property name="minimum_size"></property>
                                                         <property name="name">bSizer2</property>
                                                         <property name="orient">wxVERTICAL</property>
@@ -4668,7 +4834,7 @@
                                                                 <property name="gripper">0</property>
                                                                 <property name="hidden">0</property>
                                                                 <property name="id">wxID_ANY</property>
-                                                                <property name="label">Вход</property>
+                                                                <property name="label">A: input</property>
                                                                 <property name="max_size"></property>
                                                                 <property name="maximize_button">0</property>
                                                                 <property name="maximum_size"></property>
@@ -4722,8 +4888,8 @@
                                                     </object>
                                                 </object>
                                             </object>
-                                            <object class="splitteritem" expanded="0">
-                                                <object class="wxPanel" expanded="0">
+                                            <object class="splitteritem" expanded="1">
+                                                <object class="wxPanel" expanded="1">
                                                     <property name="BottomDockable">1</property>
                                                     <property name="LeftDockable">1</property>
                                                     <property name="RightDockable">1</property>
@@ -4797,7 +4963,7 @@
                                                     <event name="OnSetFocus"></event>
                                                     <event name="OnSize"></event>
                                                     <event name="OnUpdateUI"></event>
-                                                    <object class="wxBoxSizer" expanded="0">
+                                                    <object class="wxBoxSizer" expanded="1">
                                                         <property name="minimum_size"></property>
                                                         <property name="name">bSizer3</property>
                                                         <property name="orient">wxVERTICAL</property>
@@ -4915,7 +5081,7 @@
                                                                 <property name="gripper">0</property>
                                                                 <property name="hidden">0</property>
                                                                 <property name="id">wxID_ANY</property>
-                                                                <property name="label">Выход</property>
+                                                                <property name="label">B: output</property>
                                                                 <property name="max_size"></property>
                                                                 <property name="maximize_button">0</property>
                                                                 <property name="maximum_size"></property>
@@ -5023,13 +5189,13 @@
                 <event name="OnSize"></event>
                 <event name="OnUpdateUI"></event>
             </object>
-            <object class="wxMenu" expanded="0">
+            <object class="wxMenu" expanded="1">
                 <property name="label">MyMenu</property>
                 <property name="name">corner_menu</property>
                 <property name="permission">protected</property>
-                <object class="submenu" expanded="0">
+                <object class="submenu" expanded="1">
                     <property name="bitmap">Load From Art Provider; wxART_FILE_OPEN; wxART_MENU</property>
-                    <property name="label">Открыть</property>
+                    <property name="label">Open</property>
                     <property name="name">open_menu_top</property>
                     <property name="permission">protected</property>
                     <object class="wxMenuItem" expanded="0">
@@ -5039,7 +5205,7 @@
                         <property name="help"></property>
                         <property name="id">wxID_ANY</property>
                         <property name="kind">wxITEM_NORMAL</property>
-                        <property name="label">Октрыть проект...</property>
+                        <property name="label">Open project...</property>
                         <property name="name">open_menu</property>
                         <property name="permission">none</property>
                         <property name="shortcut"></property>
@@ -5054,7 +5220,7 @@
                         <property name="help"></property>
                         <property name="id">wxID_ANY</property>
                         <property name="kind">wxITEM_NORMAL</property>
-                        <property name="label">Открыть видеофайл...</property>
+                        <property name="label">Open video file...</property>
                         <property name="name">open_video_menu</property>
                         <property name="permission">none</property>
                         <property name="shortcut"></property>
@@ -5069,7 +5235,7 @@
                         <property name="help"></property>
                         <property name="id">wxID_ANY</property>
                         <property name="kind">wxITEM_NORMAL</property>
-                        <property name="label">Открыть спектр...</property>
+                        <property name="label">Open spectrum...</property>
                         <property name="name">open_spec_menu</property>
                         <property name="permission">none</property>
                         <property name="shortcut"></property>
@@ -5085,7 +5251,7 @@
                     <property name="help"></property>
                     <property name="id">wxID_ANY</property>
                     <property name="kind">wxITEM_NORMAL</property>
-                    <property name="label">Сохранить проект</property>
+                    <property name="label">Save project</property>
                     <property name="name">save_menu</property>
                     <property name="permission">none</property>
                     <property name="shortcut"></property>
@@ -5100,7 +5266,7 @@
                     <property name="help"></property>
                     <property name="id">wxID_ANY</property>
                     <property name="kind">wxITEM_NORMAL</property>
-                    <property name="label">Сохранить проект как...</property>
+                    <property name="label">Save project as...</property>
                     <property name="name">save_as_menu</property>
                     <property name="permission">none</property>
                     <property name="shortcut"></property>
@@ -5119,7 +5285,7 @@
                     <property name="help"></property>
                     <property name="id">wxID_ANY</property>
                     <property name="kind">wxITEM_NORMAL</property>
-                    <property name="label">О программе</property>
+                    <property name="label">About</property>
                     <property name="name">about_menu</property>
                     <property name="permission">none</property>
                     <property name="shortcut"></property>
@@ -5156,10 +5322,10 @@
             <property name="minimum_size"></property>
             <property name="name">ZoomDlg</property>
             <property name="pos"></property>
-            <property name="size">180,200</property>
+            <property name="size">200,200</property>
             <property name="style">wxDEFAULT_DIALOG_STYLE</property>
             <property name="subclass"></property>
-            <property name="title">Масштаб</property>
+            <property name="title">Zoom and movement</property>
             <property name="tooltip"></property>
             <property name="window_extra_style"></property>
             <property name="window_name"></property>
@@ -5465,7 +5631,7 @@
                                 <property name="style">wxBU_EXACTFIT</property>
                                 <property name="subclass"></property>
                                 <property name="toolbar_pane">0</property>
-                                <property name="tooltip"></property>
+                                <property name="tooltip">Do for left panel</property>
                                 <property name="validator_data_type"></property>
                                 <property name="validator_style">wxFILTER_NONE</property>
                                 <property name="validator_type">wxDefaultValidator</property>
@@ -5636,7 +5802,7 @@
                                 <property name="style">wxBU_EXACTFIT</property>
                                 <property name="subclass"></property>
                                 <property name="toolbar_pane">0</property>
-                                <property name="tooltip"></property>
+                                <property name="tooltip">Do for the right panel</property>
                                 <property name="validator_data_type"></property>
                                 <property name="validator_style">wxFILTER_NONE</property>
                                 <property name="validator_type">wxDefaultValidator</property>
@@ -5729,7 +5895,7 @@
                                 <property name="style">wxBU_AUTODRAW</property>
                                 <property name="subclass"></property>
                                 <property name="toolbar_pane">0</property>
-                                <property name="tooltip"></property>
+                                <property name="tooltip">Do for left panel</property>
                                 <property name="validator_data_type"></property>
                                 <property name="validator_style">wxFILTER_NONE</property>
                                 <property name="validator_type">wxDefaultValidator</property>
@@ -5795,7 +5961,7 @@
                                 <property name="gripper">0</property>
                                 <property name="hidden">0</property>
                                 <property name="id">wxID_ANY</property>
-                                <property name="label">В угол</property>
+                                <property name="label">Move to corner</property>
                                 <property name="max_size"></property>
                                 <property name="maximize_button">0</property>
                                 <property name="maximum_size"></property>
@@ -5905,7 +6071,7 @@
                                 <property name="style">wxBU_AUTODRAW</property>
                                 <property name="subclass"></property>
                                 <property name="toolbar_pane">0</property>
-                                <property name="tooltip"></property>
+                                <property name="tooltip">Do for the right panel</property>
                                 <property name="validator_data_type"></property>
                                 <property name="validator_style">wxFILTER_NONE</property>
                                 <property name="validator_type">wxDefaultValidator</property>
@@ -5973,7 +6139,7 @@
                         <property name="gripper">0</property>
                         <property name="hidden">0</property>
                         <property name="id">wxID_ANY</property>
-                        <property name="label">Перемещайте и масштабируйте изображение мышью.</property>
+                        <property name="label">Use the mouse to move and zoom the image</property>
                         <property name="max_size"></property>
                         <property name="maximize_button">0</property>
                         <property name="maximum_size"></property>
@@ -6125,7 +6291,7 @@
                         <property name="gripper">0</property>
                         <property name="hidden">0</property>
                         <property name="id">wxID_ANY</property>
-                        <property name="label">Выберите...</property>
+                        <property name="label">Select...</property>
                         <property name="max_size"></property>
                         <property name="maximize_button">0</property>
                         <property name="maximum_size"></property>
@@ -6209,7 +6375,7 @@
                         <property name="gripper">0</property>
                         <property name="hidden">0</property>
                         <property name="id">wxID_ANY</property>
-                        <property name="label">ГОТОВО</property>
+                        <property name="label">DONE</property>
                         <property name="max_size"></property>
                         <property name="maximize_button">0</property>
                         <property name="maximum_size"></property>
@@ -6297,7 +6463,7 @@
                         <property name="gripper">0</property>
                         <property name="hidden">0</property>
                         <property name="id">wxID_ANY</property>
-                        <property name="label">Удалить</property>
+                        <property name="label">Delete</property>
                         <property name="max_size"></property>
                         <property name="maximize_button">0</property>
                         <property name="maximum_size"></property>
@@ -6385,7 +6551,7 @@
                         <property name="gripper">0</property>
                         <property name="hidden">0</property>
                         <property name="id">wxID_ANY</property>
-                        <property name="label">Отмена</property>
+                        <property name="label">Cancel</property>
                         <property name="max_size"></property>
                         <property name="maximize_button">0</property>
                         <property name="maximum_size"></property>
@@ -6463,7 +6629,7 @@
             <property name="size">620,400</property>
             <property name="style">wxDEFAULT_DIALOG_STYLE</property>
             <property name="subclass"></property>
-            <property name="title">Источник кадров</property>
+            <property name="title">Video data source</property>
             <property name="tooltip"></property>
             <property name="window_extra_style"></property>
             <property name="window_name"></property>
@@ -6591,7 +6757,7 @@
                         <event name="OnSize"></event>
                         <event name="OnUpdateUI"></event>
                         <object class="choicebookpage" expanded="0">
-                            <property name="label">Ffmpeg, авто</property>
+                            <property name="label">Use ffmpeg with defaul parameters</property>
                             <property name="select">1</property>
                             <object class="wxPanel" expanded="0">
                                 <property name="BottomDockable">1</property>
@@ -6720,7 +6886,7 @@
                                                     <property name="gripper">0</property>
                                                     <property name="hidden">0</property>
                                                     <property name="id">wxID_ANY</property>
-                                                    <property name="label">Видеофайл:</property>
+                                                    <property name="label">Video file:</property>
                                                     <property name="max_size"></property>
                                                     <property name="maximize_button">0</property>
                                                     <property name="maximum_size"></property>
@@ -6982,7 +7148,7 @@
                                                     <property name="gripper">0</property>
                                                     <property name="hidden">0</property>
                                                     <property name="id">wxID_ANY</property>
-                                                    <property name="label">Временные файлы:</property>
+                                                    <property name="label">Temp files:</property>
                                                     <property name="max_size"></property>
                                                     <property name="maximize_button">0</property>
                                                     <property name="maximum_size"></property>
@@ -7051,7 +7217,7 @@
                                                     <property name="caption"></property>
                                                     <property name="caption_visible">1</property>
                                                     <property name="center_pane">0</property>
-                                                    <property name="choices">&quot;держать в стандартной временной папке&quot; &quot;держать в указанной ниже папке &apos;Путь к картинкам&apos;&quot;</property>
+                                                    <property name="choices">&quot;keep them in the standart system folder&quot; &quot;keep them in a folder, given below as a &apos;Path to images&apos;&quot;</property>
                                                     <property name="close_button">1</property>
                                                     <property name="context_help"></property>
                                                     <property name="context_menu">1</property>
@@ -7127,7 +7293,7 @@
                             </object>
                         </object>
                         <object class="choicebookpage" expanded="0">
-                            <property name="label">Ffmpeg, ручная настройка</property>
+                            <property name="label">Use ffmpeg with a custom command line</property>
                             <property name="select">0</property>
                             <object class="wxPanel" expanded="0">
                                 <property name="BottomDockable">1</property>
@@ -7247,7 +7413,7 @@
                                             <property name="gripper">0</property>
                                             <property name="hidden">0</property>
                                             <property name="id">wxID_ANY</property>
-                                            <property name="label">Команда:</property>
+                                            <property name="label">Command line:</property>
                                             <property name="max_size"></property>
                                             <property name="maximize_button">0</property>
                                             <property name="maximum_size"></property>
@@ -7443,7 +7609,7 @@
                                             <property name="style">wxBU_EXACTFIT</property>
                                             <property name="subclass"></property>
                                             <property name="toolbar_pane">0</property>
-                                            <property name="tooltip"></property>
+                                            <property name="tooltip">Fill in default values</property>
                                             <property name="validator_data_type"></property>
                                             <property name="validator_style">wxFILTER_NONE</property>
                                             <property name="validator_type">wxDefaultValidator</property>
@@ -7532,7 +7698,7 @@
                                                     <property name="hidden">0</property>
                                                     <property name="hover_color"></property>
                                                     <property name="id">wxID_ANY</property>
-                                                    <property name="label">Справка</property>
+                                                    <property name="label">Help</property>
                                                     <property name="max_size"></property>
                                                     <property name="maximize_button">0</property>
                                                     <property name="maximum_size"></property>
@@ -7680,7 +7846,7 @@
                             </object>
                         </object>
                         <object class="choicebookpage" expanded="0">
-                            <property name="label">Папка с картинками</property>
+                            <property name="label">We have just a folder with images</property>
                             <property name="select">0</property>
                             <object class="wxPanel" expanded="0">
                                 <property name="BottomDockable">1</property>
@@ -7808,7 +7974,7 @@
                                 <property name="gripper">0</property>
                                 <property name="hidden">0</property>
                                 <property name="id">wxID_ANY</property>
-                                <property name="label">Путь к картинкам:</property>
+                                <property name="label">Path to images:</property>
                                 <property name="max_size"></property>
                                 <property name="maximize_button">0</property>
                                 <property name="maximum_size"></property>
@@ -8080,7 +8246,7 @@
                                 <property name="gripper">0</property>
                                 <property name="hidden">0</property>
                                 <property name="id">wxID_ANY</property>
-                                <property name="label">Задайте шаблон вида:  my_path/img%04d.bmp</property>
+                                <property name="label">Give a template in the form of:  my_path/img%04d.bmp</property>
                                 <property name="max_size"></property>
                                 <property name="maximize_button">0</property>
                                 <property name="maximum_size"></property>
@@ -8173,7 +8339,7 @@
                                 <property name="gripper">0</property>
                                 <property name="hidden">0</property>
                                 <property name="id">wxID_ANY</property>
-                                <property name="label">Диапазон кадров:</property>
+                                <property name="label">Frames range:</property>
                                 <property name="max_size"></property>
                                 <property name="maximize_button">0</property>
                                 <property name="maximum_size"></property>
@@ -8839,7 +9005,7 @@
                                 <property name="gripper">0</property>
                                 <property name="hidden">0</property>
                                 <property name="id">wxID_ANY</property>
-                                <property name="label">Длина пачки кадров:</property>
+                                <property name="label">Frame pack length:</property>
                                 <property name="max_size"></property>
                                 <property name="maximize_button">0</property>
                                 <property name="maximum_size"></property>
@@ -9026,7 +9192,7 @@
                                         <property name="gripper">0</property>
                                         <property name="hidden">0</property>
                                         <property name="id">wxID_ANY</property>
-                                        <property name="label">перекрытие 1/2</property>
+                                        <property name="label">overlap 1/2</property>
                                         <property name="max_size"></property>
                                         <property name="maximize_button">0</property>
                                         <property name="maximum_size"></property>
@@ -9135,7 +9301,7 @@
                                 <property name="gripper">0</property>
                                 <property name="hidden">0</property>
                                 <property name="id">wxID_ANY</property>
-                                <property name="label">Этот параметр определяет порцию для загрузки и окно Фурье</property>
+                                <property name="label">This parameter defines the size of the Fourier transform over time as well.</property>
                                 <property name="max_size"></property>
                                 <property name="maximize_button">0</property>
                                 <property name="maximum_size"></property>
@@ -9216,7 +9382,7 @@
                 </object>
             </object>
         </object>
-        <object class="Dialog" expanded="1">
+        <object class="Dialog" expanded="0">
             <property name="aui_managed">0</property>
             <property name="aui_manager_style">wxAUI_MGR_DEFAULT</property>
             <property name="bg"></property>
@@ -9237,7 +9403,7 @@
             <property name="size">250,500</property>
             <property name="style">wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</property>
             <property name="subclass"></property>
-            <property name="title">Точки</property>
+            <property name="title">Points</property>
             <property name="tooltip"></property>
             <property name="window_extra_style"></property>
             <property name="window_name"></property>
@@ -9278,16 +9444,16 @@
             <event name="OnSetFocus"></event>
             <event name="OnSize"></event>
             <event name="OnUpdateUI"></event>
-            <object class="wxBoxSizer" expanded="1">
+            <object class="wxBoxSizer" expanded="0">
                 <property name="minimum_size"></property>
                 <property name="name">bSizer17</property>
                 <property name="orient">wxVERTICAL</property>
                 <property name="permission">none</property>
-                <object class="sizeritem" expanded="1">
+                <object class="sizeritem" expanded="0">
                     <property name="border">5</property>
                     <property name="flag">wxALL|wxEXPAND</property>
                     <property name="proportion">1</property>
-                    <object class="wxTextCtrl" expanded="1">
+                    <object class="wxTextCtrl" expanded="0">
                         <property name="BottomDockable">1</property>
                         <property name="LeftDockable">1</property>
                         <property name="RightDockable">1</property>
@@ -9374,11 +9540,11 @@
                         <event name="OnUpdateUI"></event>
                     </object>
                 </object>
-                <object class="sizeritem" expanded="1">
+                <object class="sizeritem" expanded="0">
                     <property name="border">5</property>
                     <property name="flag">wxEXPAND</property>
                     <property name="proportion">0</property>
-                    <object class="wxGridSizer" expanded="1">
+                    <object class="wxGridSizer" expanded="0">
                         <property name="cols">2</property>
                         <property name="hgap">0</property>
                         <property name="minimum_size"></property>
@@ -9386,11 +9552,11 @@
                         <property name="permission">none</property>
                         <property name="rows">0</property>
                         <property name="vgap">0</property>
-                        <object class="sizeritem" expanded="1">
+                        <object class="sizeritem" expanded="0">
                             <property name="border">5</property>
                             <property name="flag">wxALL|wxALIGN_CENTER_HORIZONTAL</property>
                             <property name="proportion">0</property>
-                            <object class="wxButton" expanded="1">
+                            <object class="wxButton" expanded="0">
                                 <property name="BottomDockable">1</property>
                                 <property name="LeftDockable">1</property>
                                 <property name="RightDockable">1</property>
@@ -9474,11 +9640,11 @@
                                 <event name="OnUpdateUI"></event>
                             </object>
                         </object>
-                        <object class="sizeritem" expanded="1">
+                        <object class="sizeritem" expanded="0">
                             <property name="border">5</property>
                             <property name="flag">wxALL|wxALIGN_CENTER_HORIZONTAL</property>
                             <property name="proportion">0</property>
-                            <object class="wxButton" expanded="1">
+                            <object class="wxButton" expanded="0">
                                 <property name="BottomDockable">1</property>
                                 <property name="LeftDockable">1</property>
                                 <property name="RightDockable">1</property>
@@ -9562,11 +9728,11 @@
                                 <event name="OnUpdateUI"></event>
                             </object>
                         </object>
-                        <object class="sizeritem" expanded="1">
+                        <object class="sizeritem" expanded="0">
                             <property name="border">5</property>
                             <property name="flag">wxALL|wxALIGN_CENTER_HORIZONTAL</property>
                             <property name="proportion">0</property>
-                            <object class="wxButton" expanded="1">
+                            <object class="wxButton" expanded="0">
                                 <property name="BottomDockable">1</property>
                                 <property name="LeftDockable">1</property>
                                 <property name="RightDockable">1</property>
@@ -9595,7 +9761,7 @@
                                 <property name="gripper">0</property>
                                 <property name="hidden">0</property>
                                 <property name="id">wxID_ANY</property>
-                                <property name="label">Выбрать A</property>
+                                <property name="label">Select on A</property>
                                 <property name="max_size"></property>
                                 <property name="maximize_button">0</property>
                                 <property name="maximum_size"></property>
@@ -9650,11 +9816,11 @@
                                 <event name="OnUpdateUI"></event>
                             </object>
                         </object>
-                        <object class="sizeritem" expanded="1">
+                        <object class="sizeritem" expanded="0">
                             <property name="border">5</property>
                             <property name="flag">wxALL|wxALIGN_CENTER_HORIZONTAL</property>
                             <property name="proportion">0</property>
-                            <object class="wxButton" expanded="1">
+                            <object class="wxButton" expanded="0">
                                 <property name="BottomDockable">1</property>
                                 <property name="LeftDockable">1</property>
                                 <property name="RightDockable">1</property>
@@ -9683,7 +9849,7 @@
                                 <property name="gripper">0</property>
                                 <property name="hidden">0</property>
                                 <property name="id">wxID_ANY</property>
-                                <property name="label">Выбрать В</property>
+                                <property name="label">Select on В</property>
                                 <property name="max_size"></property>
                                 <property name="maximize_button">0</property>
                                 <property name="maximum_size"></property>
@@ -9738,11 +9904,11 @@
                                 <event name="OnUpdateUI"></event>
                             </object>
                         </object>
-                        <object class="sizeritem" expanded="1">
+                        <object class="sizeritem" expanded="0">
                             <property name="border">5</property>
                             <property name="flag">wxALL|wxALIGN_CENTER_HORIZONTAL</property>
                             <property name="proportion">0</property>
-                            <object class="wxButton" expanded="1">
+                            <object class="wxButton" expanded="0">
                                 <property name="BottomDockable">1</property>
                                 <property name="LeftDockable">1</property>
                                 <property name="RightDockable">1</property>
@@ -9771,7 +9937,7 @@
                                 <property name="gripper">0</property>
                                 <property name="hidden">0</property>
                                 <property name="id">wxID_ANY</property>
-                                <property name="label">Функция...</property>
+                                <property name="label">Compute...</property>
                                 <property name="max_size"></property>
                                 <property name="maximize_button">0</property>
                                 <property name="maximum_size"></property>
@@ -9826,11 +9992,11 @@
                                 <event name="OnUpdateUI"></event>
                             </object>
                         </object>
-                        <object class="sizeritem" expanded="1">
+                        <object class="sizeritem" expanded="0">
                             <property name="border">5</property>
                             <property name="flag">wxALL|wxEXPAND</property>
                             <property name="proportion">0</property>
-                            <object class="wxButton" expanded="1">
+                            <object class="wxButton" expanded="0">
                                 <property name="BottomDockable">1</property>
                                 <property name="LeftDockable">1</property>
                                 <property name="RightDockable">1</property>
@@ -9859,7 +10025,7 @@
                                 <property name="gripper">0</property>
                                 <property name="hidden">0</property>
                                 <property name="id">wxID_ANY</property>
-                                <property name="label">Закрыть</property>
+                                <property name="label">Close</property>
                                 <property name="max_size"></property>
                                 <property name="maximize_button">0</property>
                                 <property name="maximum_size"></property>

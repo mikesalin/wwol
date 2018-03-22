@@ -10,5 +10,6 @@
 app = None
 main_video_frame = None
 VERBOSE = True
+POSTPONED_LOG = []
 
 

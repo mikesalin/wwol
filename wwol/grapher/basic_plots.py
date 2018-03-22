@@ -14,14 +14,14 @@ def draw_skxy(power_spec, created_files, file_prefix=None,
   dinam_range=40  
   # Определяем частоту
   if (nfreq is None) and (freq is None):
-    raise Exception("Частота должна быть как-то определена: freq | nfreq")
+    raise Exception("Frequency has to be defined either freq or nfreq")
   if nfreq is None:
     nfreq = round(freq/power_spec.df)-1    
   if (nfreq<0) or (nfreq>=power_spec.data.shape[2]):
     if nfreq is None:
-      raise Exception("Частота freq=%0.3f недоступна" % freq)
+      raise Exception("Frequency freq=%0.3f is not available" % freq)
     else:
-      raise Exception("Частота № nfreq=%d недоступна" % nfreq)
+      raise Exception("Frequency No. nfreq=%d is not available" % nfreq)
   if freq is None:
     freq = power_spec.df*(nfreq+1)
   

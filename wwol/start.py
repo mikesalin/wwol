@@ -36,7 +36,14 @@ def init_essentials():
     wwol_globals.app = wx.App()
     wx.Log_EnableLogging(False)
     my_encoding_tools._local_encoding = locale.getpreferredencoding()
-   
+    
+    for text in wwol_globals.POSTPONED_LOG:
+        if text[0] == 'W':
+            logging.warning(text)
+        else:
+            logging.debug(text)
+    wwol_globals.POSTPONED_LOG[:] = []
+    
 
 def main():
     "см. описание модуля"

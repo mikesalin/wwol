@@ -7,7 +7,7 @@ import wx
 from ..grapher.grapher_gui import GrapherMain
 
 __all__ = ["Selection", "_PseudoEvent", "AverSpecFinish",
-           "TempImagesMonitoringParam"]
+           "KillProgress", "TempImagesMonitoringParam"]
 
 
 class Selection:
@@ -84,8 +84,7 @@ class _PseudoEvent:
     def Veto(self):
         self.vetoed = True
 
-
-class AverSpecFinish:
+class KillProgress:
     def __init__(self, mvf, pd):
         """
         mvf (MainVideoFrame)
@@ -93,9 +92,19 @@ class AverSpecFinish:
         """
         self.mvf_ = mvf
         self.pd_ = pd
-    def __call__(self, power_spec):
+    def __call__(self, *arg):
         self.pd_.Update(100)
         self.pd_.Destroy()
+
+class AverSpecFinish(KillProgress):
+    def __init__(self, mvf, pd):
+        """
+        mvf (MainVideoFrame)
+        pd (ProgressDialog)
+        """
+        KillProgress.__init__(self, mvf, pd)
+    def __call__(self, power_spec):
+        KillProgress.__call__(self)
         if power_spec is None: return
         wx.Yield()
         grapher_wnd = GrapherMain(self.mvf_)

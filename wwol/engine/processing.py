@@ -7,6 +7,8 @@ import copy
 from collections import namedtuple
 import logging
 import time
+import os.path
+import json
 import numpy as np
 import wx
 
@@ -155,7 +157,7 @@ class Processing(Preview):
         
         if config.active_area_num < 0:
             state_ = self.DEAD_STATE
-            self._report_error("Не выбрана зона обработки")
+            self._report_error("No processing area is selected")
             return
         aa = config.areas_list[config.active_area_num]
         self.first_array_tyx = np.ndarray((self.pack_len,
@@ -449,7 +451,7 @@ class Processing(Preview):
                 self.movie_norm = rv[1]
             
             if (n % 10) == 0:
-                text = U("Загрузка и коррекция перспективы %d / %d (%0.0fM)"
+                text = U("%d / %d (%0.0fM) loading and transform of the perspective view"
                          % (n,
                             self.pack_len,
                             self.first_array_tyx.size * 8 * 1e-6))
@@ -458,7 +460,7 @@ class Processing(Preview):
                 
         logging.debug('all images are read into first_array_tyx')
         wx.CallAfter(lambda:
-            self.main_video_frame.b_footer_static_text.SetLabel(u"БПФ (1)"))
+            self.main_video_frame.b_footer_static_text.SetLabel(u"FFT pass 1 of 2)"))
         
         # вычисляем средний уровень и вычитаем
         mean_level = np.mean(self.first_array_tyx[0, :, :])
@@ -473,7 +475,7 @@ class Processing(Preview):
                        % (second_array_fyx.size * 16 * 1e-6))
 
         wx.CallAfter(lambda:
-            self.main_video_frame.b_footer_static_text.SetLabel(u"БПФ (2)"))
+            self.main_video_frame.b_footer_static_text.SetLabel(u"FFT pass 2 of 2"))
 
         if self.equalize_in_space:
             df = self.fps / (1.0 * self.pack_len)
@@ -552,8 +554,8 @@ class Processing(Preview):
             if self.second_filter_enabled:
                 self._set_express_spectrum(array33_fkk)
             else:
-                self._report_error("Запрошен спектр из второго фильтра, "
-                                   "а фильтр не создан")
+                self._report_error("You have not configured the second filter."
+                                   "Nothing to display.")
                 raise GoToFrameFailed()
 
         # ifft:  third_array_fkk -> output1_array_tkk,  
@@ -567,7 +569,7 @@ class Processing(Preview):
         for npipeline in range(0, pipelines_count):
             wx.CallAfter(lambda:
                 self.main_video_frame.b_footer_static_text.SetLabel(
-                    u"БПФ (%d)" % (npipeline+2)))
+                    u"FFT (%d)" % (npipeline+2)))
             if npipeline == 0:
                 ifft_in = third_array_fkk
             else:
@@ -717,9 +719,9 @@ class Processing(Preview):
                     full_size_ifft_out_yx.shape[1]
                 
                 if npipeline == 0:
-                    self.full_size_frame_flt1_yx = full_size_ifft_out_yx
+                    self.full_size_frame_flt1_yx = np.copy(full_size_ifft_out_yx)
                 else:
-                    self.full_size_frame_flt2_yx = full_size_ifft_out_yx
+                    self.full_size_frame_flt2_yx = np.copy(full_size_ifft_out_yx)
                 full_size_ifft_out_yx = None
             self.full_size_for_frame = cur_frame_num
             self.full_size_for_zoom = b_panel.zoom
@@ -1044,9 +1046,9 @@ class Processing(Preview):
           _called_from_working_thread (bool)
         Возвращает:
           None
-          Ставит задачу в очередь и мгновенно выходит.
-          По окончанию работы результат выдается через finish_callback
-            (см. выше)
+        Ставит задачу в очередь и мгновенно выходит
+        (если не _called_from_working_thread).
+        По окончанию работы результат выдается через finish_callback
         """
         if not _called_from_working_thread:
             self._enqueue_task(lambda: \
@@ -1088,6 +1090,7 @@ class Processing(Preview):
                                      continue_flag_keeper)
                     else:
                         rv = progress_callback(progress)
+                        continue_flag_keeper.append(rv)
                 time.sleep(0.1)
                 continue_mutex.acquire()
                 continue_flag_keeper_ = copy.deepcopy(continue_flag_keeper)
@@ -1110,6 +1113,105 @@ class Processing(Preview):
             logging.debug(str(err))
             finish_callback_(None)
             raise
+
+
+    def save_xyt_result(self,
+                        filename,
+                        from_frame,
+                        to_frame,
+                        finish_callback,
+                        progress_callback,
+                        wrap_callbacks = True,
+                        _called_from_working_thread = False):
+        """
+        Сохраняет зависимость из full_size_frame_flt1_yx последовательно
+        по кадрам в файл
+        Аргументы:
+          finish_calback (callable): если не None, то вызывается в конце работы
+                                     с аргументом: True - хорошо, False - ошибка
+          прочие аргументы аналогично calc_average_spectrum
+        """
+        if not _called_from_working_thread:
+            self._enqueue_task(lambda: \
+                self.save_xyt_result(filename,
+                                     from_frame,
+                                     to_frame,
+                                     finish_callback,
+                                     progress_callback,
+                                     wrap_callbacks,
+                                     True))
+            return
+        if finish_callback is None:
+            finish_callback = lambda succes: \
+                logging.debug('save_xyt_result: ' + ['exit with error', 'done'][succes]) 
+        if progress_callback is None:
+            progress_callback=lambda v: logging.debug('save_xyt_result: %d%%' % v) 
+        if wrap_callbacks:
+            finish_callback_ = lambda val: wx.CallAfter(finish_callback, val)
+            progress_callback_=lambda val: wx.CallAfter(progress_callback, val)
+        else:
+            finish_callback_ = finish_callback
+            progress_callback_ = progress_callback
+        f = None
+        try:
+            f = open(filename, 'wb')
+            for nframe in range(from_frame, to_frame + 1):
+                rv = self._goto_frame_act(nframe)
+                if rv is not None:
+                    raise rv
+                f.write(np.getbuffer(self.full_size_frame_flt1_yx))
+                            
+                if (nframe - from_frame) % 10 == 0:
+                    progress = ((nframe - from_frame) * 100) / (to_frame - from_frame)
+                    progress = min(progress, 99)
+                    progress_callback_(progress)
+            f.close()
+            f = None
+            
+            # файл с описанием
+            proj_path, proj_name1 = os.path.split(self.main_video_frame.project_filename)
+            proj_name2 = proj_name1.split('.')
+            proj_name = proj_name2[0]
+            desc = {'project':proj_name,
+                    'shape':[self.full_size_frame_flt1_yx.shape[0],
+                             self.full_size_frame_flt1_yx.shape[1],
+                             to_frame - from_frame + 1],
+                    'dtype':repr(self.full_size_frame_flt1_yx.dtype),
+                    'tags':['y','x','t'],
+                    'from_to_frames':[from_frame + 1, to_frame + 1],
+                    'physical_size':[self.ly,
+                                     self.lx,
+                                     (to_frame - from_frame + 1) / self.fps]
+                   }
+            f = open(filename + '.json', 'w')
+            json.dump(desc, f, ensure_ascii = False, indent = 2)
+            f.close()
+#            logging.debug(repr(self.full_size_frame_flt1_yx.flags))
+            
+            progress_callback_(100)
+            finish_callback_(True)
+
+        except Exception as err:
+            logging.debug(str(err))
+            finish_callback_(False)
+            self._report_noncritical_error("An error has occurred")
+        if f is not None:
+            f.close()
+    
+    
+    def _report_noncritical_error(self, message):
+        "Выдать сообщение об ошибке в ГУИ из рабочего потока"
+        wx.CallAfter(self._report_noncritical_error_gui_thread, message)
+        
+    
+    def _report_noncritical_error_gui_thread(self, message):
+        msg_dlg = wx.MessageDialog(self.main_video_frame,
+                                   U(message),
+                                   "",
+                                   wx.ICON_ERROR)        
+        msg_dlg.ShowModal()
+        msg_dlg.Destroy()
+
     
     
     def backtrace_b(self, X, Y, force = False):

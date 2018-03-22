@@ -3,8 +3,6 @@
 
 # Код требует рефакторинга: 
 # 1. Оформить табы в отдельный класс
-# 2. Определиться со сценарием поведения (сделать конечный автомат):
-#    нет изображения -- загружается -- есть изображение -- ..?
 
 import logging
 import os
@@ -380,7 +378,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         self.viewer.goto_frame(self.cur_frame_num + self.config.button_step)
 
     def _notify_bad_input_simply(self):
-        dlg = wx.MessageDialog(self, u"Неверный ввод", "", wx.ICON_EXCLAMATION)
+        dlg = wx.MessageDialog(self, u"Invalid input value", "", wx.ICON_EXCLAMATION)
         dlg.ShowModal()
         dlg.Destroy()  
 
@@ -392,7 +390,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         if self.viewer is None:
             logging.debug("suddenly not available")
             return        
-        dlg = wx.TextEntryDialog(self, u"Номер кадра для перехода:", "",\
+        dlg = wx.TextEntryDialog(self, u"Number of frame:", "",\
                                  "%d" % (self.cur_frame_num+1) )
         code = dlg.ShowModal()
         txt_res = dlg.GetValue()
@@ -416,7 +414,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
             logging.debug("suddenly not available")
             return
         dlg = wx.TextEntryDialog(self,
-                                 u"Время для перехода в формате мин:сек.мс :",
+                                 u"Time position in a form of min:sec.ms :",
                                  "",
                                  self._frame_to_time_str(self.cur_frame_num) )
         code = dlg.ShowModal()
@@ -679,7 +677,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         if ok:
             if len(text) > 0:
                 dlg = wx.MessageDialog(self,
-                                       U(text + "\nЗапустить обработку?"),
+                                       U(text + "\nLaunch processing?"),
                                        "",
                                        wx.YES_NO)
                 rv = dlg.ShowModal()
@@ -850,7 +848,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
             raise Exception("Already in selection mode !")
         if self.viewer is None:
             dlg = wx.MessageDialog(self,
-                                   u'Нужно включить предпросмотр',
+                                   u'The Preview mode should be turned on',
                                    '',
                                    wx.OK | wx.CANCEL)
             rv = dlg.ShowModal()
@@ -1048,8 +1046,8 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         if ok and (len(text) != 0):
             self.display_warn(text)
         if not ok:
-            long_text = "Параметры на данной вкладке введены неправильно.\n"\
-                        "Их придется сбросить, чтобы продолжить.\n\n"\
+            long_text = "There are invalid values on this panel.\n"\
+                        "They have to be reset before we proceed\n\n"\
                         + text
             flags = wx.ICON_ERROR | wx.OK | wx.CANCEL
             dlg = wx.MessageDialog(self, U(long_text), '', flags)
@@ -1081,8 +1079,8 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         "Применить значения в json-тексте настроек (нажали кнопку)"
         ok, text = self._apply_json_button_func_act()
         if (not ok) or (len(text) > 0):
-            msg_header = ["Неверный ввод",
-                          "Замечание по введенным параметрам"] [ok]
+            msg_header = ["Invalid input values",
+                          "Issues on input values"] [ok]
             msg_icon = [wx.ICON_ERROR, wx.ICON_EXCLAMATION] [ok]
             dlg = wx.MessageDialog(self, U(text), U(msg_header), msg_icon)
             dlg.ShowModal()
@@ -1129,7 +1127,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         self.reset_json_button.Enabled = False
         return (True, warn_txt)
 
-    _RESTART_PROCESSING_MSG = "Вынуждены перезапустить обработку"
+    _RESTART_PROCESSING_MSG = "Processing is restarted"
     
     def _check_restart_processing(self, sect_name):
         """
@@ -1209,7 +1207,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
             return True
         
         dlg = wx.MessageDialog(self,
-                               u'Сохранить изменения в текущем проекте?',
+                               u'Do you want to save changes in the current project?',
                                '',
                                wx.ICON_EXCLAMATION | wx.YES_NO | wx.CANCEL)
         rv = dlg.ShowModal()
@@ -1241,7 +1239,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
                           U(self.project_filename),
                           U(str(err)))
             dlg = wx.MessageDialog(self,
-                                   U("Не могу сохранить проект в файл: '%s'" %
+                                   U("Can't save project to file: '%s'" %
                                      self.project_filename),
                                    '',
                                    wx.ICON_ERROR)
@@ -1258,7 +1256,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
                      False, если не удалось сохранить или нажали 'Отмена'
         """
         dlg = wx.FileDialog(self,
-                            u'Сохранить проект как',
+                            u'Save project as',
                             '',
                             U(self.project_filename),
                             self._WWOL_FILE_WILDCARD,
@@ -1284,7 +1282,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
             return
         
         dlg = wx.FileDialog(self,
-                            u'Открыть проект',
+                            u'Open project',
                             '',
                             U(self.project_filename),
                             self._WWOL_FILE_WILDCARD,
@@ -1299,7 +1297,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         except ConfigError as err:
             dlg = wx.MessageDialog(self,
                                U(str(err)),
-                               u'Ошибка при загрузке проекта',
+                               u'Error occurred while loading a project',
                                wx.ICON_ERROR)
             dlg.ShowModal()
             dlg.Destroy()
@@ -1309,7 +1307,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         if len(warn_txt) != 0:
             dlg = wx.MessageDialog(self,
                                    U(warn_txt),
-                                   u'Замечания по загруженному проекту',
+                                   u'Issues, concerning the loaded project',
                                    wx.ICON_EXCLAMATION)
             dlg.ShowModal()
             dlg.Destroy()
@@ -1319,7 +1317,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         if self.config.source_set:
             self.enter_preview()
     
-    _WWOL_FILE_WILDCARD = U('Проекты WWOL (*.wwl)|*.wwl|Все файлы (*.* , *)|*')
+    _WWOL_FILE_WILDCARD = U('WWOL projects (*.wwl)|*.wwl|All files (*.* , *)|*')
 
     def _simple_proj_button_func(self, event):
         "Нажали на кнопку 'Простая проекция'"
@@ -1334,7 +1332,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         
         # выдаем диалог
         dlg = wx.TextEntryDialog(self,
-                                 u'Коэффициент проецирования метры / пикселы',
+                                 u'Projection coefficient: meter / pixels',
                                  '',
                                  repr(prev_val))
         rv = dlg.ShowModal()
@@ -1346,7 +1344,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
             val = float(str_val)
             if val <= 0: raise ValueError()
         except ValueError:
-            dlg = wx.MessageDialog(self, u'Неверный ввод', '', wx.ICON_ERROR)
+            dlg = wx.MessageDialog(self, u'Invalid value', '', wx.ICON_ERROR)
             dlg.ShowModal()
             dlg.Destroy()
             return
@@ -1356,7 +1354,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
     
     def _load_cameras_list(self):
         """
-        (Врямянка. Времяннно здесь. И временно выдает захардкоженные значения)
+        (Врямянка. Временно здесь. И временно выдает захардкоженные значения)
         Возвращает список калиброванных камер:
                 # Здесь нужен список камер в формате:
         [
@@ -1405,12 +1403,12 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         #for j in range(0, len(cameras)):
         #    cameras[j]["is_gui_function"] = False
         cameras.append(
-            {"name":"(Калибровать камеру / редактировать список)",
+            {"name":"(Calibrate camera / edit list)",
              IS_GUI_FUNCTION:True})
                 
         dlg = wx.SingleChoiceDialog(self,
                                     '',
-                                    u'Калиброванные камеры',
+                                    u'Preconfigured cameras',
                                     [U(x["name"]) for x in cameras])
         dlg.SetSize((300,400))
         rv = dlg.ShowModal()
@@ -1420,7 +1418,9 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         
         if cameras[sel].has_key(IS_GUI_FUNCTION) and \
           cameras[sel][IS_GUI_FUNCTION]:
-            dlg = wx.MessageDialog(self, u'Не работает')
+            dlg = wx.MessageDialog(
+                self,
+                u'This function is still under construction. Sorry (')
             dlg.ShowModal()
             dlg.Destroy()
             return
@@ -1593,6 +1593,12 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
                     ch.SetValue(True)
                     break
         
+        label = ''
+        if self.left_scrshot_check.IsChecked():
+            label = 'Raw image'
+        else:
+            label = 'Raw data'
+        self.raw_scrshot_check.SetLabel(label)
         self._update_scrshot_tooltip()
     
     def _update_scrshot_tooltip(self):
@@ -1615,7 +1621,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         if self.single_scrshot_check.GetValue():
             self._make_single_scrshot()
         else:
-            pass # не cделано
+            self._make_video_scrshot()
     
     def _make_single_scrshot(self):
         "Сделать скриншот, один кадр"
@@ -1635,12 +1641,16 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
             else:
                 pass # не сделано
         if (bmp is None) or (not bmp.IsOk()):
-            dlg = wx.MessageDialog(self, u"Не готово", '', wx.OK)
+            dlg = wx.MessageDialog(
+                self, 
+                u"This kind of a screenshot is not implemented yet. WIP",
+                '',
+                wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
             return
         self.save_bitmap(bmp)
-        
+    
     def save_bitmap(self, bmp, default_fname = 'screenshot', parent_window = None):
         """
         Сохраняет изображения в файл.
@@ -1658,10 +1668,10 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         ft = self.default_scrshot_file_type
         dlg = wx.FileDialog(
             parent_window,
-            message = u'Сохранить изображение',
+            message = u'Save image',
             defaultDir = U(self.default_scrshot_dir),
             defaultFile = U(default_fname) + exts[ft],
-            wildcard = u'BMP|*.bmp|PNG|*.png|JPEG|*.jpg|Все файлы (*.*)|*.*',
+            wildcard = u'BMP|*.bmp|PNG|*.png|JPEG|*.jpg|All files (*.*)|*.*',
             style = wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
         dlg.SetFilterIndex(ft)
         rv = dlg.ShowModal()
@@ -1678,7 +1688,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         fname1, fname_ext = os.path.splitext(fname)
         if string.lower(fname_ext) != exts[ft]:
             dlg = wx.MessageDialog(parent_window,
-                                   u"Изменить расширение файла на '%s'?"
+                                   u"Change the file's extension into '%s'?"
                                        % exts[ft],
                                    "",
                                    wx.YES_NO)
@@ -1693,7 +1703,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
             q = -1
             while q < 0:
                 dlg = wx.TextEntryDialog(parent_window,
-                                         u"Качество изображения (0-100):",
+                                         u"Set quality (0-100):",
                                          "",
                                          str(self.default_scrshot_jpeg_quality))
                 rv = dlg.ShowModal()
@@ -1714,22 +1724,89 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
                                     PNG_ID: wx.BITMAP_TYPE_PNG} [ft])
         if not save_ok:
             dlg = wx.MessageDialog(parent_window,
-                                   u"Не могу сохранить изображение",
+                                   u"Can't save the image",
                                    "",
                                    wx.ICON_ERROR)
             dlg.ShowModal()
             dlg.Destroy()
     
+    def _make_video_scrshot(self):
+       if self.raw_scrshot_check.GetValue() and self.right_scrshot_check.GetValue():
+           # единственный реализованный случай
+            parent_window = self
+            if not self._in_processing_mode():
+                dlg = wx.MessageDialog(parent_window,
+                                       u"available only in processing mode",
+                                       "",
+                                       wx.OK)
+                dlg.ShowModal()
+                dlg.Destroy()
+                return
+
+            # надо спросить с какого по какой кадр
+            from_frame = -1
+            to_frame = -1
+            default_input = "%d %d" % (self.cur_frame_num + 1,
+                                       self.cur_frame_num + self.config.pack_len)
+            while from_frame < 1:
+                dlg = wx.TextEntryDialog(
+                    parent_window,
+                    u"Enter from and to frame numbers (inclusive):",
+                    "",
+                    default_input)
+                rv = dlg.ShowModal()
+                text_value = dlg.GetValue()
+                dlg.Destroy()
+                if rv != wx.ID_OK: return
+                try:
+                    (from_text, to_text) = text_value.split(' ')
+                    from_frame = int(from_text)
+                    if (from_frame < 0): raise ValueError()
+                    to_frame = int(to_text)
+                    if (to_frame <= from_frame): raise ValueError()
+                except ValueError:
+                    default_input = text_value
+
+            # спрашиваем файл
+            dlg = wx.FileDialog(
+                parent_window,
+                message = u'Save data',
+                defaultDir = U(self.default_scrshot_dir),
+                defaultFile = '',
+                wildcard = u'BIN|*.bin|All files (*.*)|*.*',
+                style = wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+            rv = dlg.ShowModal()
+            fname = dlg.GetPath()
+            dlg.Destroy()
+            if rv != wx.ID_OK:
+                return
+            self.default_scrshot_dir = os.path.dirname(fname.encode('utf-8'))
+            
+            # сохраняем
+#            pd = wx.ProgressDialog(
+#                'WWOL',
+#                u"Writing data to disk",
+#                100,
+#                self,
+#                wx.PD_ELAPSED_TIME | wx.PD_ESTIMATED_TIME | wx.PD_AUTO_HIDE)
+#            pd.Show()
+            self.viewer.save_xyt_result(fname,
+                                        from_frame - 1,
+                                        to_frame - 1,
+                                        None, None)
+#                                        KillProgress(self,pd),
+#                                        pd.Update)
+
     def _open_video_menu_func(self, event):
         "Меню 'Открыть видеофайл...'"
         if not self._ensure_saved():
             return
         
         dlg = wx.FileDialog(self,
-                            u'Открыть видеофайл',
+                            u'Open a video file',
                             '',
                             '',
-                            u'Все файлы (*.*)|*.*',
+                            u'All files (*.*)|*.*',
                             wx.FD_OPEN)
         rv = dlg.ShowModal()
         filename2open = clean_input_string(dlg.GetPath())
@@ -1749,9 +1826,9 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         text = str(self.config.button_step)
         first_query = True
         while val <= 0:
-            msg_u = u'Шаг для стрелок, число кадров:'
+            msg_u = u'Set the step for changing frames, when you press the arrow buttons:'
             if not first_query:
-                msg_u = u'Неверный ввод.\n' + msg_u
+                msg_u = u'Invalid input.\n' + msg_u
             first_query = False
             dlg = wx.TextEntryDialog(self, msg_u, '', text)
             rv = dlg.ShowModal()
@@ -1796,18 +1873,19 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         Берет спектр по одной пачке кадров из Processing и запускает графер.
         """
         if not self._in_processing_mode():
-            dlg = wx.MessageDialog(self, u"Включите режим обработки", "", wx.OK)
+            dlg = wx.MessageDialog(self, u"Turn the Processing mode on first", "", wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
             return
         interval = []
         power_spec = self.viewer.express_spectrum(interval)
         if power_spec is None:
-            dlg = wx.MessageDialog(self,
-                                   u"Дождитесь, пока обработаем хотя бы одну "
-                                   u"пачку данных, и нажмите снова на эту кнопку.",
-                                   "",
-                                   wx.OK)
+            dlg = wx.MessageDialog(
+                self,
+                u"Please, wait till we process atleast one pack of frames"
+                u"and then press this button again.",
+                "",
+                wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
             return
@@ -1829,9 +1907,9 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
     def _aver_spec_button_func(self, event):
         "Нажали на кнопку 'Накопленный спектр'"
         dlg = wx.MessageDialog(self,
-                              u"Вычисление накопленного спектра по всему "
-                              u"видеоряду -- это длительная операция.\n"
-                              u"Нажмите 'OK', чтобы начать.",
+                              u"Note that computing the averaged spectrum over "
+                              u"the entire time series is a time consuming "
+                              u"operation.\nPress 'OK' to begin.",
                               "",
                               wx.OK | wx.CANCEL)
         rv = dlg.ShowModal()
@@ -1845,7 +1923,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
 
         pd = wx.ProgressDialog(
             'WWOL',
-            u"Вычисление накопленного спектра по всему видеоряду",
+            u"Computing the averaged spectrum",
             100,
             self,
             wx.PD_CAN_ABORT | wx.PD_ELAPSED_TIME | wx.PD_ESTIMATED_TIME
@@ -1908,7 +1986,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
     
     def _footer_static_text_dclick_act(self, obj):
         "выводит диалог с подписью этого контрола"
-        dlg = wx.TextEntryDialog(self, "", "Подпись", obj.GetLabel())
+        dlg = wx.TextEntryDialog(self, "", "Label", obj.GetLabel())
         dlg.ShowModal()
         dlg.Destroy()
     
@@ -1922,7 +2000,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
             
 
 def print_hint():
-    "Имена методов и MainVideoFrame, включая с \'_\'"
+    "Имена методов и MainVideoFrame, включая те, что начинаются с \'_\'"
     lst = MainVideoFrame.__dict__.keys()
     lst.sort()
     for s in lst:

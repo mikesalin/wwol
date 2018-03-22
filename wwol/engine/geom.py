@@ -39,7 +39,7 @@ def set_abc(config):
     b = l0_ / l0
     c = 1.0 / inv_cos_phi;
     config.proj_coef = ProjectingCoef(a, b, c)
-    logging.debug("a = %0.6f, b = %0.3f, c = %0.3f", a, b, c)
+#    logging.debug("a = %0.6f, b = %0.3f, c = %0.3f", a, b, c)
 
 DEFAULT_ANGLE_PER_PIXEL = 1
 
@@ -203,7 +203,6 @@ def b2a(coord, config, img_size):
     Пересчет из координат спроецированной области (метры)
     в изображение (пикселы)
     """
-    # TODO
     a, b, c = config.proj_coef
     x = coord[0]
     y = coord[1]

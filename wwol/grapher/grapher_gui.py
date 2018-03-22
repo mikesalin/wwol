@@ -204,14 +204,14 @@ class GrapherMain(grapher_fb.GrapherMainFB):
         """
         n_et = len(self.my_spec.etalon) 
         if n_et == 0:
-            ttt = ("Эталонная зависимость отсутсвует", 'red')
+            ttt = ("Reference spectrum is unavailable", 'red')
         if n_et == 1:
-            ttt = ("Эталонная зависимость присутствует", 'green')
+            ttt = ("Reference spectrum is present", 'green')
         if n_et == 2:
-            ttt = ("Присутствует %d эталонов" % n_et , 'green')
+            ttt = ("%d reference spectra present" % n_et , 'green')
         if (self.my_spec.calibr_details is not None) and \
           (self.my_spec.calibr_details[0] == power_spec.STD_CALIBR_FLAG):
-            ttt = ("Уже калиброван" , 'black')
+            ttt = ("Calibration was done" , 'black')
         self.etalon_static_text.SetLabelText(unicode(ttt[0], 'utf-8'))
         self.etalon_static_text.SetForegroundColour(ttt[1])
     
@@ -219,7 +219,7 @@ class GrapherMain(grapher_fb.GrapherMainFB):
         "Нажатие Открыть (open_button)"
         global default_spec_path
         dlg = wx.DirDialog(self,
-                           u"Выберите папку со спектром",
+                           u"Select a folder with a spectrum",
                            U(default_spec_path))
         res = dlg.ShowModal()
         if res != wx.ID_OK:
@@ -235,14 +235,14 @@ class GrapherMain(grapher_fb.GrapherMainFB):
         Вторая часть функции для кнопки "открыть".
         Непосредственно загрузка спектра.
         """
-        self.SetStatusText(u"Загрузка...")
+        self.SetStatusText(u"Loading...")
         self.screen_bitmap.SetBitmap(embed_gui_images._hourglass.GetBitmap())
         wx.Yield()
         try:
             loaded_spec = power_spec.load_text_spec(path)            
         except Exception as err:
             logging.debug("Can't load spectrum from %s , %s", path, str(err))
-            dlg = wx.MessageDialog(self, u"Ошибка при загрузке спектра", "",\
+            dlg = wx.MessageDialog(self, u"Can't load spectrum", "",\
                                    wx.ICON_ERROR)
             dlg.ShowModal()
             dlg.Destroy()
@@ -306,7 +306,7 @@ class GrapherMain(grapher_fb.GrapherMainFB):
            если ошибка ввода, то вызывает report_bad_input
            если file_prefix!=None и IOError, то IOError идет дальше
         """
-        self.SetStatusText(u"Обработка...")
+        self.SetStatusText(u"Processing...")
         #сброс:
         self.cleanup_files_func()
         self.cur_draw_func = None
@@ -451,7 +451,7 @@ class GrapherMain(grapher_fb.GrapherMainFB):
 
         except IOError:
             dlg = wx.MessageDialog(self,
-                                   u"Ошибка: не могу записать временные файлы",
+                                   u"Error: can't write temporary files",
                                    "",
                                    wx.ICON_ERROR)
             dlg.ShowModal()
@@ -524,19 +524,19 @@ class GrapherMain(grapher_fb.GrapherMainFB):
         Конечный этап работы plot_button_func, on_size_func, ...
         """        
         if self.cur_draw_func is None:
-            self.SetStatusText(u"Отображение не готово")
+            self.SetStatusText(u"Image is not ready")
             self.screen_bitmap.SetBitmap(wx.EmptyBitmap(1,1))
             return
         
         size = self.screen_panel.GetSizeTuple()
         self.gnuplot_output_text.SetValue("") # сброс     
-        self.SetStatusText(u"Запуск gnuplot...")        
+        self.SetStatusText(u"Starting Gnuplot...")        
         try:
             rv = self.cur_draw_func(self.cleanup_files, "file", size)
         except OSError:
             #совсем фейл
-            logging.debug("Can't run gnuplot")
-            fail_text = u"Не удалось запустить gnuplot"
+            logging.debug("Can't run Gnuplot")
+            fail_text = u"Can't run Gnuplot"
             self.cur_draw_func = None # значит это был плохой скрипт
             self.gnuplot_output_text.SetValue(fail_text)
             dlg = wx.MessageDialog(self, fail_text, "", wx.ICON_ERROR)
@@ -551,13 +551,13 @@ class GrapherMain(grapher_fb.GrapherMainFB):
             #полу-фейл
             self.section_choice.SetSelection(1)
             self.gnuplot_notebook.SetSelection(0)
-            msg_text = u"Gnuplot вернул %d, проверте текстовый вывод" % rv[0]
+            msg_text = u"Gnuplot returned %d ! Check the text output." % rv[0]
             dlg = wx.MessageDialog(self, msg_text, "", wx.ICON_EXCLAMATION)
             dlg.ShowModal()
             dlg.Destroy()
             self.warn_gnuplot_code = False
         
-        self.SetStatusText(u"Получение рисунка из gnuplot...")
+        self.SetStatusText(u"Obtaining an image from Gnuplot...")
         img_fname = self.cleanup_files[-1]
         #проверить размер файла -- не 0?        
         try:
@@ -574,8 +574,8 @@ class GrapherMain(grapher_fb.GrapherMainFB):
             if rv[0]==0:
                 #очень странный фейл
                 logging.debug("No image file was generated!")
-                dlg = wx.MessageDialog(self, u"Ошибка взаимодействия с "\
-                   u"gnuplot: не удалось загрузить файл", "", wx.ICON_ERROR)
+                dlg = wx.MessageDialog(self, u"Problem in interaction with Gnuplot. "\
+                   u"Can't load the result file", "", wx.ICON_ERROR)
                 dlg.ShowModal()
                 dlg.Destroy()
             self.SetStatusText("")
@@ -626,7 +626,7 @@ class GrapherMain(grapher_fb.GrapherMainFB):
         self.find_freq_text.SetValue("")
                     
     def report_bad_input(self):
-        dlg = wx.MessageDialog(self, u"Неверный ввод", "", wx.ICON_EXCLAMATION)
+        dlg = wx.MessageDialog(self, u"Invalid input value", "", wx.ICON_EXCLAMATION)
         dlg.ShowModal()
         dlg.Destroy()
     
@@ -636,7 +636,7 @@ class GrapherMain(grapher_fb.GrapherMainFB):
        
     def on_close_func(self, event):
         "При зактрытии"
-        self.SetStatusText(u"Закрываемся...")
+        self.SetStatusText(u"Closing...")
         self.cleanup_files_func()
         self.alive = False
         event.Skip()
@@ -679,7 +679,7 @@ class GrapherMain(grapher_fb.GrapherMainFB):
         try:
             self.cur_draw_func(self.cleanup_files, "console+", size)
         except OSError:
-            dlg = wx.MessageDialog(self, u"Что-то пошло не так", "", wx.ICON_ERROR)
+            dlg = wx.MessageDialog(self, u"Unknown error", "", wx.ICON_ERROR)
             dlg.ShowModal()
             dlg.Destroy()
         if sys.platform == 'win32':
@@ -694,7 +694,7 @@ class GrapherMain(grapher_fb.GrapherMainFB):
         Нажали пункт меню Сохранить скрипт + данные
         """
         dlg = wx.FileDialog(self,
-                            u"Начало имени файла",
+                            u"Beginning of filename",
                             self.gnuplot_save_default_dir,
                             self.proj_name + "_",
                             "*.*|*.*",
@@ -717,7 +717,7 @@ class GrapherMain(grapher_fb.GrapherMainFB):
                 return
         except OSError, IOError:
             logging.debug("Can't save files!")
-            dlg = wx.MessageDialog(self, u"Ошибка записи", "", wx.ICON_ERROR)
+            dlg = wx.MessageDialog(self, u"Can't save files!", "", wx.ICON_ERROR)
             dlg.ShowModal()
             dlg.Destroy()
             
@@ -806,7 +806,7 @@ class GrapherMain(grapher_fb.GrapherMainFB):
       Резульатт выводится в Инфо
       """
       
-      dlg = wx.TextEntryDialog(self, u"Начальная частота [Гц]:", u"Расчет SWH",
+      dlg = wx.TextEntryDialog(self, u"Lowest frequency [Hz]:", u"Computing SWH",
                                self.last_swh_freq_str)
       rv = dlg.ShowModal()
       if rv != wx.ID_OK: return
@@ -820,11 +820,11 @@ class GrapherMain(grapher_fb.GrapherMainFB):
       
       res_text = ""
       swh_list = basic_plots.calc_swh(self.my_spec, start_freq)
-      res_text += "SWH, f>%0.3fГц, [м]: %0.3f" % (start_freq, swh_list[0])
+      res_text += "SWH, f>%0.3fHz, [m]: %0.3f" % (start_freq, swh_list[0])
       if len(swh_list) == 2:
-          res_text += ", для эталона: %0.3f" % swh_list[1]
+          res_text += ", ref: %0.3f" % swh_list[1]
       if len(swh_list) > 2:
-          res_text += ", для эталонов: "
+          res_text += ", refs: "
           not_first = False
           for val in swh_list[1:]:
               if not_first:
@@ -882,13 +882,13 @@ class GrapherMain(grapher_fb.GrapherMainFB):
         path = dlg.GetPath()
         dlg.Destroy()
         
-        self.SetStatusText(u"Запись на диск...")
+        self.SetStatusText(u"Writing to disk...")
         wx.Yield()
         try:
             power_spec.save_text_spec(path, self.my_spec)            
         except Exception as err:
             logging.debug("Can't save spectrum to:\n%s\n%s" % (path, str(err)))
-            dlg = wx.MessageDialog(self, u"Ошибка при сохранении спектра", "",\
+            dlg = wx.MessageDialog(self, u"Can't save spectrum", "",\
                                    wx.ICON_ERROR)
             dlg.ShowModal()
             dlg.Destroy()

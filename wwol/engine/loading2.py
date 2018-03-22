@@ -23,14 +23,14 @@ def make_loader(config, gui_binding = None):
                 или None (если gui_binding != None, то выдаст MessageDialog)
     """
     if not config.source_set:
-        _error2gui(gui_binding, "Сначала выберите видеофайл для обработки!")
+        _error2gui(gui_binding, "First, select a video file to process!")
         return None
 
     d = {IMG_SOURCE : _make_image_loader,
          FFMPEG_MANUAL_SOURCE : _make_ffmpeg_loader,
          FFMPEG_AUTO_SOURCE : _make_ffmpeg_loader}
     if not d.has_key(config.source_type):
-        _error2gui(gui_binding, "Неизвестный тип загрузчика кадров")
+        _error2gui(gui_binding, "Unknown loader")
         return None
 
     ldr = d[config.source_type](config, gui_binding)
@@ -70,12 +70,12 @@ def _make_ffmpeg_loader(config, gui_binding = None):
             use_shell = config.user_use_shell
         else:
             _error2gui(gui_binding,
-                       "Выбран ручной тип источника кадров. Из соображений "
-                       "безопасности Вам следует сначала явным образом "
-                       "посмотреть на команду, которая будет выполняться "
-                       "на Вашем компьютере.\nНа вкладке 'Источник кадров' "
-                       "нажмите 'Выбрать исходный файл', проверьте значение "
-                       "в поле 'команда' и нажмите 'Ok'")
+                       "A custom video data source is selected."
+                       "Due to safety reasons, please, review the "
+                       "command line, which is going to be executed.\n"
+                       "Go to the 'Video data source', press 'Configure', "
+                       "check the 'Command line' field in the opened window. "
+                       "Then press 'OK'.")
             return None
     
     loader = loading.ffmpeg_loader(loader_cmd,

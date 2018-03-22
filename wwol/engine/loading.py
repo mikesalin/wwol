@@ -10,15 +10,80 @@ import subprocess
 import shlex
 from collections import namedtuple
 from datetime import datetime
+import json
 import wx
 
 from ..common.my_encoding_tools import \
-    fname2quotes, U, double_backslash, local_encoding
+    fname2quotes, U, double_backslash, local_encoding, unicode2str_recursively
+from ..wwol_globals import POSTPONED_LOG
 
 __all__ = ["image_loader", "ffmpeg_loader", "find_last_image",
            "LoadingError", "FrameLoaddingFailed", "BadFormatString", "NoData",
            "frame_numbering", "make_ffmpeg_cmd", "VideoProbeResult",
-           "video_probe"]
+           "video_probe", "get_ffmpeg_local_config"]
+
+
+FFMPEG_CMD_TEMPLATE = "$FFMPEG -ss $PRESTART -i $VIDEO_FILENAME " \
+                      "-an -ss $SOFT_START -vframes $PACK_LEN " \
+                      "$FPS_OPT_ARG -deinterlace -f image2 $PIC_PATH"
+FFMPEG_BIN_PATH = ""
+FFMPEG_NAME = "ffmpeg"
+FFPROBE_NAME = "ffprobe"
+
+
+class _GlobalConfigCorrupt:
+    def __init__(self):
+        pass
+
+def load_ffmpeg_custom_config():
+    """
+    Если требуется указать особые имена и пути к программам, то в хомяке
+    можно создать файл .wwol.config следующего содержания (например):
+    
+    {
+      "ffmpeg":{
+        "FFMPEG_BIN_PATH":"",
+        "FFMPEG_NAME":"avconv",
+        "FFPROBE_NAME":"avprobe"
+      }
+    }
+    
+    Отсутсвие какой-либо из укзанных записей в файле приводит к использованию
+    стандартного значения для данного параметра.
+    """
+    global FFMPEG_BIN_PATH, FFMPEG_NAME, FFPROBE_NAEM
+    try:
+        fname = os.path.expanduser('~/.wwol.config')
+        try:
+            with open(U(fname), 'rt') as f:
+                data = json.load(f)
+        except IOError:
+            return     # нет такого файла
+        except ValueError as err:
+            raise _GlobalConfigCorrupt()
+        data = unicode2str_recursively(data)
+        if not isinstance(data, dict):
+            raise _GlobalConfigCorrupt()
+        if not ("ffmpeg" in data):
+            return     # нет секции для ffmpeg -> ничего специального не задано
+        data_ffmpeg = data["ffmpeg"]
+        if not isinstance(data_ffmpeg, dict):
+            raise _GlobalConfigCorrupt()
+        
+        POSTPONED_LOG.append('Custom ffmpeg config is found in .wwol.config')
+        key_name = "FFMPEG_BIN_PATH"
+        if  key_name in data_ffmpeg:
+            FFMPEG_BIN_PATH = data_ffmpeg[key_name]
+        key_name = "FFMPEG_NAME"
+        if key_name in data_ffmpeg:
+            FFMPEG_NAME = data_ffmpeg[key_name]
+        key_name = "FFPROBE_NAME"
+        if key_name in data_ffmpeg:
+            FFPROBE_NAME = data_ffmpeg[key_name]
+    except _GlobalConfigCorrupt:
+        POSTPONED_LOG.append('W: File \'.wwol.config\' exists but it is corrupted')
+load_ffmpeg_custom_config()
+
            
 def frame_numbering():
     """
@@ -413,17 +478,6 @@ def ffmpeg_loader(loader_cmd, pic_path, pack_len, frames_range, fps,
             img_loader_state = 0
         cleanup_files(pic_path, (1, 2 * pack_len + 1))
     if fresh: raise NoData()
-
-
-FFMPEG_CMD_TEMPLATE = "$FFMPEG -ss $PRESTART -i $VIDEO_FILENAME " \
-                      "-an -ss $SOFT_START -vframes $PACK_LEN " \
-                      "$FPS_OPT_ARG -deinterlace -f image2 $PIC_PATH"
-FFMPEG_BIN_PATH = ""
-FFMPEG_NAME = "ffmpeg"
-FFPROBE_NAME = "ffprobe"
-#FFMPEG_NAME = "avconv"
-#FFPROBE_NAME = "avprobe"
-#TODO: менять это через гуй или файлы настроек
 
 
 def make_ffmpeg_cmd(video_filename, pack_len, pic_path, force_out_fps):

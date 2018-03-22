@@ -78,7 +78,7 @@ def panels_are_equal(x, y):
     return (x.pos == y.pos) and (x.zoom == y.zoom) and (x.pos == y.pos)
 
 
-_UNKN_ERR_MSG = "Неизвестная ошибка в рабочем потоке"
+_UNKN_ERR_MSG = "Unknown error in the working thread"
 
 
 class Preview:
@@ -200,9 +200,11 @@ class Preview:
         self.working_thread.join()
     
     def _report_error(self, message = _UNKN_ERR_MSG):
-        "Выдать сообщение об ошибке в ГУИ из рабочего потока"
+        """
+        Выдать сообщение об ошибке в ГУИ из рабочего потока
+        Иницировать закрытие обработчика
+        """
         wx.CallAfter(self.main_video_frame.viewer_crushed, message)
-        # NB: _report_warn ?
 
     def goto_frame(self, num):
         """
@@ -234,13 +236,14 @@ class Preview:
         more_err_info = ""
         if isinstance(err, loading.FrameLoaddingFailed):
             err_subtype = "FrameLoaddingFailed"
+            more_err_info = "File error."
         if isinstance(err, loading.BadFormatString):
             err_subtype = "BadFormatString"
         if isinstance(err, loading.NoData):
             err_subtype = "NoData"
-            more_err_info = "Нет данных для обработки."
+            more_err_info = "No data to process."
         logging.debug("_goto_frame_act caught " + err_subtype)
-        self._report_error("Ошибка при загрузке кадров. %s" % more_err_info)
+        self._report_error("Error occurred while loading frames. %s" % more_err_info)
     
     def _goto_frame_act(self, num):
         """
