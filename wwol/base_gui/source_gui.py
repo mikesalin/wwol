@@ -134,6 +134,7 @@ class SourceDlg(wxfb_output.SourceDlg):
         self.GetParent()._enter_preview_or_processing(
             mode = 0,
             must_restart_loader = True)
+        self.EndModal(wx.ID_OK)
         self.Destroy()
     
     def close_func(self, event):
@@ -187,9 +188,9 @@ class SourceDlg(wxfb_output.SourceDlg):
                  if config.frames_range[0] < true_start:
                      msg_dlg = wx.MessageDialog(
                        self,
-                       u"It seems like the video file contains empty frames "\
-                       u"before the frame No. %d. Press OK to adjust the "\
-                       u"processing limits." % true_start,
+                       "It seems like the video file contains empty frames "\
+                       "before the frame No. %d. Press OK to adjust the "\
+                       "processing limits." % true_start,
                        "",
                        wx.ICON_EXCLAMATION | wx.OK | wx.CANCEL)
                      res = msg_dlg.ShowModal()
@@ -204,17 +205,17 @@ class SourceDlg(wxfb_output.SourceDlg):
         "Нажали на знак вопроса около поля 'команда' -- отобразить подсказку"
         msg_dlg = wx.MessageDialog(
             self,
-            u"Within this mode WWOL will call FFMPEG from time to time "
-            u"(or any other defined program). "
-            u"These calls are made, using the command, that is entered here. "
-            u"After each call we expect to get a pack of frames within the "
-            u"required time interval. \n"
-            u"Thus the command contains the substitution parameters: \n"
-            u"$START -- start of the interval in seconds\n"
-            u"$PRESTART -- rough value of start, not greater than a true start\n"
-            u"$SOFT_START -- offset so that START = PRESTART + SOFT_START\n"
-            u"These call should generate a series of image files that satisfy "
-            u"the template 'Path to images'",
+            "Within this mode WWOL will call FFMPEG from time to time "
+            "(or any other defined program). "
+            "These calls are made, using the command, that is entered here. "
+            "After each call we expect to get a pack of frames within the "
+            "required time interval. \n"
+            "Thus the command contains the substitution parameters: \n"
+            "$START -- start of the interval in seconds\n"
+            "$PRESTART -- rough value of start, not greater than a true start\n"
+            "$SOFT_START -- offset so that START = PRESTART + SOFT_START\n"
+            "These call should generate a series of image files that satisfy "
+            "the template 'Path to images'",
             "",
             wx.ICON_INFORMATION)
         msg_dlg.ShowModal()
@@ -252,10 +253,10 @@ class SourceDlg(wxfb_output.SourceDlg):
     def _browse_video_file_func(self, event):
         "Нажали на кнопку '...' около имени файла"
         dlg = wx.FileDialog(self,
-                    u'Choose a video file',
+                    'Choose a video file',
                     '',
                     self.video_filename_text.GetValue(),
-                    u'*.*|*.*',
+                    '*.*|*.*',
                     wx.FD_OPEN)
         rv = dlg.ShowModal()
         fname = clean_input_string(dlg.GetPath())
@@ -265,9 +266,9 @@ class SourceDlg(wxfb_output.SourceDlg):
     
     def _pic_path_browse_button_func(self, event):
         if self.source_type_choice.GetSelection() == 0:
-            msg_u = u"Choose the path to temporary images"
+            msg_u = "Choose the path to temporary images"
         else:
-            msg_u = u"Choose the path to images"
+            msg_u = "Choose the path to images"
         dlg = wx.DirDialog(self,
                            msg_u,
                            os.path.dirname(self.pic_path_text.GetValue()))

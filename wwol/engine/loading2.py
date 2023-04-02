@@ -29,7 +29,7 @@ def make_loader(config, gui_binding = None):
     d = {IMG_SOURCE : _make_image_loader,
          FFMPEG_MANUAL_SOURCE : _make_ffmpeg_loader,
          FFMPEG_AUTO_SOURCE : _make_ffmpeg_loader}
-    if not d.has_key(config.source_type):
+    if config.source_type not in d:
         _error2gui(gui_binding, "Unknown loader")
         return None
 

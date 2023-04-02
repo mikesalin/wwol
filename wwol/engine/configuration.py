@@ -203,7 +203,7 @@ class Config:
         warn_txt = ""
 
         if 'all' in modified_sections:
-            for sr in SUBROUTINES.itervalues():
+            for sr in list(SUBROUTINES.values()):
                 warn_txt += sr()
         else:
             for ms in modified_sections:
@@ -231,7 +231,7 @@ class Config:
         if self.need_user_pic_path():
             try:
                 dummy = self.user_pic_path % 11
-            except TypeError, ValueError:
+            except TypeError as ValueError:
                 warn_txt += "'Path to images' should contatin '%d'.\n"
             self.pic_path = self.user_pic_path
         else:
@@ -293,10 +293,10 @@ class Config:
           self.source_type == FFMPEG_MANUAL_SOURCE:
             self.frames_count = int(self.frames_count)
             self.pack_len = int(self.pack_len)
-            self.frames_count = (self.frames_count / self.pack_len) \
+            self.frames_count = (self.frames_count // self.pack_len) \
                                 * self.pack_len
         if self.overlap:
-            self.pack_len = (int(self.pack_len) / 2) * 2
+            self.pack_len = (int(self.pack_len) // 2) * 2
         
         self.source_set = True
         return warn_txt
@@ -392,12 +392,12 @@ class Config:
         Возвращает: dict
         """
         res = {}
-        for sect_name in SCHEMA["properties"].keys():
+        for sect_name in list(SCHEMA["properties"].keys()):
             sect_shema = SCHEMA["properties"][sect_name]
             if sect_shema["type"] != "object": continue
             res[sect_name] = {}
             sect = res[sect_name]
-            for key_name in sect_shema["properties"].keys():
+            for key_name in list(sect_shema["properties"].keys()):
                 sect[key_name] = self.__dict__[key_name]
         
         res["areas"]["areas_list"] = [a._asdict() for a in self.areas_list]
@@ -540,9 +540,7 @@ SCHEMA = {
             "properties":{
                 "output_spec_mode":{"type":"integer",
                                     "maximum":2,
-                                    "exclusiveMaximum":False,
-                                    "minimum":0,
-                                    "exclusiveMinimum":False}
+                                    "minimum":0}
              }
         },
         "view": {
@@ -641,7 +639,7 @@ def _load_config_more_options(text,
         raise ConfigError("Не могу открыть файл проекта: " + str(fname))
     except ValueError as err:
         logging.debug(U('Json parser failed. SEE DETAILS:\n' + str(err) +
-                      '\nSEE FAILED JSON CODE:\n' + text))
+                      '\nSEE FAILED JSON CODE:\n' + repr(text)))
         raise ConfigError("Project has to be coded in the JSON format. Details: " + str(err))
     data = my_encoding_tools.unicode2str_recursively(data)
     
@@ -655,7 +653,7 @@ def _load_config_more_options(text,
                       + '\nSEE FAILED JSON CODE:\n' + text)
         raise ConfigError("Invalid structure of the project. Details: "
                           + err_txt)
-    if one_section and (len(data.keys()) != 1):
+    if one_section and (len(list(data.keys())) != 1):
         logging.error('allow_only_one_section check failed')
         raise ConfigError("You are using our editor in a wrong way!")
     
@@ -665,7 +663,7 @@ def _load_config_more_options(text,
     else:
         config = update_existing_config
     SKIP_SECT = ["comment"]
-    for s in data.iterkeys():
+    for s in list(data.keys()):
         if s in SKIP_SECT: continue
         if not isinstance(data[s], dict):
             raise ConfigError("Internal error while loading project")
@@ -673,7 +671,7 @@ def _load_config_more_options(text,
     
     # Последняя проверка и "причесывание":
     if one_section:
-        post_config_arg = data.keys()[0]
+        post_config_arg = list(data.keys())[0]
     else:
         post_config_arg = 'all'
     warn_txt = config.post_config(post_config_arg)
@@ -733,6 +731,6 @@ def set_default_fft_size_to(d):
     coord = d['coord']
     nx = _round_log2(coord[2] - coord[0])
     ny = _round_log2(coord[3] - coord[1])
-    d['input_fft_size'] = (nx / 2, ny / 2)
-    d['output_fft_size'] = (nx / 4, ny / 4)
+    d['input_fft_size'] = (nx // 2, ny // 2)
+    d['output_fft_size'] = (nx // 4, ny // 4)
     

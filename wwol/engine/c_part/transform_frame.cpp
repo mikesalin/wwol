@@ -1,7 +1,7 @@
 // TRANSFORM_FRAME_CPP : функция коррекции перспективы (часть старой программы)
 
 #include <math.h>
-#include <malloc.h>
+#include <stdlib.h>
 
 #ifndef NO_OPENMP_WORKAROUND
 #ifdef _MSC_VER

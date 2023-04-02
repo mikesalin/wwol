@@ -1,55 +1,55 @@
 # -*- coding: utf-8 -*-
 """
 Разные функции для работы с кодировкой и тому подобное.
+
+Устаревшее поведение (версия 0.2, Питон 2.7) было следующим:
 Внутри программы все текстовые данные передаются в типе str и кодировке UTF8.
 GUI и функции I/O работают с типом unicode.
 Запуска внешний программ работает через local_encoding.
 """
 
+import locale
+import sys
+
+_local_encoding = locale.getpreferredencoding()
+ON_APPLE = (sys.platform == 'darwin')
+
 def U(s):
     "run-time utf-8 -> unicode"
-    if isinstance(s, unicode):
+    if isinstance(s, str):
         return s
     else:
-        return unicode(s, 'utf-8')
-
-_local_encoding = 'utf-8'  # задается в start.py  init_essentials
+        return str(s, 'utf-8')
 
 def local_encoding(s):
+    "Эта функция ничего не делает (для совместимости со старой версией)"
+    return s
+
+def local_encoding_b(s):
+    "str | utf-8-bytes  -> bytes"
     return U(s).encode(_local_encoding)
         
 def clean_input_string(s):
     """
-    Обработка текстовых значений, введеных через гуи: 
-    .strip(), unicode->string
+    Обработка текстовых значений, введеных через гуи
     Речь идет о тех текстовых строках, которые и далее будут использоваться
-    именно как строки.
+    именно как строки. 
+    (Раньше в питоне 2, здесь еще разруливались проблемы с Юникодом) 
     """
-    if isinstance(s, unicode):
-        s = s.encode('utf-8')
     s = s.strip()
+    #  неожиданная проблема с прямыми и красивыми кавычками
+    if ON_APPLE:  # TODO:  проверить другие платформы
+        s = s.replace('\xab','"').replace('\xbb','"')
+        s = s.replace('‘','\"')
     return s
 
 def unicode2str_recursively(input):
     """
-    Заменить все unicode на sting во входном dict / list.
-    Для обработки данный 
+    Устаревашя функция
+    В питоне 2 здесь мы заменяли все unicode на sting во входном dict / list.
+    Теперь не делаем ничего
     """
-    #stackoverflow, Mark Amery
-    byteify = unicode2str_recursively
-    if isinstance(input, dict):
-        #return {byteify(key):byteify(value) for key,value in input.iteritems()}
-        #Python 2.6:
-        d = { }
-        for key,value in input.iteritems():
-            d[byteify(key)] = byteify(value)
-        return d
-    elif isinstance(input, list):
-        return list(byteify(element) for element in input)
-    elif isinstance(input, unicode):
-        return input.encode('utf-8')
-    else:
-        return input
+    return input
 
 def limit_text_len(text, max_len, allow_multiline):
     """
@@ -74,7 +74,7 @@ def limit_text_len(text, max_len, allow_multiline):
                     break
         mod_text = text_lines[0]
         
-    mod_text_unicode = unicode(mod_text, 'utf-8')
+    mod_text_unicode = str(mod_text, 'utf-8')
     len_cut = len(mod_text_unicode) > max_len
     if len_cut:
         mod_text = mod_text_unicode[0:max_len].encode('utf-8')

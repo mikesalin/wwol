@@ -6,6 +6,7 @@ import os.path
 import numpy as np
 
 ON_WINDOWS = (sys.platform == 'win32')
+ON_APPLE = (sys.platform == 'darwin')
 WITH_PY2EXE = ON_WINDOWS
 if (WITH_PY2EXE):
     import py2exe
@@ -17,7 +18,15 @@ else:
 import wwol
 
 C_PART_DIR = 'wwol/engine/c_part/'
-numpy_include_dir = os.path.join(os.path.dirname(np.__file__), 'core\\include')
+#numpy_include_dir = os.path.join(os.path.dirname(np.__file__), 'core\\include')
+my_extra_compile_args = ['-fopenmp', '-O3']
+my_extra_link_args = ['-fopenmp']
+if ON_WINDOWS: 
+    my_extra_compile_args = ['/MT', '/openmp']
+    my_extra_link_args = ['/SUBSYSTEM:WINDOWS,5.01', '/MANIFEST']
+if ON_APPLE: 
+    my_extra_compile_args = ['-DNO_OPENMP_WORKAROUND', '-O3']
+    my_extra_link_args = []
 
 setup(name = 'WWOL',
       version = wwol.__version__,
@@ -30,19 +39,13 @@ setup(name = 'WWOL',
           Extension('_transform_frame',
                     [ C_PART_DIR + 'transform_frame.cpp',
                       C_PART_DIR + 'transform_frame.i' ],
-                    include_dirs = [ [],
-                                     [numpy_include_dir]]
-                                   [ON_WINDOWS],
-                    extra_compile_args = [ ['-fopenmp', '-O3'],
-                                           ['/MT', '/openmp']]
-                                         [ON_WINDOWS],
+                    include_dirs = [np.get_include()],
+                    extra_compile_args = my_extra_compile_args,
 # если под виндой возникают проблемы с загрузкой собраной библиотеки (особенно в VS2008),
 #  то можно попробовать заменить '/openmp' на '/DNO_OPENMP_WORKAROUND'
                     libraries = [ ],
                     library_dirs = [ ],
-                    extra_link_args = [ ['-fopenmp'],
-                                        ['/SUBSYSTEM:WINDOWS,5.01', '/MANIFEST']]
-                                      [ON_WINDOWS]
+                    extra_link_args = my_extra_link_args
           )
       ],
       

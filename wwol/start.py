@@ -15,27 +15,16 @@ import os
 import logging
 import locale
 
-
-#if not hasattr(sys, 'frozen'):
-#    import wxversion
-#    try:
-#        wxversion.ensureMinimal('3')
-#    except wxversion.AlreadyImportedError:
-#        logging.warning("You'd better import start module first")
-# TODO попробовать запустить снова с 2.8
-
 import wx
 
 from . import wwol_globals
 from .base_gui import main_video_gui
-from .common import my_encoding_tools
 
 
 def init_essentials():
     "см. описание модуля"
     wwol_globals.app = wx.App()
-    wx.Log_EnableLogging(False)
-    my_encoding_tools._local_encoding = locale.getpreferredencoding()
+#    wx.Log_EnableLogging(False)
     
     for text in wwol_globals.POSTPONED_LOG:
         if text[0] == 'W':

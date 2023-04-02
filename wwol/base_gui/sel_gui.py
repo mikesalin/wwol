@@ -53,7 +53,7 @@ class SelDlg(wxfb_output.SelDlg):
         LISTS_BY_MODES = {Selection.MULTIPLE_POINTS_A: sel_data.points_a,
                           Selection.MULTIPLE_RECTS_A: sel_data.rects_a,
                           Selection.MULTIPLE_POINTS_B: sel_data.points_b}
-        if LISTS_BY_MODES.has_key(sel_data.mode):
+        if sel_data.mode in LISTS_BY_MODES:
             return LISTS_BY_MODES[sel_data.mode]
         else:
             return None

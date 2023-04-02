@@ -16,7 +16,7 @@ from . import view
 from . import geom
 Preview = view.Preview
 FAIL_STOP = view.ViewerWorkingThread.FAIL_STOP
-from c_part.transform_frame import transform_frame
+from .c_part.transform_frame import transform_frame
 from ..grapher import power_spec
 from ..common.my_encoding_tools import U
 from ..base_gui.mvf_aux_classes import Selection
@@ -164,16 +164,17 @@ class Processing(Preview):
                                            aa.input_fft_size[1],
                                            aa.input_fft_size[0]),
                                           dtype = np.float64)
+        temp_coord = [int(x) for x in aa.coord]
         # Аргументы для transform_frame, которые идут после массивов,
         # начиная с color depth
         self.transform_frame_args = _TransformFrameArgs(
             a = config.proj_coef.a,
             b = config.proj_coef.b,
             c = config.proj_coef.c,
-            x1 = aa.coord[0],  # будет измененно после получения первого кадра
-            y1 = aa.coord[1],
-            x2 = aa.coord[2],
-            y2 = aa.coord[3])
+            x1 = temp_coord[0],  # будет измененно после получения первого кадра
+            y1 = temp_coord[1],
+            x2 = temp_coord[2],
+            y2 = temp_coord[3])
         
         self.lx = 1
         self.ly = 1
@@ -182,7 +183,7 @@ class Processing(Preview):
         self.overlap = config.overlap
         if config.overlap or config.force_time_wnd_if_no_overlap:
             N = self.pack_len
-            nnn = np.arange(0, N, dtype=np.float)
+            nnn = np.arange(0, N, dtype=np.float64)
             self.time_wnd = (0.5 - 0.5 * np.cos(2 * pi * nnn / N))
             self.time_wnd = self.time_wnd.reshape((N, 1, 1))
         else:
@@ -191,11 +192,11 @@ class Processing(Preview):
         sp_wnd_y_shp = (1, aa.input_fft_size[1], 1)
         if config.space_wnd:
             N = aa.input_fft_size[0]
-            nnn = np.arange(0, N, dtype=np.float)
+            nnn = np.arange(0, N, dtype=np.float64)
             self.space_wnd_x = np.sin(nnn * pi / (N - 1))
             self.space_wnd_x = self.space_wnd_x.reshape(sp_wnd_x_shp)
             N = aa.input_fft_size[1]
-            nnn = np.arange(0, N, dtype=np.float)
+            nnn = np.arange(0, N, dtype=np.float64)
             self.space_wnd_y = np.sin(nnn * pi / (N - 1))
             self.space_wnd_y = self.space_wnd_y.reshape(sp_wnd_y_shp)
             self.crop_output = True
@@ -310,7 +311,7 @@ class Processing(Preview):
             else:            
                 # Проверяем подготовлены ли у нас нужные пачки кадров,
                 # чтобы num оказывался на перекрытии двух пачек
-                half_pack_len = self.pack_len / 2
+                half_pack_len = self.pack_len // 2
                 back_pack_start = num - (num % half_pack_len)
                 front_pack_start = back_pack_start - half_pack_len
                 all_ok = (front_pack_start == self.start_of_preproc_pack1) and\
@@ -425,14 +426,15 @@ class Processing(Preview):
                     rect = self.transform_frame_args[3:],
                     proj_coef = self.transform_frame_args[0:3],
                     img_size = (img.GetWidth(), img.GetHeight()))
+                trpz_fix = [int(x) for x in trpz]
                 ttt = _TransformFrameArgs(
                     a = self.transform_frame_args.a,
                     b = self.transform_frame_args.b,
                     c = self.transform_frame_args.c,
-                    x1 = trpz[0],
-                    y1 = trpz[1],
-                    x2 = trpz[4],
-                    y2 = trpz[5])
+                    x1 = trpz_fix[0],
+                    y1 = trpz_fix[1],
+                    x2 = trpz_fix[4],
+                    y2 = trpz_fix[5])
                 self.transform_frame_args = ttt
 
             buf = img.GetDataBuffer()
@@ -460,7 +462,7 @@ class Processing(Preview):
                 
         logging.debug('all images are read into first_array_tyx')
         wx.CallAfter(lambda:
-            self.main_video_frame.b_footer_static_text.SetLabel(u"FFT pass 1 of 2)"))
+            self.main_video_frame.b_footer_static_text.SetLabel("FFT pass 1 of 2)"))
         
         # вычисляем средний уровень и вычитаем
         mean_level = np.mean(self.first_array_tyx[0, :, :])
@@ -475,7 +477,7 @@ class Processing(Preview):
                        % (second_array_fyx.size * 16 * 1e-6))
 
         wx.CallAfter(lambda:
-            self.main_video_frame.b_footer_static_text.SetLabel(u"FFT pass 2 of 2"))
+            self.main_video_frame.b_footer_static_text.SetLabel("FFT pass 2 of 2"))
 
         if self.equalize_in_space:
             df = self.fps / (1.0 * self.pack_len)
@@ -518,14 +520,14 @@ class Processing(Preview):
                                       output_fft_size[1],
                                       output_fft_size[0]),
                                      dtype = np.complex_)
-        to_x = [[output_fft_size[0] / 2, output_fft_size[0]],
-                [0, output_fft_size[0] / 2]]
-        to_y = [[output_fft_size[1] / 2, output_fft_size[1]],
-                [0, output_fft_size[1] / 2]]
-        from_x = [[0, output_fft_size[0] / 2],
-                  [large_shape[2] - output_fft_size[0] / 2, large_shape[2]]]
-        from_y = [[0, output_fft_size[1] / 2],
-                  [large_shape[1] - output_fft_size[1] / 2, large_shape[1]]]
+        to_x = [[output_fft_size[0] // 2, output_fft_size[0]],
+                [0, output_fft_size[0] // 2]]
+        to_y = [[output_fft_size[1] // 2, output_fft_size[1]],
+                [0, output_fft_size[1] // 2]]
+        from_x = [[0, output_fft_size[0] // 2],
+                  [large_shape[2] - output_fft_size[0] // 2, large_shape[2]]]
+        from_y = [[0, output_fft_size[1] // 2],
+                  [large_shape[1] - output_fft_size[1] // 2, large_shape[1]]]
         for nx in range(0,2):
             for ny in range(0,2):
                 third_array_fkk[:,
@@ -569,7 +571,7 @@ class Processing(Preview):
         for npipeline in range(0, pipelines_count):
             wx.CallAfter(lambda:
                 self.main_video_frame.b_footer_static_text.SetLabel(
-                    u"FFT (%d)" % (npipeline+2)))
+                    "FFT (%d)" % (npipeline+2)))
             if npipeline == 0:
                 ifft_in = third_array_fkk
             else:
@@ -595,7 +597,7 @@ class Processing(Preview):
         self.state_lock.release()
         logging.debug('_begin_new_pack is finished')
         wx.CallAfter(lambda:
-            self.main_video_frame.b_footer_static_text.SetLabel(u""))
+            self.main_video_frame.b_footer_static_text.SetLabel(""))
         
         return (output1_array_tkk, output2_array_tkk)
         
@@ -623,9 +625,9 @@ class Processing(Preview):
         spec_shape = self.preproc_pack1_flt1_tkk.shape
         coef = self.ly / self.lx
         w = int( spec_shape[2] * b_panel.zoom )
-        w = (w / 2) * 2
+        w = (w // 2) * 2
         h = int( w * coef)
-        h = (h / 2) * 2
+        h = (h // 2) * 2
         
         if advance:
             cur_frame_num = advance_frame_num
@@ -650,15 +652,18 @@ class Processing(Preview):
             self.full_size_ifft_in_kk.fill(0.)
             self.full_size_frame_flt1_yx = None
             self.full_size_frame_flt2_yx = None
-            range_ky = min(h, spec_shape[1]) / 2
-            range_kx = min(w, spec_shape[2]) / 2
-            zero_kx_src = spec_shape[2] / 2
-            zero_ky_src = spec_shape[1] / 2
+            range_ky = min(h, spec_shape[1]) // 2
+            range_kx = min(w, spec_shape[2]) // 2
+            zero_kx_src = spec_shape[2] // 2
+            zero_ky_src = spec_shape[1] // 2
             pipelines_count = [1,2][self.second_filter_enabled]
             for npipeline in range(0, pipelines_count):
                 nt = cur_frame_num - self.start_of_preproc_pack1
+                nt = int(nt) # <--- BUG
                 src = [self.preproc_pack1_flt1_tkk,
                        self.preproc_pack1_flt2_tkk] [npipeline]
+#                logging.debug(repr(nt) + ' ' + repr(zero_ky_src) + ' ' + repr(range_ky) + 
+#                              ' ' + repr(zero_kx_src) + ' ' + repr(range_kx))   # DEBUG
                 self.full_size_ifft_in_kk[
                         0 : range_ky,
                         0 : range_kx] =\
@@ -686,6 +691,7 @@ class Processing(Preview):
 
                 if self.overlap:
                     nt = cur_frame_num - self.start_of_preproc_pack2
+                    nt = int(nt)  # <-- BUG 2
                     src = [self.preproc_pack2_flt1_tkk,
                            self.preproc_pack2_flt2_tkk] [npipeline]
                     self.full_size_ifft_in_kk[
@@ -736,7 +742,7 @@ class Processing(Preview):
           (old_shp[0] * old_shp[1] == 1):
             self.img_ready_array_yxc = np.ndarray((hs, ws, 3), np.uint8)
             self.img_ready = wx.ImageFromBuffer(
-                ws, hs, np.getbuffer(self.img_ready_array_yxc))
+                ws, hs, memoryview(self.img_ready_array_yxc))
         self.img_ready_array_yxc.fill(192)
         self.img_ready_footer_text = '%dx%d' % (w,h)
 
@@ -1066,8 +1072,8 @@ class Processing(Preview):
                 finish_callback_ = finish_callback
 
             step = self.pack_len
-            if self.overlap: step = step / 2
-            steps_count = (self.frames_count - self.pack_len) / step + 1
+            if self.overlap: step = step // 2
+            steps_count = (self.frames_count - self.pack_len) // step + 1
             if steps_count == 0:
                 finish_callback_(None)
                 return
@@ -1159,7 +1165,7 @@ class Processing(Preview):
                 rv = self._goto_frame_act(nframe)
                 if rv is not None:
                     raise rv
-                f.write(np.getbuffer(self.full_size_frame_flt1_yx))
+                f.write(memoryview(self.full_size_frame_flt1_yx))
                             
                 if (nframe - from_frame) % 10 == 0:
                     progress = ((nframe - from_frame) * 100) / (to_frame - from_frame)
@@ -1275,7 +1281,7 @@ class Processing(Preview):
                 arr = np.ndarray((1,1,n))
         flarr = arr.flat;
         if space_wnd_enabled:
-            nnn = np.arange(0, n, dtype=np.float)
+            nnn = np.arange(0, n, dtype=np.float64)
             flarr[:n] = np.sin(nnn * pi / (n - 1))
         else:
             flarr[:n] = 1.
@@ -1340,6 +1346,7 @@ def _my_caller(func, args, mutex, lst):
 
 
 def _debug_dump_array_to_bmp_file(fname, data):
+    # TODO: test this function
     dst_h = data.shape[0]
     dst_w = data.shape[1]
     dst_array_8bit = np.ndarray((dst_h, dst_w, 3), np.uint8)
@@ -1347,7 +1354,7 @@ def _debug_dump_array_to_bmp_file(fname, data):
     M = np.amax(data)
     for n in range(0, 3):
         dst_array_8bit[:,:,n] = (data - m) * 255 / max(M-m, 1.0)
-    img = wx.ImageFromBuffer(dst_w, dst_h, np.getbuffer(dst_array_8bit))
+    img = wx.ImageFromBuffer(dst_w, dst_h, memoryview(dst_array_8bit))
     img.SaveFile(fname, wx.BITMAP_TYPE_BMP)
 
 _MovingWindowTempStruct = namedtuple('MovingWindowTempStruct',

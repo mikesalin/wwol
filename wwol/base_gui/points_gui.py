@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 "В этом модуле класс окна для снятия точек с картинки: PointsDlg"
 
-from StringIO import StringIO
+from io import StringIO
 import numpy as np
 import wx
 
@@ -35,7 +35,7 @@ class PointsDlg(wxfb_output.PointsDlg):
         if proc:
             self.a2b_button.SetLabel("A -> В")
         else:
-            self.a2b_button.SetLabel(u"Apply")
+            self.a2b_button.SetLabel("Apply")
 
     
     def _data2text(self, data):
@@ -89,7 +89,7 @@ class PointsDlg(wxfb_output.PointsDlg):
             if not quiet:
                 dlg = wx.MessageDialog(
                     self,
-                    u"A table with 2 or 4 columns is expected",
+                    "A table with 2 or 4 columns is expected",
                     "",
                     wx.ICON_EXCLAMATION | wx.OK)
                 dlg.ShowModal()
@@ -176,8 +176,8 @@ class PointsDlg(wxfb_output.PointsDlg):
         if data is None:
             if self.coords_text.GetValue() != self._COORDS_TEXT_WELCOME:
                 dlg = wx.MessageDialog(self,
-                                       u"Can't parse the existing table." 
-                                       u"Reset input?",
+                                       "Can't parse the existing table." 
+                                       "Reset input?",
                                        "",
                                        wx.ICON_EXCLAMATION | wx.YES_NO)
                 rv = dlg.ShowModal()                

@@ -6,7 +6,7 @@
 
 import copy
 import threading
-import Queue
+import queue
 import logging
 import wx
 
@@ -39,7 +39,7 @@ class ViewerWorkingThread(threading.Thread):
     """
     def __init__(self):
         threading.Thread.__init__(self)
-        self.task_queue = Queue.Queue()
+        self.task_queue = queue.Queue()
         self.exit_obj = None
         self.unkn_err_callback = None
     
@@ -188,7 +188,7 @@ class Preview:
         try:  #очистка очереди
             while True:
                 self.working_thread.task_queue.get_nowait()
-        except Queue.Empty:
+        except queue.Empty:
             pass
         self.working_thread.task_queue.put(task)
         return True
@@ -256,7 +256,7 @@ class Preview:
         """
         try:                
             if self.first_call_to_goto_frame:
-                dummy = self.loader.next()  # пнуть, чтобы заработал
+                dummy = next(self.loader)  # пнуть, чтобы заработал
                 self.first_call_to_goto_frame = False
             self.raw_img = self.loader.send(num + self.frame_num_ofs)
         except loading.LoadingError as err:
@@ -381,8 +381,8 @@ class Preview:
         visible_points[:] = []
         for j in range(0, len(points)):
             x, y = points[j]
-            X = x * panel.zoom - panel.pos[0]
-            Y = y * panel.zoom - panel.pos[1]
+            X = int(x * panel.zoom) - panel.pos[0]
+            Y = int(y * panel.zoom) - panel.pos[1]
             points[j] = (X, Y)
             visible_points.append((X >=0) and (Y >= 0) and (X < dst_size_x) \
                                    and (Y < dst_size_y))
@@ -522,8 +522,8 @@ class Preview:
             (x,y) -- всегда, даже если это нереальные координаты
         """
         self.view_param_lock.acquire()        
-        x = (X + self.a_panel.pos[0]) / self.a_panel.zoom
-        y = (Y + self.a_panel.pos[1]) / self.a_panel.zoom
+        x = int( (X + self.a_panel.pos[0]) / self.a_panel.zoom )
+        y = int( (Y + self.a_panel.pos[1]) / self.a_panel.zoom )
         raw_img_size = self.raw_img_size
         self.view_param_lock.release()
         visible = (x >= 0) and (y >= 0) and (x < raw_img_size[0]) and \
@@ -578,11 +578,11 @@ class Preview:
         
     def get_raw_img(self):
         "Возвращает исходное изображение, кт. сейчас лежит в буфере, или None"
-        q = Queue.Queue()
+        q = queue.Queue()
         self._enqueue_task(lambda: q.put(self.raw_img.Copy()))
         try:
             res = q.get(block = True, timeout = 1)
-        except Queue.Empty:
+        except queue.Empty:
             return None
         return res
     
@@ -609,7 +609,7 @@ def translate_color(color_str):
                 Если color_str имеет неправильное значение, то возвр. 'black'
     """
     res = None
-    if _MY_COLORS.has_key(color_str): res = _MY_COLORS[color_str]
+    if color_str in _MY_COLORS: res = _MY_COLORS[color_str]
     if res is None:
         logging.debug("Unknown color: '%s'", color_str)
         res = 'black'
@@ -688,7 +688,7 @@ def decorate_bitmap(bmp, sel_points, sel_lines):
             if len(line) > 1 and len(cur_val) > 0:
                 color_str = cur_val
                 style_str = color_str[-1]
-                if _MY_LINE_STYLES.has_key(style_str):
+                if style_str in _MY_LINE_STYLES:
                     style = _MY_LINE_STYLES[style_str]
                     color_str = color_str[:-1]
                 else:

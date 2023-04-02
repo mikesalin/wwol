@@ -3,7 +3,7 @@
 
 import logging
 import threading
-import Queue
+import queue
 import os
 from string import Template
 import subprocess
@@ -25,7 +25,7 @@ __all__ = ["image_loader", "ffmpeg_loader", "find_last_image",
 
 FFMPEG_CMD_TEMPLATE = "$FFMPEG -ss $PRESTART -i $VIDEO_FILENAME " \
                       "-an -ss $SOFT_START -vframes $PACK_LEN " \
-                      "$FPS_OPT_ARG -deinterlace -f image2 $PIC_PATH"
+                      "$FPS_OPT_ARG -f image2 $PIC_PATH"
 FFMPEG_BIN_PATH = ""
 FFMPEG_NAME = "ffmpeg"
 FFPROBE_NAME = "ffprobe"
@@ -164,8 +164,8 @@ class AsyncImageLoader(threading.Thread):
         "pic_path -- string, см. help(BmpLoader)"
         threading.Thread.__init__(self)
         self.pic_path = pic_path
-        self.task_queue = Queue.Queue()
-        self.result_queue = Queue.Queue()
+        self.task_queue = queue.Queue()
+        self.result_queue = queue.Queue()
     
     def run(self):
         "Код для испольнения в другом потоке"
@@ -307,7 +307,7 @@ def make_ffmpeg_cmd_final(loader_cmd, exact_start, prestart):
         try:
             s = st.substitute(START = "%0.3f" % exact_start)
         except (KeyError, ValueError):
-            logging.debug(u"Can't substitute START or PRESTART and SOFT_START"
+            logging.debug("Can't substitute START or PRESTART and SOFT_START"
                             " to '%s'!", U(loader_cmd))
             raise BadFormatString()
     return s
@@ -411,7 +411,7 @@ def ffmpeg_loader(loader_cmd, pic_path, pack_len, frames_range, fps,
                     prestart = max(exact_start - SOFT_START_OFFSET, 0.0)
                     s = make_ffmpeg_cmd_final(loader_cmd, exact_start, prestart)
                     logging.debug(
-                      u"WWOL is going to get frames %d..%d using command: '%s'\n",
+                      "WWOL is going to get frames %d..%d using command: '%s'\n",
                       start1 + 1,
                       start1 + pack_len,
                       U(s))
@@ -450,7 +450,7 @@ def ffmpeg_loader(loader_cmd, pic_path, pack_len, frames_range, fps,
                     nums_range = (pack_len + 1, 2 * pack_len + 1)                
                 img_loader_ = image_loader(pic_path, nums_range)
                 img_loader_state = img_loader_state_after
-                img = img_loader_.next()
+                img = next(img_loader_)
                 have_got_img = (frame_num == start1) or (frame_num == start2)
             
             # наконец, загружаем кадр:
@@ -526,30 +526,21 @@ def video_probe(filename):
     
     cmd = FFMPEG_BIN_PATH + FFPROBE_NAME + " " + fname2quotes(filename)
     try:
-#        txt = subprocess.check_output(shlex.split(cmd),
-#                                      stderr=subprocess.STDOUT)
-        # Python 2.6:
         cmd_ = local_encoding(cmd)
         pp = subprocess.Popen(shlex.split(double_backslash(cmd_)),
                               stdin=subprocess.PIPE,
                               stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE)
         txt, txt_err = pp.communicate()
-        txt += txt_err
+        txt = U(txt + txt_err)
         if pp.returncode != 0:
-            logging.debug(u"FFPROBE returned %d (non-zero), command was:\n%s",
+            logging.debug("FFPROBE returned %d (non-zero), command was:\n%s",
                           pp.returncode, U(cmd))
             raise FrameLoaddingFailed()
     except OSError:
-        logging.debug(u"OSError occured while executing: '%s'" % U(cmd))
+        logging.debug("OSError occured while executing: '%s'" % U(cmd))
         logging.debug("Can't launch FFPROBE!")
         raise FrameLoaddingFailed()
-#    except subprocess.CalledProcessError as e:
-#        logging.debug(u"FFPROBE returned %d (non-zero), details are below.\n"
-#                      u"Command:\n  %s\nOutput:\n%s",
-#                      e.returncode, U(cmd), U(e.output))
-#        logging.debug("FFPROBE can't open video file!")
-#        raise FrameLoaddingFailed()
     
     logging.debug('Parsing FFPROBE output:\n' + txt)
     lines = txt.split('\n')
