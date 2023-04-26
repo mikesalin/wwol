@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+#
+# Copyright (c) 2023 Mikhail Salin. Contacts: mikesalin@gmail.com
+# All rights reserved.
+#
 "Для сборки exe-шников под Windows с помощью py2exe"
 
 # Для комплиляции с py2exe требуется модификация исходников библиотек Питона:

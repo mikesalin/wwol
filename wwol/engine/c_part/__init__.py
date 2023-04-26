@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+#
+# Copyright (c) 2023 Mikhail Salin. Contacts: mikesalin@gmail.com
+# All rights reserved.
+#
 """
 Модуль расширения на языке Си
 
@@ -20,6 +24,6 @@ transform_frame.transform_frame(*arg)
             Lx (float): размер области обработки в метрах
             Ly (float)
 
-    Заметьте, здесь X1, Y1, X2, Y2 -- углы трапеции, в то время как в в config
+    Заметьте, здесь X1, Y1, X2, Y2 -- углы трапеции, в то время как в config
     -- это углы описанного прямоугольника.
 """

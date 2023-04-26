@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+#
+# Copyright (c) 2023 Mikhail Salin. Contacts: mikesalin@gmail.com
+# All rights reserved.
+#
 """
 Модуль отрисовки кадров. Разделяется основной поток (где GUI) и рабочий поток,
 где подготавливается отрисовка. Главный класс здесь -- это Preview

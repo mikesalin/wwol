@@ -1,3 +1,9 @@
+/*
+# Copyright (c) 2023 Mikhail Salin. Contacts: mikesalin@gmail.com
+# All rights reserved.
+#
+*/
+
 %module transform_frame
 %{
 #define SWIG_FILE_WITH_INIT

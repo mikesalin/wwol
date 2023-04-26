@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+#
+# Copyright (c) 2023 Mikhail Salin. Contacts: mikesalin@gmail.com
+# All rights reserved.
+#
 "В этом модуле класс окна для снятия точек с картинки: PointsDlg"
 
 from io import StringIO

@@ -1,7 +1,13 @@
+#
+# Copyright (c) 2023 Mikhail Salin. Contacts: mikesalin@gmail.com
+# All rights reserved.
+#
+# Written according to Alberto Lorenzo Márquez's advice:
+# http://stackoverflow.com/questions/21855775/numpy-i-is-missing-what-is-the-recommended-way-to-install-it#21857995
+#
+#
 """
 It downloads the suitable file depending on Numpy's version 
-Written according to Alberto Lorenzo Márquez's advice:
-http://stackoverflow.com/questions/21855775/numpy-i-is-missing-what-is-the-recommended-way-to-install-it#21857995
 """
 
 import re

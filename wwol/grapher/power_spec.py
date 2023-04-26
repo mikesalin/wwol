@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
+#
+# Copyright (c) 2023 Mikhail Salin. Contacts: mikesalin@gmail.com
+# All rights reserved.
+#
 """
 Базовые функции для работы с трехмерной спектральной плотностью мощности:
 определение класса, чтение, запись.
 """
+
 import numpy as np
 import os.path
 import logging

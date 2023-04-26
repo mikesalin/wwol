@@ -1,4 +1,9 @@
-// TRANSFORM_FRAME_CPP : функция коррекции перспективы (часть старой программы)
+/* TRANSFORM_FRAME_CPP : функция коррекции перспективы (часть старой программы)
+#
+# Copyright (c) 2023 Mikhail Salin. Contacts: mikesalin@gmail.com
+# All rights reserved.
+#
+*/
 
 #include <math.h>
 #include <stdlib.h>

@@ -1,2 +1,6 @@
 # -*- coding: utf-8 -*-
-"Обработка"
+#
+# Copyright (c) 2023 Mikhail Salin. Contacts: mikesalin@gmail.com
+# All rights reserved.
+#
+"Обработка и отрисовка в буферы"

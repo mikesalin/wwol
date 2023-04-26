@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+#
+# Copyright (c) 2023 Mikhail Salin. Contacts: mikesalin@gmail.com
+# All rights reserved.
+#
 """
 Типы графиков, где мы переходим к модулю волнового числа:
 S(K,f)   calc_skf, draw_skf

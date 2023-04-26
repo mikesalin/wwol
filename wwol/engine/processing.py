@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
-"Объединяет всю обработку видео"
+#
+# Copyright (c) 2023 Mikhail Salin. Contacts: mikesalin@gmail.com
+# All rights reserved.
+#
+"Объединяет все математические преобразования видео"
 
 import threading
 from math import *

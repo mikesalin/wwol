@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+#
+# Copyright (c) 2023 Mikhail Salin. Contacts: mikesalin@gmail.com
+# All rights reserved.
+#
 "Дополнительные, небольшие классы для нужд main_video_gui.MainVideoFrame"
 
 import os.path

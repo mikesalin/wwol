@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+#
+# Copyright (c) 2023 Mikhail Salin. Contacts: mikesalin@gmail.com
+# All rights reserved.
+#
 """
 Модуль для геометрических расчетов, проецирования и пр. (кроме функций, которые
 непосредственно обрабатывают большие объемы данных)

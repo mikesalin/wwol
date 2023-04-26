@@ -1,5 +1,11 @@
-// TRANSFORM_FRAME_H : оберкта над частью старой программы -- функция коррекции
-// перспективы
+/* TRANSFORM_FRAME_H : оберкта над частью старой программы -- функция коррекции
+   перспективы
+#
+# Copyright (c) 2023 Mikhail Salin. Contacts: mikesalin@gmail.com
+# All rights reserved.
+#
+*/
+
 
 #ifndef TRANSFORM_FRAME_H
 #define TRANSFORM_FRAME_H

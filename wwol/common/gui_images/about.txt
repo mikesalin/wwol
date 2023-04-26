@@ -9,3 +9,5 @@ hourglass.png   http://www.iconsearch.ru/detailed/44827/6/   Icons Land   Сво
                 http://www.icons-land.com/
 eye.bmp         http://www.rw-designer.com/icon-detail/8673
 
+Прочие изображения разработаны автором данного проекта и доступны под лицензией
+данного проекта
