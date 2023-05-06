@@ -5,7 +5,7 @@
       -1
     ], 
     "user_pic_path_in_auto_mode": false, 
-    "user_pic_path": "stuff/Out/pic%04d.bmp", 
+    "user_pic_path": "stuff/images2_test/%05d.bmp", 
     "overlap": true, 
     "source_type": 2, 
     "pack_len": 128, 

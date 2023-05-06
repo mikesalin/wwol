@@ -11,7 +11,7 @@
   
 Если вам нужен какой-то специфический сценарий работы и вы хотите использовать
 WWOL наподобие библиотеки, то вам необходимо вызвать функцию
-'init_essentials'.
+'init_essentials' из модуля 'sub_start'
 """
 
 import sys
@@ -21,25 +21,11 @@ import locale
 
 import wx
 
-from . import wwol_globals
+from . import wwol_globals, sub_start
 from .base_gui import main_video_gui
 
-
-def init_essentials():
-    "см. описание модуля"
-    wwol_globals.app = wx.App()
-#    wx.Log_EnableLogging(False)
-    
-    for text in wwol_globals.POSTPONED_LOG:
-        if text[0] == 'W':
-            logging.warning(text)
-        else:
-            logging.debug(text)
-    wwol_globals.POSTPONED_LOG[:] = []
-    
-
 def main():
-    "см. описание модуля"
+    "снициализирует необходимые библиотеки и показывает главное окно"
     if wwol_globals.VERBOSE:
         log_level = logging.DEBUG
     else:
@@ -52,7 +38,7 @@ def main():
     if len(p) > 0:
         os.chdir(p)
 
-    init_essentials()
+    sub_start.init_essentials()
 
     wwol_globals.main_video_frame = main_video_gui.MainVideoFrame(None)
     wwol_globals.main_video_frame.Show(True)
