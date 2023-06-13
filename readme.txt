@@ -43,16 +43,18 @@ HOW TO USE:
            https://doi.org/10.1007/s11141-015-9586-1
     
 POSSIBLE ISSUES: 
-    1) WINDOW USERS:
+    1) GETTING numpy.i:
+       Lack of this file leads to a crush in the process of extension compilation
+       Run the following script:
+        python wwol/setup_/numpy_i_getter.py
+        mv numpy.i wwol/engine/c_part/
+    
+    2) WINDOW USERS:
       * check that ffmpeg's bin folder was added to your PATH
         otherwize edit variable 'FFMPEG_BIN_PATH' in 'wwol/engine/loading.py'
         to put the full path into it;           
       * check that gnuplot's binary folder was added to your PATH
         (no override for this)
-        
-    2) GETTING numpy.i:
-        python wwol/setup_/numpy_i_getter.py
-        mv numpy.i wwol/engine/c_part/
     
     3) Linux users: does your distro provides 'ffmpeg' or 'avconv' ?
        In case of using 'avconf', make '.wwol.config' file in your home folder
@@ -65,7 +67,10 @@ POSSIBLE ISSUES:
       }
     }
     
-    4) No compatibility with python3 was tested. Sorry to say.
+    4) You need a newer version to use python3 -- checkout main branch
+            
+    5) For buildin extension on Windows this helped:
+    https://stackoverflow.com/questions/2817869/error-unable-to-find-vcvarsall-bat
 
 QUESTIONS:
     mikesalin@gmail.com

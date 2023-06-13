@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 "Для сборки exe-шников под Windows с помощью py2exe"
 
-# Для комплиляции с py2exe требуется модификация исходников библиотек Питона:
+# You have to modify the following in the Python Lib folder:
 # Lib\site-packages\repoze.lru-0.6-py2.6.egg\repoze\__init__.py :
+#
 # import sys
 # if not hasattr(sys, 'frozen'):
 #     __import__('pkg_resources').declare_namespace(__name__)
+#
+# NOTE: seems to be Python 2.6 specific only
 
 import os
 import sys
@@ -16,13 +19,18 @@ from py2exe.build_exe import py2exe as build_exe
 
 sys.path.append("C:\\Program Files (x86)\\Microsoft Visual Studio 9.0\\VC\\"
                 "Redist\\X86\\Microsoft.VC90.CRT")
+# NOTE: seems to be Python2.6 & 2.7 specific
 
 def setup_kwargs():
     d = {'windows': ['start_wwol.py'],
          'options': {'py2exe' : {'excludes' : ['Tkinter',
-                                               'Tkconstants',
-                                               'scipy.sparse'
-                                              ]
+                                               'Tkconstants'
+                                              ],
+                                  'includes': ['scipy.linalg.cython_blas',
+                                               'scipy.linalg.cython_lapack',
+                                               'scipy.sparse.csgraph._validation',
+                                               'scipy.special._ufuncs_cxx',
+                                               'scipy.integrate']
                                  }
                     },
          'cmdclass': {"py2exe": JsonSchemaCollector},

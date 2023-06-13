@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 It downloads the suitable file depending on Numpy's version and works in both Python 2 and 3 with requests library installed.
 Alberto Lorenzo Márquez

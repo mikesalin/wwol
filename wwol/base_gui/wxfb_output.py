@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*- 
 
 ###########################################################################
-## Python code generated with wxFormBuilder (version Sep 17 2014)
+## Python code generated with wxFormBuilder (version Jun 17 2015)
 ## http://www.wxformbuilder.org/
 ##
 ## PLEASE DO "NOT" EDIT THIS FILE!
@@ -413,6 +413,9 @@ class MainVideoFrame ( wx.Frame ):
 		self.about_menu = wx.MenuItem( self.corner_menu, wx.ID_ANY, u"About", wx.EmptyString, wx.ITEM_NORMAL )
 		self.corner_menu.AppendItem( self.about_menu )
 		
+		self.links_menu = wx.MenuItem( self.corner_menu, wx.ID_ANY, u"Userful links", wx.EmptyString, wx.ITEM_NORMAL )
+		self.corner_menu.AppendItem( self.links_menu )
+		
 		self.Bind( wx.EVT_RIGHT_DOWN, self.MainVideoFrameOnContextMenu ) 
 		
 		self.temp_images_monitoring_timer = wx.Timer()
@@ -464,6 +467,7 @@ class MainVideoFrame ( wx.Frame ):
 		self.Bind( wx.EVT_MENU, self._save_menu_func, id = self.save_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self._save_as_menu_func, id = self.save_as_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self._about_menu_func, id = self.about_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self._links_menu_func, id = self.links_menu.GetId() )
 		self.Bind( wx.EVT_TIMER, self._temp_images_monitoring_timer_func, id=wx.ID_ANY )
 	
 	def __del__( self ):
@@ -584,6 +588,9 @@ class MainVideoFrame ( wx.Frame ):
 		event.Skip()
 	
 	def _about_menu_func( self, event ):
+		event.Skip()
+	
+	def _links_menu_func( self, event ):
 		event.Skip()
 	
 	def _temp_images_monitoring_timer_func( self, event ):

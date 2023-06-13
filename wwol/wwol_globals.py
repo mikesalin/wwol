@@ -9,7 +9,7 @@
 
 app = None
 main_video_frame = None
-VERBOSE = True
+VERBOSE = False
 POSTPONED_LOG = []
 
 

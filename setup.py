@@ -25,6 +25,9 @@ setup(name = 'WWOL',
       author = 'Mike Salin',
       author_email = 'msalin@gmail.com',
       
+      data_files = [('',['userful_links.html','LICENSE']),
+                    ('test_configs',['test_configs/images1.wwl',
+                                     'test_configs/images1-2.wwl'])],
       ext_package = 'wwol.engine.c_part',
       ext_modules = [
           Extension('_transform_frame',

@@ -1854,6 +1854,13 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         dlg.ShowModal()
         dlg.Destroy()
 
+    def _links_menu_func(self, event):
+        """
+        'Userful links' menu item is clicked.
+        We open the prepared html file in the default brouser/
+        """
+        os.startfile('userful_links.html')
+    
     def _in_processing_mode(self):
         if self.viewer is not None:
             return self.viewer.is_processing()
