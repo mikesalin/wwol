@@ -1,0 +1,11 @@
+# Actual for Linux Mint Debian Edition 5 Elsa
+# which is a derivative from Debian Bullseye
+
+sudo apt-get install ffmpeg gnuplot swig
+sudo apt-get install python3-wxgtk4.0 python3-scipy python3-jsonschema
+sudo apt-get install python3-dev
+
+# in the project directory:
+python3 postcheckout.py
+
+python3 start_wwol.py
