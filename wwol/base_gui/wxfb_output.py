@@ -7,11 +7,6 @@
 ## PLEASE DO *NOT* EDIT THIS FILE!
 ###########################################################################
 
-# NOTE: I *did* edited this file manualy in order to make it work
-# 'wwol.fbp' contains some problem, and when Form Builder owerrites this
-# file again, it will lead to another crush.
-# TODO: change 'wwol.fbp' to get the same, as I manualy edited here
-
 import wx
 import wx.xrc
 import wx.adv
@@ -63,7 +58,6 @@ class MainVideoFrame ( wx.Frame ):
 		bSizer1.Add( self.my_info_bar, 0, wx.ALL|wx.EXPAND, 5 )
 
 		self.props_images_splitter = wx.SplitterWindow( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.SP_3D|wx.SP_NO_XP_THEME )
-#		self.props_images_splitter.SetSashSize( 5 )
 		self.props_images_splitter.Bind( wx.EVT_IDLE, self.props_images_splitterOnIdle )
 		self.props_images_splitter.SetMinimumPaneSize( 20 )
 
@@ -363,7 +357,6 @@ class MainVideoFrame ( wx.Frame ):
 		bSizer9 = wx.BoxSizer( wx.VERTICAL )
 
 		self.ab_splitter = wx.SplitterWindow( self.m_panel7, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.SP_3D|wx.SP_NO_XP_THEME )
-	#	self.ab_splitter.SetSashSize( 5 )
 		self.ab_splitter.Bind( wx.EVT_IDLE, self.ab_splitterOnIdle )
 		self.ab_splitter.SetMinimumPaneSize( 20 )
 
@@ -637,7 +630,7 @@ class MainVideoFrame ( wx.Frame ):
 class ZoomDlg ( wx.Dialog ):
 
 	def __init__( self, parent ):
-		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Zoom and movement", pos = wx.DefaultPosition, size = wx.Size( 200,200 ), style = wx.DEFAULT_DIALOG_STYLE | wx.STAY_ON_TOP )
+		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Zoom and movement", pos = wx.DefaultPosition, size = wx.Size( 200,200 ), style = wx.DEFAULT_DIALOG_STYLE|wx.STAY_ON_TOP )
 
 		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
@@ -754,7 +747,7 @@ class ZoomDlg ( wx.Dialog ):
 class SelDlg ( wx.Dialog ):
 
 	def __init__( self, parent ):
-		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 180,250 ), style = wx.CAPTION | wx.STAY_ON_TOP)
+		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 180,250 ), style = wx.CAPTION|wx.STAY_ON_TOP )
 
 		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
@@ -763,7 +756,7 @@ class SelDlg ( wx.Dialog ):
 		self.info_static_text = wx.StaticText( self, wx.ID_ANY, u"Select...", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTER_HORIZONTAL )
 		self.info_static_text.Wrap( 180 )
 
-		bSizer8.Add( self.info_static_text, 1, wx.ALL| wx.EXPAND, 5 ) #wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+		bSizer8.Add( self.info_static_text, 1, wx.ALL|wx.EXPAND, 5 )
 
 		self.done_button = wx.Button( self, wx.ID_ANY, u"DONE", wx.DefaultPosition, wx.DefaultSize, wx.BORDER_NONE )
 		self.done_button.SetFont( wx.Font( wx.NORMAL_FONT.GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, wx.EmptyString ) )

@@ -7,9 +7,6 @@
 ## PLEASE DO *NOT* EDIT THIS FILE!
 ###########################################################################
 
-# NOTE: I have fixed this file manualy
-# TODO: Update grapher.fbp in order to match this 
-
 import wx
 import wx.xrc
 
@@ -240,7 +237,7 @@ class GrapherMainFB ( wx.Frame ):
 		self.m_staticText16 = wx.StaticText( self.panel14, wx.ID_ANY, u"Limits for integration over K:", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText16.Wrap( -1 )
 
-		bSizer13.Add( self.m_staticText16, 0, wx.ALL, 5 )  # |wx.ALIGN_BOTTOM
+		bSizer13.Add( self.m_staticText16, 0, wx.ALL, 5 )
 
 		gSizer4 = wx.GridSizer( 0, 2, 0, 0 )
 

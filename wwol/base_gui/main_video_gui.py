@@ -78,7 +78,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
     .prev_power_spec_path (str)
     .default_scrshot_file_type (int)
     .default_scrshot_dir (str)
-    .default_scrshot_jpeg_quality (int)
+    .default_scrshot_jpeg_quality_s (str)
     .scrshot_tooltip_head (unicode)
     .express_spec_wnd
     .points_dlg (PointsDlg / None)
@@ -122,7 +122,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         self.prev_power_spec_path = ""
         self.default_scrshot_file_type = 0
         self.default_scrshot_dir = ''
-        self.default_scrshot_jpeg_quality = 90
+        self.default_scrshot_jpeg_quality_s = '90'
         self.scrshot_tooltip_head = self.my_toolbar.GetToolShortHelp(
             self.scrshot_tool.GetId())
         self._update_scrshot_tooltip()
@@ -1689,7 +1689,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         
         # расширение файла
         fname1, fname_ext = os.path.splitext(fname)
-        if string.lower(fname_ext) != exts[ft]:
+        if fname_ext.lower() != exts[ft]:
             dlg = wx.MessageDialog(parent_window,
                                    "Change the file's extension into '%s'?"
                                        % exts[ft],
@@ -1703,23 +1703,17 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         # сохраняем
         if ft == JPEG_ID:
             # надо спросить качество
-            q = -1
-            while q < 0:
-                dlg = wx.TextEntryDialog(parent_window,
-                                         "Set quality (0-100):",
-                                         "",
-                                         str(self.default_scrshot_jpeg_quality))
-                rv = dlg.ShowModal()
-                text_value = dlg.GetValue()
-                dlg.Destroy()
-                if rv != wx.ID_OK: return
-                try:
-                    q = int(text_value)
-                except ValueError:
-                    pass
+            dlg = wx.TextEntryDialog(parent_window,
+                                     "Set quality (0-100):",
+                                     "",
+                                     self.default_scrshot_jpeg_quality_s)
+            rv = dlg.ShowModal()
+            text_value = dlg.GetValue()
+            dlg.Destroy()
+            if rv != wx.ID_OK: return
             img = wx.ImageFromBitmap(bmp)
-            img.SetOptionInt(wx.IMAGE_OPTION_QUALITY, q)
-            self.default_scrshot_jpeg_quality = q
+            img.SetOption('quality', text_value)
+            self.default_scrshot_jpeg_quality_s = text_value
             save_ok = img.SaveFile(fname, wx.BITMAP_TYPE_JPEG)
         else:
             save_ok = bmp.SaveFile(fname,

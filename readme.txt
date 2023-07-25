@@ -62,10 +62,7 @@ HOW TO USE:
           https://zenodo.org/record/7942014#.ZGPRYi96Bao
           Alternative link: https://doi.org/10.5281/zenodo.7942013
        Just download everything from the above link to the 'stuff' folder.
-       
-       Finally your tree should look like:
-          build/
-          snippets/
+       Finally, the contenc of stuff folder should look like:
           stuff/
             images2_test/
               00000.bmp
@@ -74,15 +71,6 @@ HOW TO USE:
             GOPR0330.MP4
             freq2.txt
             ...
-          test_configs/
-          wwol/
-            base_gui/
-            engine/
-            ...
-            start.py
-          LICENSE
-          start_wwol.py
-          ...
     
     3) Underlying theory is explained in:
            B. M. Salin & M. B. Salin "Combined Method for Measuring..."
@@ -136,7 +124,7 @@ POSSIBLE ISSUES:
       }
     }
     
-    4) Distortion cameras are not fully supported
+    4) Distortion camera lenses are not fully supported yet
 
 
 QUESTIONS:
