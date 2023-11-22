@@ -44,6 +44,7 @@ def main():
     wwol_globals.main_video_frame.Show(True)
     wwol_globals.app.MainLoop()
 
+init_essentials = sub_start.init_essentials  # preserve old style
 
 if __name__ == '__main__':
     main()

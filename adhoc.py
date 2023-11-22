@@ -5,12 +5,12 @@
 #
 "Место для временных решений."
 
-from wwol import start
+from wwol import sub_start
 from wwol.utils import calibrator
 
 
 def main():
-    start.init_essentials()
+    sub_start.init_essentials()
     
     calibrator.horizontal_lines(output_dir='/mnt/common/bmp_out', num_frames=16,
                                 wavelength=10, move_step=2,
