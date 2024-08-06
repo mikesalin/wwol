@@ -544,10 +544,53 @@ class Processing(Preview):
         logging.debug('size of third_array_fkk is %0.0fM' 
                        % (third_array_fkk.size * 16 * 1e-6))
 
+        esp_t1 = (first_frame_in_pack + self.frame_num_ofs) / (self.fps * 1.0)
+        esp_t2 = esp_t1 + self.pack_len / (self.fps * 1.0)
         if self.output_spec_mode == 0:
-            t1 = (first_frame_in_pack + self.frame_num_ofs) / (self.fps * 1.0)
-            t2 = t1 + self.pack_len / (self.fps * 1.0)
-            self._set_express_spectrum(third_array_fkk, [t1, t2])
+            self._set_express_spectrum(third_array_fkk, [esp_t1, esp_t2])
+
+        # <--- HARCODED FILTER GOES HERE        
+        if True:
+            H_k0 = 25.
+            H_dk = 10.
+            H_fmax = None
+            H_df = 0.5
+
+            # -----
+            hdkx = 2*pi / self.lx
+            hdky = 2*pi / self.ly
+            hNx = third_array_fkk.shape[2]
+            hNx2 = hNx//2
+            hNy = third_array_fkk.shape[1]
+            hNy2 = hNy//2
+            hdf = self.fps / (1.0 * self.pack_len)
+            hNf = third_array_fkk.shape[0]
+            hNf2 = hNf//2 
+
+            hpattern = np.zeros((hNy, hNx))
+            for hny in range(0, hNy):
+                hky = hdky * (hny-hNy2)
+                for hnx in range(0, hNx):
+                    hkx = hdkx * (hnx-hNx2)
+
+                    hk = sqrt(hkx**2 + hky**2)
+                    hpattern[hny, hnx] = exp( -( (hk-H_k0)/H_dk )**2 )
+            
+            hfreqresp = np.ones((third_array_fkk.shape[0],))
+            if H_fmax is not None:
+                for hnf in range(0, third_array_fkk.shape[0]):
+                    hf = hnf * hdf
+                    if hf > H_fmax + H_df/2.:
+                        hfreqresp[hnf] = 0
+                        continue
+                    if (hf> H_fmax - H_df/.2):
+                        hfreqresp[hnf] = (H_fmax + H_df/2 - hf)/H_df
+
+            for hnf in range(0, third_array_fkk.shape[0]):
+                third_array_fkk[hnf, :, :] = third_array_fkk[hnf, :, :] * \
+                    hpattern * hfreqresp[hnf]
+            
+        # ----------------------------->
         
         # <<<< фильтрация 
         # еще будем хранить нефильтрованный массив, чтобы быстро менять параметры 
@@ -555,7 +598,7 @@ class Processing(Preview):
         array33_fkk = None  # array33_fkk создаем, если надо
         
         if self.output_spec_mode == 1:
-            self._set_express_spectrum(third_array_fkk)
+            self._set_express_spectrum(third_array_fkk, [esp_t1, esp_t2])
         if self.output_spec_mode == 2:
             if self.second_filter_enabled:
                 self._set_express_spectrum(array33_fkk)
@@ -563,6 +606,7 @@ class Processing(Preview):
                 self._report_error("You have not configured the second filter."
                                    "Nothing to display.")
                 raise GoToFrameFailed()
+
 
         # ifft:  third_array_fkk -> output1_array_tkk,  
         #        array33_fkk -> output2_array_tkk
