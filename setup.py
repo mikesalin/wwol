@@ -56,3 +56,8 @@ setup(name = 'WWOL',
       **py2exe_setup_kwargs
 )
 
+
+# The `setup.py py2exe` command line interface is deprecated and
+#  will be removed in the next major release.
+# Please adapt your code to use the new `py2exe.freeze` API.
+# https://github.com/py2exe/py2exe/blob/master/docs/py2exe.freeze.md
