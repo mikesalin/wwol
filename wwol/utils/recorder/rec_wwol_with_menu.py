@@ -16,6 +16,7 @@ This python script starts with a text menu in the console.
 The other provided script starts at once.
 """
 
+import sys
 import os
 import glob
 import subprocess
@@ -32,13 +33,20 @@ __year__ = 2023
 platform_specific = {
     'macos':{
         'list_command':'${FFMPEG} -f avfoundation -list_devices true -i ""',
-        'work_command':'${FFMPEG} -f avfoundation -framerate 30 -i "0" -vframes ${LENGTH_IN_FRAMES} -f ${OUT_FORMAT} ${FILENAME}'
+        'work_command':'${FFMPEG} -f avfoundation -framerate 30 -i "0" -vframes ${LENGTH_IN_FRAMES} ${OUT_FORMAT} ${FILENAME}'
     },
     'win':{
-        'list_command':'${FFMPEG} -f dshow -list_devices true -i dummy'
+        'list_command':'${FFMPEG} -f dshow -list_devices true -i dummy',
+        'work_command':'${FFMPEG} -f dshow -r 30 -i video=\"USB Video\" -vframes ${LENGTH_IN_FRAMES} ${OUT_FORMAT} ${FILENAME}'
+    },
+    'unkn':{
+        'list_command':'',
+        'work_command':''
     }
 }
-the_platform = 'macos'
+the_platform = 'unkn'
+if (sys.platform == 'win32'):  the_platform = 'win'
+if (sys.platform == 'darwin'): the_platform = 'macos'
 
 
 def ffmpeg_name():
@@ -80,10 +88,10 @@ def write_default_config():
     defconfig = {
         "ffmpeg":"ffmpeg",
         "command":platform_specific[the_platform]['work_command'],
-        "out_format":"mpeg",
+        "out_format":"-f mpeg -codec:v mpeg2video -qscale:v 2 -codec:a mp2",
         "save_to_dir":"",\
         "filename_pattern":"%Y-%m-%d_%H-%M-%S.mpg",
-        "length_in_frames":10,
+        "length_in_frames":90,
         "period_in_seconds":60,
         "skip_hours_from":21,
         "skip_hours_to":6
@@ -103,7 +111,7 @@ def screenshots():
     except:
         print('ERROR: Cannot load config')
         return
-    ff = ['image2', 'image2']
+    ff = ['-f image2', '-f image2']
     ext= ['.bmp', '.jpg']
     result_names_examples = [ ]
     for turn in range(0,2):

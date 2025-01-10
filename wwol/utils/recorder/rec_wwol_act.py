@@ -71,14 +71,13 @@ def main():
             FILENAME = put_quotes_if_needed(fname),
             OUT_FORMAT = config['out_format'])
         try:
-            subprocess.check_call(command_line, shell=True)
+            subprocess.check_call(command_line, shell=True)            
         except subprocess.CalledProcessError as err:
             print_and_log('ERROR: call failed')
             print_and_log(str(err))
-            #print_and_log('HINT: the command was:')
-            #print_and_log(command_line)
             print_and_log.close()
             return
+        print_and_log('HINT: \n' + command_line)
         print_and_log('Done writing: ' + fname)
 
         now = time.time()
