@@ -17,6 +17,7 @@ wwol/engine/c_part/numpy.i
 wwol/engine/c_part/test_result.bmp
 debug_dump/*
 wwol/utils/recorder/config.json
+wwol/utils/recorder/dist/*
 
 *.suo
 *.user

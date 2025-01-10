@@ -129,7 +129,7 @@ def screenshots():
 
 
 def main():
-    print('VIDEO RECORDING SNIPPET for WWOL ver. ' + __version__)
+    print('VIDEO RECORDING UTILITY for WWOL ver. ' + __version__)
     print('(c) %d Mikhail Salin, contacts: mikesalin@gmail.com' % __year__)
 
     while True:

@@ -10,6 +10,7 @@ PREREQUISITES:
     wxPython
     wxFormBuilder (not needed if you don't edit GUI)
     Json Schema
+    requests
     swig
     py2exe (windows only)
     ffmpeg  (*)
