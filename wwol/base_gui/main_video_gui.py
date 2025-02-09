@@ -259,7 +259,7 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
             message, 100500, allow_multiline = False)
         ww = wx.ClientDC(self).GetPartialTextExtents(U(one_line_msg))
         try:
-            max_width = self.GetSizeTuple()[0] - 150
+            max_width = self.GetSize().GetWidth() - 150
             max_len = ww.index(next(w for w in ww if w > max_width))
         except StopIteration:
             max_len = len(U(one_line_msg))
@@ -364,7 +364,8 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
         bmp = tool.GetNormalBitmap()
         pos = self.my_toolbar.GetToolPos(tid)
         self.my_toolbar.DeleteTool(tid)
-        new_tool = self.my_toolbar.InsertLabelTool(pos, tid, label, bmp)
+        new_tool = self.my_toolbar.InsertTool(pos, tid, bitmap=bmp, label=label)
+#        new_tool = self.my_toolbar.InsertLabelTool(pos, tid, label, bmp)
         self.my_toolbar.Realize()
         return new_tool
     
@@ -1182,8 +1183,8 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
     def _clear_screen(self):
         "Делаем серую картинку"
         for dest in [self.a_bmp, self.b_bmp]:
-            w, h = dest.GetSizeTuple()
-            bmp = wx.EmptyBitmap(w, h)
+            w, h = dest.GetSize().Get()
+            bmp = wx.Bitmap(w, h)
             dc = wx.MemoryDC(bmp)
             dc.SetPen(wx.TRANSPARENT_PEN)
             dc.SetBrush(wx.Brush(
@@ -1711,7 +1712,8 @@ class MainVideoFrame(wxfb_output.MainVideoFrame):
             text_value = dlg.GetValue()
             dlg.Destroy()
             if rv != wx.ID_OK: return
-            img = wx.ImageFromBitmap(bmp)
+            img = bmp.ConvertToImage()
+#            img = wx.ImageFromBitmap(bmp)
             img.SetOption('quality', text_value)
             self.default_scrshot_jpeg_quality_s = text_value
             save_ok = img.SaveFile(fname, wx.BITMAP_TYPE_JPEG)

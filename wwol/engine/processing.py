@@ -237,8 +237,8 @@ class Processing(Preview):
         self.full_size_frame_flt2_yx = np.ndarray((1,1))
         self.full_size_for_frame = -1
         self.full_size_for_zoom = 1.0
-        self.img_ready = wx.EmptyImage()
-        self.img_showing = wx.EmptyImage()
+        self.img_ready = wx.Image()
+        self.img_showing = wx.Image()
         self.img_ready_array_yxc = np.ndarray((1,1,3), dtype=np.uint8)
         self.img_showing_array_yxc = np.ndarray((1,1,3), dtype=np.uint8)
             # полноценно иницилизируется в _update_right_view_act
@@ -926,7 +926,7 @@ class Processing(Preview):
 
         self.view_param_lock.acquire()
         self.b_panel = copy.deepcopy(self.main_video_frame.b_panel)
-        self.b_panel.size = self.main_video_frame.b_bmp.GetSizeTuple()
+        self.b_panel.size = self.main_video_frame.b_bmp.GetSize().Get()
         
         config = self.main_video_frame.config
         self.render_mode = config.render_mode

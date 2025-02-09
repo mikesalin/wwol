@@ -231,7 +231,7 @@ class Preview:
         """
         self.view_param_lock.acquire()
         self.a_panel = copy.deepcopy(self.main_video_frame.a_panel)
-        self.a_panel.size = self.main_video_frame.a_bmp.GetSizeTuple()
+        self.a_panel.size = self.main_video_frame.a_bmp.GetSize().Get()
         self.sel_data = copy.deepcopy(self.main_video_frame.sel_data)
         self.view_param_lock.release()
     
