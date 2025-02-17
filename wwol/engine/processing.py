@@ -128,7 +128,8 @@ class Processing(Preview):
     .img_showing_array_yxc (nd.array)
     .img_showing_lock
     .render_mode: копия из config, кт. поддержуватся актуальной в _take_view_param
-                  защишено view_param_lock
+                  защишено view_param_lock (deprecated)
+    .filtered_over_unfiltered_stuff
     .filter1_color_lim
     .auto_color_lim
     .psd_norm  (float)        доступен в RUNNING_STAT
@@ -220,7 +221,6 @@ class Processing(Preview):
         self.fps = config.fps
         self.frames_count = config.frames_count
         
-        self.second_filter_enabled = False
         self.preproc_pack1_flt1_tkk = np.ndarray((1,1,1), dtype=np.complex128)
         self.preproc_pack1_flt2_tkk = np.ndarray((1,1,1), dtype=np.complex128)
         self.preproc_pack2_flt1_tkk = np.ndarray((1,1,1), dtype=np.complex128)
@@ -252,6 +252,7 @@ class Processing(Preview):
         self.render_mode = 'filter1'
         self.filter1_color_lim = (-1.0, 1.0)
         self.auto_color_lim = False
+        self.filtered_over_unfiltered_stuff = False
         
         self.psd_norm = 1
         self.movie_norm = 1
@@ -369,7 +370,7 @@ class Processing(Preview):
                         self.preproc_pack1_flt1_tkk = np.zeros(
                             shape = self.preproc_pack2_flt1_tkk.shape,
                             dtype = np.complex128)
-                        if self.second_filter_enabled:
+                        if self.filtered_over_unfiltered_stuff:
                             self.preproc_pack1_flt2_tkk = np.zeros(
                                 shape = self.preproc_pack2_flt2_tkk.shape,
                                 dtype = np.complex128)
@@ -378,7 +379,7 @@ class Processing(Preview):
                         self.preproc_pack2_flt1_tkk = np.zeros(
                             shape = self.preproc_pack1_flt1_tkk.shape,
                             dtype = np.complex128)
-                        if self.second_filter_enabled:
+                        if self.filtered_over_unfiltered_stuff:
                             self.preproc_pack2_flt2_tkk = np.zeros(
                                 shape = self.preproc_pack1_flt2_tkk.shape,
                                 dtype = np.complex128)
@@ -548,9 +549,15 @@ class Processing(Preview):
         esp_t2 = esp_t1 + self.pack_len / (self.fps * 1.0)
         if self.output_spec_mode == 0:
             self._set_express_spectrum(third_array_fkk, [esp_t1, esp_t2])
+        array33_fkk = None  # здесь будет неизмененная копия массива данных, еслии требуется
 
         # <--- HARCODED FILTER GOES HERE        
         if True:
+            array33_fkk = np.copy(third_array_fkk);
+            # third_array_fkk is chenged in place
+            self.filtered_over_unfiltered_stuff = True  # True|False
+            # -----
+            
             H_k0 = 25.
             H_dk = 10.
             H_fmax = None
@@ -597,23 +604,15 @@ class Processing(Preview):
         # фильтра и сразу видеть результат в ГУИ
         array33_fkk = None  # array33_fkk создаем, если надо
         
-        if self.output_spec_mode == 1:
+        if self.output_spec_mode > 1:
             self._set_express_spectrum(third_array_fkk, [esp_t1, esp_t2])
-        if self.output_spec_mode == 2:
-            if self.second_filter_enabled:
-                self._set_express_spectrum(array33_fkk)
-            else:
-                self._report_error("You have not configured the second filter."
-                                   "Nothing to display.")
-                raise GoToFrameFailed()
-
 
         # ifft:  third_array_fkk -> output1_array_tkk,  
         #        array33_fkk -> output2_array_tkk
         shp = third_array_fkk.shape
         ifft_in_expand = np.ndarray((shp[0] * 2 - 2, shp[1], shp[2]),
                                         dtype = np.complex128)
-        pipelines_count = [1, 2][self.second_filter_enabled]
+        pipelines_count = [1, 2][self.filtered_over_unfiltered_stuff]  #[self.second_filter_enabled]
         output1_array_tkk = None 
         output2_array_tkk = None
         for npipeline in range(0, pipelines_count):
@@ -704,7 +703,7 @@ class Processing(Preview):
             range_kx = min(w, spec_shape[2]) // 2
             zero_kx_src = spec_shape[2] // 2
             zero_ky_src = spec_shape[1] // 2
-            pipelines_count = [1,2][self.second_filter_enabled]
+            pipelines_count = [1,2][self.filtered_over_unfiltered_stuff]
             for npipeline in range(0, pipelines_count):
                 nt = cur_frame_num - self.start_of_preproc_pack1
                 nt = int(nt) # <--- BUG
@@ -838,7 +837,8 @@ class Processing(Preview):
                                                pos_x : (pos_x + crop_size_x),
                                                :]
             
-            if render_mode == "filter1":
+#            if render_mode == "filter1":
+            if not self.filtered_over_unfiltered_stuff:
                 # простейшее отображение (и пока реализовано только оно)
                 if auto_color_lim:
                     m = auto_m
@@ -863,19 +863,24 @@ class Processing(Preview):
                     dst_yxc[ny, nnn, 0] = 255
                 dst_yxc[:, :, 1] = dst_yxc[:, :, 0]
                 dst_yxc[:, :, 2] = dst_yxc[:, :, 0]
-                data1_painted = True
                 
-        # подпись
-        nice_format = lambda lim1, lim2: ['%e', '%0.3f'] [
-            max(abs(lim1), abs(lim2)) > 1e-3 ]
-        self.img_ready_footer_text += (" | colorbar min,max: "
-            + nice_format(m, M) + "," + nice_format(m,M) ) % (m, M)
-        if data1_painted:
-            self.img_ready_footer_text += (" | data1 min,max: " 
-                + nice_format(auto_m, auto_M) + "," + nice_format(auto_m, auto_M)
-                ) % (auto_m, auto_M)
+                # подпись
+                nice_format = lambda lim1, lim2: ['%e', '%0.3f'] [
+                    max(abs(lim1), abs(lim2)) > 1e-3 ]
+                self.img_ready_footer_text += (" | colorbar min,max: "
+                    + nice_format(m, M) + "," + nice_format(m,M) ) % (m, M)
+                self.img_ready_footer_text += (" | data1 min,max: " 
+                    + nice_format(auto_m, auto_M) + "," + nice_format(auto_m, auto_M)
+                    ) % (auto_m, auto_M)
 
-        # self.ouput_scale_formula
+            else:     # --- двойная картинка: ---
+                # в self.full_size_frame_flt1_yx фильтрованное
+                # в self.full_size_frame_flt2_yx нефильтрованное
+                pass
+                
+                
+                
+        # self.ouput_scale_formula  (где-то в ней кроется ошибка...)
         px = -b_panel.pos[0] + w/2
         qx = w * 1.0 / self.lx
         py = -b_panel.pos[1] + h/2
